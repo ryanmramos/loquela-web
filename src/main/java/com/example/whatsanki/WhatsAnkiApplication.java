@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class WhatsAnkiApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(WhatsAnkiApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(WhatsAnkiApplication.class, args);
+    }
 
 }
