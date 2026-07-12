@@ -1,6 +1,6 @@
 package com.example.whatsanki.service.impl;
 
-import com.example.whatsanki.dto.TwilioConfigurationDto;
+import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.TwilioSignatureService;
 import com.twilio.security.RequestValidator;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +16,7 @@ import java.util.Map;
 @Slf4j
 public class TwilioSignatureServiceImpl implements TwilioSignatureService {
 
-    private final TwilioConfigurationDto configuration;
+    private final WhatsAnkiConfigurationDto configuration;
 
     @Override
     public boolean isValid(HttpServletRequest request, String signature) {
@@ -38,7 +38,7 @@ public class TwilioSignatureServiceImpl implements TwilioSignatureService {
     }
 
     private String externalRequestUrl(HttpServletRequest request) {
-        String base = configuration.getPublicBaseUrl().replaceFirst("/$", "");
+        String base = configuration.getPublicBaseUrl().toString().replaceFirst("/$", "");
         StringBuilder url = new StringBuilder(base).append(request.getRequestURI());
         if (request.getQueryString() != null && !request.getQueryString().isBlank()) {
             url.append('?').append(request.getQueryString());

@@ -1,6 +1,6 @@
 package com.example.whatsanki.service.impl;
 
-import com.example.whatsanki.dto.TwilioConfigurationDto;
+import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -23,8 +23,8 @@ class TwilioSignatureServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        TwilioConfigurationDto configuration = new TwilioConfigurationDto();
-        configuration.setPublicBaseUrl(PUBLIC_URL);
+        WhatsAnkiConfigurationDto configuration = new WhatsAnkiConfigurationDto();
+        configuration.setPublicBaseUrl(java.net.URI.create(PUBLIC_URL));
         configuration.getTwilio().setAuthToken(AUTH_TOKEN);
         service = new TwilioSignatureServiceImpl(configuration);
     }
@@ -55,8 +55,8 @@ class TwilioSignatureServiceImplTest {
 
     @Test
     void rejectsAllRequestsWhenAuthTokenIsMissing() {
-        TwilioConfigurationDto configuration = new TwilioConfigurationDto();
-        configuration.setPublicBaseUrl(PUBLIC_URL);
+        WhatsAnkiConfigurationDto configuration = new WhatsAnkiConfigurationDto();
+        configuration.setPublicBaseUrl(java.net.URI.create(PUBLIC_URL));
         service = new TwilioSignatureServiceImpl(configuration);
 
         assertThat(service.isValid(helpRequest(), "anything")).isFalse();

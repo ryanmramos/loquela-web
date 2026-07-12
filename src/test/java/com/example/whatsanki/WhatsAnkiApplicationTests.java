@@ -1,10 +1,9 @@
 package com.example.whatsanki;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 
-@SpringBootTest
-class WhatsAnkiApplicationTests {
+class WhatsAnkiApplicationTests extends PostgreSqlIntegrationTest {
 
     @Test
     void contextLoads() {

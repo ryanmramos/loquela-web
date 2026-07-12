@@ -1,0 +1,64 @@
+package com.example.whatsanki.domain;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "app_user")
+@Getter
+@Setter
+@NoArgsConstructor
+public class AppUserEntity {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "whatsapp_address_hash", nullable = false, unique = true)
+    private byte[] whatsappAddressHash;
+
+    @Column(name = "whatsapp_address_ciphertext", nullable = false)
+    private byte[] whatsappAddressCiphertext;
+
+    @Column(name = "source_language", nullable = false, length = 35)
+    private String sourceLanguage;
+
+    @Column(name = "definition_language", nullable = false, length = 35)
+    private String definitionLanguage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 24)
+    private Status status;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    void prePersist() {
+        Instant now = Instant.now();
+        id = id == null ? UUID.randomUUID() : id;
+        createdAt = createdAt == null ? now : createdAt;
+        updatedAt = updatedAt == null ? now : updatedAt;
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = Instant.now();
+    }
+
+    public enum Status { ACTIVE, DISABLED, DELETING }
+}
