@@ -2,10 +2,12 @@ package com.example.whatsanki.service.impl;
 
 import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.domain.UserId;
+import com.example.whatsanki.dto.ParsedTwilioCommandDto;
 import com.example.whatsanki.dto.TwilioWebhookRequestDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.InboundMessageRepository;
+import com.example.whatsanki.service.TwilioCommandParser;
 import com.example.whatsanki.service.TwilioCommandService;
 import com.example.whatsanki.service.UserIdentityService;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +37,9 @@ class TwilioWebhookServiceImplTest {
     private UserIdentityService userIdentityService;
 
     @Mock
+    private TwilioCommandParser twilioCommandParser;
+
+    @Mock
     private TwilioCommandService twilioCommandService;
 
     private TwilioWebhookServiceImpl service;
@@ -44,6 +49,7 @@ class TwilioWebhookServiceImplTest {
         service = new TwilioWebhookServiceImpl(
                 inboundMessageRepository,
                 userIdentityService,
+                twilioCommandParser,
                 twilioCommandService,
                 new WhatsAnkiConfigurationDto()
         );
@@ -59,7 +65,7 @@ class TwilioWebhookServiceImplTest {
 
         assertThat(response.reply()).isEqualTo(TwilioWebhookServiceImpl.DUPLICATE_MESSAGE_RESPONSE);
         verify(userIdentityService, never()).resolveOrCreate(any());
-        verify(twilioCommandService, never()).classify(any());
+        verify(twilioCommandParser, never()).parse(any());
         verify(twilioCommandService, never()).handle(any());
     }
 
@@ -67,31 +73,33 @@ class TwilioWebhookServiceImplTest {
     void resolvesUserRecordsMessageAndHandlesCommand() {
         TwilioWebhookRequestDto request = request();
         UserId userId = UserId.random();
+        ParsedTwilioCommandDto command = command(InboundMessageEntity.CommandType.HELP);
         TwilioWebhookResponseDto expected = new TwilioWebhookResponseDto("help response");
         when(inboundMessageRepository.findByTwilioMessageSid(request.getMessageSid()))
                 .thenReturn(Optional.empty());
         when(userIdentityService.resolveOrCreate(request.getFrom())).thenReturn(userId);
-        when(twilioCommandService.classify(request)).thenReturn(InboundMessageEntity.CommandType.HELP);
+        when(twilioCommandParser.parse(request)).thenReturn(command);
         when(inboundMessageRepository.insertIfAbsent(
                 any(UUID.class), eq(request.getMessageSid()), eq(userId.value()), eq("HELP"),
                 any(Instant.class), any(Instant.class)
         )).thenReturn(1);
-        when(twilioCommandService.handle(request)).thenReturn(expected);
+        when(twilioCommandService.handle(command)).thenReturn(expected);
 
         TwilioWebhookResponseDto response = service.handle(request);
 
         assertThat(response).isSameAs(expected);
-        verify(twilioCommandService).handle(request);
+        verify(twilioCommandService).handle(command);
     }
 
     @Test
     void doesNotHandleCommandWhenConcurrentRequestWinsSidInsert() {
         TwilioWebhookRequestDto request = request();
         UserId userId = UserId.random();
+        ParsedTwilioCommandDto command = command(InboundMessageEntity.CommandType.HELP);
         when(inboundMessageRepository.findByTwilioMessageSid(request.getMessageSid()))
                 .thenReturn(Optional.empty());
         when(userIdentityService.resolveOrCreate(request.getFrom())).thenReturn(userId);
-        when(twilioCommandService.classify(request)).thenReturn(InboundMessageEntity.CommandType.HELP);
+        when(twilioCommandParser.parse(request)).thenReturn(command);
         when(inboundMessageRepository.insertIfAbsent(
                 any(UUID.class), eq(request.getMessageSid()), eq(userId.value()), eq("HELP"),
                 any(Instant.class), any(Instant.class)
@@ -101,6 +109,10 @@ class TwilioWebhookServiceImplTest {
 
         assertThat(response.reply()).isEqualTo(TwilioWebhookServiceImpl.DUPLICATE_MESSAGE_RESPONSE);
         verify(twilioCommandService, never()).handle(any());
+    }
+
+    private ParsedTwilioCommandDto command(InboundMessageEntity.CommandType type) {
+        return new ParsedTwilioCommandDto(type, null, null, null, null);
     }
 
     private TwilioWebhookRequestDto request() {

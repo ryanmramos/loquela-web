@@ -98,6 +98,35 @@ class TwilioWhatsAppWebhookControllerTest {
     }
 
     @Test
+    void bindsTwilioIndexedMediaFields() throws Exception {
+        when(twilioSignatureService.isValid(any(HttpServletRequest.class), eq("valid-signature")))
+                .thenReturn(true);
+        when(twilioWebhookService.handle(any(TwilioWebhookRequestDto.class)))
+                .thenReturn(new TwilioWebhookResponseDto("document received"));
+        when(twiMLService.message("document received"))
+                .thenReturn("<Response><Message>document received</Message></Response>");
+
+        mockMvc.perform(post("/webhooks/twilio/whatsapp")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .header("X-Twilio-Signature", "valid-signature")
+                        .param("MessageSid", "SM124")
+                        .param("From", "whatsapp:+15550000001")
+                        .param("To", "whatsapp:+15550000002")
+                        .param("Body", "Chapter one")
+                        .param("NumMedia", "1")
+                        .param("MediaUrl0", "https://api.twilio.com/media/ME123")
+                        .param("MediaContentType0", "application/pdf"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<TwilioWebhookRequestDto> requestCaptor =
+                ArgumentCaptor.forClass(TwilioWebhookRequestDto.class);
+        verify(twilioWebhookService).handle(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().firstMediaUrl())
+                .isEqualTo("https://api.twilio.com/media/ME123");
+        assertThat(requestCaptor.getValue().firstMediaContentType()).isEqualTo("application/pdf");
+    }
+
+    @Test
     void rejectsWebhookMissingRequiredFields() throws Exception {
         mockMvc.perform(post("/webhooks/twilio/whatsapp")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)

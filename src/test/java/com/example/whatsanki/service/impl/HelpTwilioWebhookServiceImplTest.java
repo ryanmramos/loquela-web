@@ -1,7 +1,7 @@
 package com.example.whatsanki.service.impl;
 
 import com.example.whatsanki.domain.InboundMessageEntity;
-import com.example.whatsanki.dto.TwilioWebhookRequestDto;
+import com.example.whatsanki.dto.ParsedTwilioCommandDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,11 +17,10 @@ class HelpTwilioWebhookServiceImplTest {
     }
 
     @Test
-    void returnsHelpForCaseInsensitiveCommandWithWhitespace() {
-        TwilioWebhookRequestDto request = requestWithBody("  help  ");
+    void returnsHelpForParsedHelpCommand() {
+        ParsedTwilioCommandDto command = command(InboundMessageEntity.CommandType.HELP, null);
 
-        assertThat(service.classify(request)).isEqualTo(InboundMessageEntity.CommandType.HELP);
-        String reply = service.handle(request).reply();
+        String reply = service.handle(command).reply();
 
         assertThat(reply)
                 .startsWith("WhatsAnki commands:")
@@ -34,27 +33,28 @@ class HelpTwilioWebhookServiceImplTest {
 
     @Test
     void returnsGuidanceForUnknownCommand() {
-        TwilioWebhookRequestDto request = requestWithBody("something else");
+        ParsedTwilioCommandDto command = command(InboundMessageEntity.CommandType.UNKNOWN, null);
 
-        assertThat(service.classify(request)).isEqualTo(InboundMessageEntity.CommandType.UNKNOWN);
-        assertThat(service.handle(request).reply())
+        assertThat(service.handle(command).reply())
                 .isEqualTo(HelpTwilioWebhookServiceImpl.UNKNOWN_COMMAND_RESPONSE);
     }
 
     @Test
-    void returnsGuidanceForMissingBody() {
-        TwilioWebhookRequestDto request = requestWithBody(null);
+    void returnsValidationMessageWithoutHandlingInvalidCommand() {
+        ParsedTwilioCommandDto command = command(InboundMessageEntity.CommandType.ADD, "ADD requires text.");
 
-        assertThat(service.handle(request).reply())
-                .isEqualTo(HelpTwilioWebhookServiceImpl.UNKNOWN_COMMAND_RESPONSE);
+        assertThat(service.handle(command).reply()).isEqualTo("ADD requires text.");
     }
 
-    private TwilioWebhookRequestDto requestWithBody(String body) {
-        TwilioWebhookRequestDto request = new TwilioWebhookRequestDto();
-        request.setMessageSid("SM123");
-        request.setFrom("whatsapp:+15550000001");
-        request.setTo("whatsapp:+15550000002");
-        request.setBody(body);
-        return request;
+    @Test
+    void returnsMilestoneMessageForRecognizedUnsupportedCommand() {
+        ParsedTwilioCommandDto command = command(InboundMessageEntity.CommandType.LOOKUP, null);
+
+        assertThat(service.handle(command).reply())
+                .isEqualTo(HelpTwilioWebhookServiceImpl.NOT_IMPLEMENTED_RESPONSE);
+    }
+
+    private ParsedTwilioCommandDto command(InboundMessageEntity.CommandType type, String validationError) {
+        return new ParsedTwilioCommandDto(type, null, null, null, validationError);
     }
 }
