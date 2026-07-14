@@ -55,6 +55,26 @@ class RepositoryIsolationIntegrationTest extends PostgreSqlIntegrationTest {
 
     @Test
     @Transactional
+    void insertsWhatsAppIdentityOnlyOnceWhenHashConflicts() {
+        byte[] hash = "upsert-hash".getBytes(StandardCharsets.UTF_8);
+        Instant now = Instant.now();
+
+        int firstInsert = appUserRepository.insertIfAbsent(
+                UUID.randomUUID(), hash, "ciphertext-1".getBytes(StandardCharsets.UTF_8),
+                "es", "en", now
+        );
+        int duplicateInsert = appUserRepository.insertIfAbsent(
+                UUID.randomUUID(), hash, "ciphertext-2".getBytes(StandardCharsets.UTF_8),
+                "es", "en", now
+        );
+
+        assertThat(firstInsert).isEqualTo(1);
+        assertThat(duplicateInsert).isZero();
+        assertThat(appUserRepository.findByWhatsappAddressHash(hash)).isPresent();
+    }
+
+    @Test
+    @Transactional
     void rejectsDuplicateTwilioMessageSid() {
         AppUserEntity user = appUserRepository.saveAndFlush(user("message-owner"));
         inboundMessageRepository.save(message(user.getId(), "SM00000000000000000000000000000001"));
@@ -62,6 +82,25 @@ class RepositoryIsolationIntegrationTest extends PostgreSqlIntegrationTest {
 
         inboundMessageRepository.save(message(user.getId(), "SM00000000000000000000000000000001"));
         assertThatThrownBy(entityManager::flush).isInstanceOf(PersistenceException.class);
+    }
+
+    @Test
+    @Transactional
+    void insertsInboundMessageOnlyOnceWhenSidConflicts() {
+        AppUserEntity user = appUserRepository.saveAndFlush(user("idempotent-message-owner"));
+        String messageSid = "SM00000000000000000000000000000002";
+        Instant receivedAt = Instant.now();
+
+        int firstInsert = inboundMessageRepository.insertIfAbsent(
+                UUID.randomUUID(), messageSid, user.getId(), "HELP", receivedAt, receivedAt.plusSeconds(60)
+        );
+        int duplicateInsert = inboundMessageRepository.insertIfAbsent(
+                UUID.randomUUID(), messageSid, user.getId(), "HELP", receivedAt, receivedAt.plusSeconds(60)
+        );
+
+        assertThat(firstInsert).isEqualTo(1);
+        assertThat(duplicateInsert).isZero();
+        assertThat(inboundMessageRepository.findByTwilioMessageSid(messageSid)).isPresent();
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.example.whatsanki.service.impl;
 
+import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.dto.TwilioWebhookRequestDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ class HelpTwilioWebhookServiceImplTest {
     void returnsHelpForCaseInsensitiveCommandWithWhitespace() {
         TwilioWebhookRequestDto request = requestWithBody("  help  ");
 
+        assertThat(service.classify(request)).isEqualTo(InboundMessageEntity.CommandType.HELP);
         String reply = service.handle(request).reply();
 
         assertThat(reply)
@@ -34,6 +36,7 @@ class HelpTwilioWebhookServiceImplTest {
     void returnsGuidanceForUnknownCommand() {
         TwilioWebhookRequestDto request = requestWithBody("something else");
 
+        assertThat(service.classify(request)).isEqualTo(InboundMessageEntity.CommandType.UNKNOWN);
         assertThat(service.handle(request).reply())
                 .isEqualTo(HelpTwilioWebhookServiceImpl.UNKNOWN_COMMAND_RESPONSE);
     }

@@ -8,11 +8,16 @@ import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.service.IdentityProtectionService;
 import com.example.whatsanki.service.UserIdentityService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserIdentityServiceImpl implements UserIdentityService {
     private final AppUserRepository appUserRepository;
     private final IdentityProtectionService identityProtectionService;
@@ -21,20 +26,41 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     @Override
     @Transactional
     public UserId resolveOrCreate(String rawWhatsAppAddress) {
+        // Canonicalization happens before hashing so equivalent sender values always
+        // resolve to the same deterministic database identity.
         WhatsAppAddress address = new WhatsAppAddress(rawWhatsAppAddress);
         byte[] addressHash = identityProtectionService.hash(address);
         return appUserRepository.findByWhatsappAddressHash(addressHash)
-                .map(user -> new UserId(user.getId()))
+                .map(user -> resolved(user.getId(), false))
                 .orElseGet(() -> create(address, addressHash));
     }
 
     private UserId create(WhatsAppAddress address, byte[] addressHash) {
-        AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(addressHash);
-        user.setWhatsappAddressCiphertext(identityProtectionService.encrypt(address));
-        user.setSourceLanguage(configuration.getLanguages().getDefaultSource());
-        user.setDefinitionLanguage(configuration.getLanguages().getDefaultDefinition());
-        user.setStatus(AppUserEntity.Status.ACTIVE);
-        return new UserId(appUserRepository.saveAndFlush(user).getId());
+        UUID candidateId = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        // The upsert makes simultaneous first messages from one sender safe. Only one
+        // candidate wins; every competing transaction then resolves the persisted row.
+        int inserted = appUserRepository.insertIfAbsent(
+                candidateId,
+                addressHash,
+                identityProtectionService.encrypt(address),
+                configuration.getLanguages().getDefaultSource(),
+                configuration.getLanguages().getDefaultDefinition(),
+                now
+        );
+        if (inserted == 1) {
+            return resolved(candidateId, true);
+        }
+
+        UUID existingId = appUserRepository.findByWhatsappAddressHash(addressHash)
+                .map(AppUserEntity::getId)
+                .orElseThrow(() -> new IllegalStateException("User identity conflict could not be resolved"));
+        return resolved(existingId, false);
+    }
+
+    private UserId resolved(UUID id, boolean created) {
+        log.info("WhatsApp user identity resolved userId={} created={}", id, created);
+        return new UserId(id);
     }
 }
