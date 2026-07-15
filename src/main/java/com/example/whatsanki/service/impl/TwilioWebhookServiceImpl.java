@@ -2,6 +2,7 @@ package com.example.whatsanki.service.impl;
 
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ParsedTwilioCommandDto;
+import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.dto.TwilioWebhookRequestDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
@@ -66,7 +67,7 @@ public class TwilioWebhookServiceImpl implements TwilioWebhookService {
                 command.commandType(),
                 command.hasMedia()
         );
-        return twilioCommandService.handle(command);
+        return twilioCommandService.handle(new TwilioCommandContextDto(userId, command));
     }
 
     private TwilioWebhookResponseDto duplicateResponse() {

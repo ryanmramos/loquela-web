@@ -25,20 +25,46 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 public class BackgroundJobEntity {
-    @Id private UUID id;
-    @Column(name = "user_id") private UUID userId;
-    @Enumerated(EnumType.STRING) @Column(nullable = false, length = 64) private Type type;
-    @Enumerated(EnumType.STRING) @Column(nullable = false, length = 24) private State state;
+    @Id
+    private UUID id;
+
+    @Column(name = "user_id")
+    private UUID userId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 64)
+    private Type type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 24)
+    private State state;
+
     @JdbcTypeCode(SqlTypes.JSON) @Column(nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> payload = new LinkedHashMap<>();
-    @Column(nullable = false) private int attempts;
-    @Column(name = "max_attempts", nullable = false) private int maxAttempts;
-    @Column(name = "run_after", nullable = false) private Instant runAfter;
-    @Column(name = "lease_owner", length = 128) private String leaseOwner;
-    @Column(name = "lease_expires_at") private Instant leaseExpiresAt;
-    @Column(name = "last_error_code", length = 64) private String lastErrorCode;
-    @Column(name = "created_at", nullable = false) private Instant createdAt;
-    @Column(name = "updated_at", nullable = false) private Instant updatedAt;
+
+    @Column(nullable = false)
+    private int attempts;
+
+    @Column(name = "max_attempts", nullable = false)
+    private int maxAttempts;
+
+    @Column(name = "run_after", nullable = false)
+    private Instant runAfter;
+
+    @Column(name = "lease_owner", length = 128)
+    private String leaseOwner;
+
+    @Column(name = "lease_expires_at")
+    private Instant leaseExpiresAt;
+
+    @Column(name = "last_error_code", length = 64)
+    private String lastErrorCode;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 
     @PrePersist
     void prePersist() {
@@ -49,8 +75,26 @@ public class BackgroundJobEntity {
         createdAt = createdAt == null ? now : createdAt;
         updatedAt = updatedAt == null ? now : updatedAt;
     }
-    @PreUpdate void preUpdate() { updatedAt = Instant.now(); }
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = Instant.now();
+    }
 
     public enum Type { FETCH_MEDIA, INGEST_TEXT, LOOKUP, EXPORT_DECK, DELETE_SOURCE, DELETE_USER_DATA }
-    public enum State { QUEUED, RUNNING, RETRY_WAIT, SUCCEEDED, DEAD, CANCELLED }
+
+    public enum State {
+        QUEUED, RUNNING, RETRY_WAIT, SUCCEEDED, DEAD, CANCELLED;
+
+        public boolean canTransitionTo(State target) {
+            return switch (this) {
+                case QUEUED -> target == RUNNING || target == CANCELLED;
+                case RUNNING -> target == SUCCEEDED
+                        || target == RETRY_WAIT
+                        || target == DEAD
+                        || target == QUEUED;
+                case RETRY_WAIT -> target == RUNNING || target == CANCELLED;
+                case SUCCEEDED, DEAD, CANCELLED -> false;
+            };
+        }
+    }
 }

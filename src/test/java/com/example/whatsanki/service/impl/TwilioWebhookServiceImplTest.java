@@ -3,6 +3,7 @@ package com.example.whatsanki.service.impl;
 import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ParsedTwilioCommandDto;
+import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.dto.TwilioWebhookRequestDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
@@ -83,12 +84,15 @@ class TwilioWebhookServiceImplTest {
                 any(UUID.class), eq(request.getMessageSid()), eq(userId.value()), eq("HELP"),
                 any(Instant.class), any(Instant.class)
         )).thenReturn(1);
-        when(twilioCommandService.handle(command)).thenReturn(expected);
+        when(twilioCommandService.handle(any(TwilioCommandContextDto.class))).thenReturn(expected);
 
         TwilioWebhookResponseDto response = service.handle(request);
 
         assertThat(response).isSameAs(expected);
-        verify(twilioCommandService).handle(command);
+        var contextCaptor = org.mockito.ArgumentCaptor.forClass(TwilioCommandContextDto.class);
+        verify(twilioCommandService).handle(contextCaptor.capture());
+        assertThat(contextCaptor.getValue().userId()).isEqualTo(userId);
+        assertThat(contextCaptor.getValue().command()).isSameAs(command);
     }
 
     @Test

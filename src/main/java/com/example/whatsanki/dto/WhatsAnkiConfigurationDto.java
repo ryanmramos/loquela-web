@@ -87,11 +87,28 @@ public class WhatsAnkiConfigurationDto {
     @Getter
     @Setter
     public static class Jobs {
+        private boolean enabled = true;
+
         @NotNull
         private Duration pollInterval = Duration.ofSeconds(1);
 
         @NotNull
         private Duration leaseDuration = Duration.ofMinutes(5);
+
+        @Positive
+        private int batchSize = 10;
+
+        @Positive
+        private int defaultMaxAttempts = 3;
+
+        @Positive
+        private int maxPayloadBytes = 4_096;
+
+        @NotNull
+        private Duration retryBaseDelay = Duration.ofSeconds(5);
+
+        @NotNull
+        private Duration retryMaxDelay = Duration.ofMinutes(15);
     }
 
     @Getter
