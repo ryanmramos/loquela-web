@@ -2,6 +2,7 @@ package com.example.whatsanki.service.impl;
 
 import com.example.whatsanki.domain.BackgroundJobEntity;
 import com.example.whatsanki.domain.InboundMessageEntity;
+import com.example.whatsanki.domain.InboundMessageId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.BackgroundJobStatusDto;
 import com.example.whatsanki.dto.ParsedTwilioCommandDto;
@@ -77,6 +78,7 @@ class StatusTwilioCommandHandlerTest {
     private TwilioCommandContextDto context() {
         return new TwilioCommandContextDto(
                 UserId.random(),
+                InboundMessageId.random(),
                 new ParsedTwilioCommandDto(
                         InboundMessageEntity.CommandType.STATUS,
                         null,

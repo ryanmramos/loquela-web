@@ -27,6 +27,7 @@ import java.util.UUID;
 public class SourceDocumentEntity {
     @Id private UUID id;
     @Column(name = "user_id", nullable = false) private UUID userId;
+    @Column(name = "inbound_message_id") private UUID inboundMessageId;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 32) private Kind kind;
     @Column(name = "display_name", nullable = false, length = 512) private String displayName;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 24) private Status status;

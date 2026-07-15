@@ -1,5 +1,6 @@
 package com.example.whatsanki.service.impl;
 
+import com.example.whatsanki.domain.InboundMessageId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ParsedTwilioCommandDto;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -46,9 +46,10 @@ public class TwilioWebhookServiceImpl implements TwilioWebhookService {
         ParsedTwilioCommandDto command = twilioCommandParser.parse(request);
         Instant receivedAt = Instant.now();
         Instant purgeAfter = receivedAt.plus(configuration.getRetention().getInboundBody());
+        InboundMessageId inboundMessageId = InboundMessageId.random();
 
         int inserted = inboundMessageRepository.insertIfAbsent(
-                UUID.randomUUID(),
+                inboundMessageId.value(),
                 request.getMessageSid(),
                 userId.value(),
                 command.commandType().name(),
@@ -67,7 +68,7 @@ public class TwilioWebhookServiceImpl implements TwilioWebhookService {
                 command.commandType(),
                 command.hasMedia()
         );
-        return twilioCommandService.handle(new TwilioCommandContextDto(userId, command));
+        return twilioCommandService.handle(new TwilioCommandContextDto(userId, inboundMessageId, command));
     }
 
     private TwilioWebhookResponseDto duplicateResponse() {

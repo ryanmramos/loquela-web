@@ -80,6 +80,15 @@ public class WhatsAnkiConfigurationDto {
         @Positive
         private int maxEpubEntries = 10_000;
 
+        @Positive
+        private int maxPassageCharacters = 1_200;
+
+        @Positive
+        private int maxPassageTokens = 250;
+
+        @Positive
+        private int maxPassageSentences = 3;
+
         @NotNull
         private Duration extractionTimeout = Duration.ofMinutes(1);
     }

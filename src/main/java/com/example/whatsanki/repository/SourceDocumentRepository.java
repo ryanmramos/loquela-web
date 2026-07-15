@@ -10,6 +10,7 @@ import java.util.UUID;
 public interface SourceDocumentRepository extends Repository<SourceDocumentEntity, UUID> {
     SourceDocumentEntity save(SourceDocumentEntity source);
     Optional<SourceDocumentEntity> findByIdAndUserId(UUID id, UUID userId);
+    Optional<SourceDocumentEntity> findByUserIdAndInboundMessageId(UUID userId, UUID inboundMessageId);
     List<SourceDocumentEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
     long deleteByIdAndUserId(UUID id, UUID userId);
 }

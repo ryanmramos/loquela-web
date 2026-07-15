@@ -14,6 +14,7 @@ import com.example.whatsanki.service.UserIdentityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -89,9 +90,17 @@ class TwilioWebhookServiceImplTest {
         TwilioWebhookResponseDto response = service.handle(request);
 
         assertThat(response).isSameAs(expected);
-        var contextCaptor = org.mockito.ArgumentCaptor.forClass(TwilioCommandContextDto.class);
+        ArgumentCaptor<UUID> inboundMessageIdCaptor = ArgumentCaptor.forClass(UUID.class);
+        verify(inboundMessageRepository).insertIfAbsent(
+                inboundMessageIdCaptor.capture(), eq(request.getMessageSid()), eq(userId.value()), eq("HELP"),
+                any(Instant.class), any(Instant.class)
+        );
+        ArgumentCaptor<TwilioCommandContextDto> contextCaptor =
+                ArgumentCaptor.forClass(TwilioCommandContextDto.class);
         verify(twilioCommandService).handle(contextCaptor.capture());
         assertThat(contextCaptor.getValue().userId()).isEqualTo(userId);
+        assertThat(contextCaptor.getValue().inboundMessageId().value())
+                .isEqualTo(inboundMessageIdCaptor.getValue());
         assertThat(contextCaptor.getValue().command()).isSameAs(command);
     }
 

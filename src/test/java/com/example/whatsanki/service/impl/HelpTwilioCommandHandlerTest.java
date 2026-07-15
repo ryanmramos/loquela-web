@@ -1,6 +1,7 @@
 package com.example.whatsanki.service.impl;
 
 import com.example.whatsanki.domain.InboundMessageEntity;
+import com.example.whatsanki.domain.InboundMessageId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ParsedTwilioCommandDto;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
@@ -39,6 +40,6 @@ class HelpTwilioCommandHandlerTest {
                 null,
                 null
         );
-        return new TwilioCommandContextDto(UserId.random(), command);
+        return new TwilioCommandContextDto(UserId.random(), InboundMessageId.random(), command);
     }
 }
