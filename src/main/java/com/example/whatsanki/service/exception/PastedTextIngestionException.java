@@ -1,4 +1,4 @@
-package com.example.whatsanki.service;
+package com.example.whatsanki.service.exception;
 
 import java.util.Objects;
 import java.util.regex.Pattern;

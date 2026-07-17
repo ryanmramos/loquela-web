@@ -1,4 +1,4 @@
-package com.example.whatsanki.service.impl;
+package com.example.whatsanki.service.util;
 
 import com.example.whatsanki.domain.LanguageTag;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;

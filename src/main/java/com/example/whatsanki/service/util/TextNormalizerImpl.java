@@ -1,7 +1,6 @@
-package com.example.whatsanki.service.impl;
+package com.example.whatsanki.service.util;
 
-import com.example.whatsanki.service.TextNormalizer;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -9,7 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-@Service
+@Component
 public class TextNormalizerImpl implements TextNormalizer {
 
     private static final Pattern WRAPPED_WORD = Pattern.compile("(\\p{L}{2,})-\\n(?=\\p{Ll})");

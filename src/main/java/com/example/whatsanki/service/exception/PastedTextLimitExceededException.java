@@ -1,4 +1,4 @@
-package com.example.whatsanki.service;
+package com.example.whatsanki.service.exception;
 
 public class PastedTextLimitExceededException extends RuntimeException {
     private final long maximumCharacters;

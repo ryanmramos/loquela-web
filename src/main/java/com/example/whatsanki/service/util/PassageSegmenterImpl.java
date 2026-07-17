@@ -1,11 +1,10 @@
-package com.example.whatsanki.service.impl;
+package com.example.whatsanki.service.util;
 
 import com.example.whatsanki.domain.LanguageTag;
 import com.example.whatsanki.dto.PassageDraftDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.PassageSegmenter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.text.BreakIterator;
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class PassageSegmenterImpl implements PassageSegmenter {
 

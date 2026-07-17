@@ -42,6 +42,10 @@ public class WhatsAnkiConfigurationDto {
 
     @Valid
     @NotNull
+    private Search search = new Search();
+
+    @Valid
+    @NotNull
     private ObjectStore objectStore = new ObjectStore();
 
     @Valid
@@ -118,6 +122,25 @@ public class WhatsAnkiConfigurationDto {
 
         @NotNull
         private Duration retryMaxDelay = Duration.ofMinutes(15);
+    }
+
+    @Getter
+    @Setter
+    public static class Search {
+        @Positive
+        private int maxTermCharacters = 256;
+
+        @Positive
+        private int maxResults = 20;
+
+        @Positive
+        private int candidateMultiplier = 5;
+
+        @Positive
+        private int maxCandidates = 100;
+
+        @Positive
+        private int idealPassageCharacters = 320;
     }
 
     @Getter

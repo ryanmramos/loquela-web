@@ -1,0 +1,85 @@
+package com.example.whatsanki.service.impl;
+
+import com.example.whatsanki.domain.BackgroundJobFailureKind;
+import com.example.whatsanki.domain.JobId;
+import com.example.whatsanki.domain.SourceDocumentEntity;
+import com.example.whatsanki.domain.SourceId;
+import com.example.whatsanki.domain.UserId;
+import com.example.whatsanki.repository.BackgroundJobRepository;
+import com.example.whatsanki.repository.InboundMessageRepository;
+import com.example.whatsanki.repository.SourceDocumentRepository;
+import com.example.whatsanki.service.SourceDeletionService;
+import com.example.whatsanki.service.exception.SourceDeletionException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Objects;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class SourceDeletionServiceImpl implements SourceDeletionService {
+
+    private final SourceDocumentRepository sourceDocumentRepository;
+    private final BackgroundJobRepository backgroundJobRepository;
+    private final InboundMessageRepository inboundMessageRepository;
+
+    @Override
+    @Transactional
+    public boolean delete(UserId userId, SourceId sourceId, JobId deletionJobId) {
+        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(sourceId, "sourceId must not be null");
+        Objects.requireNonNull(deletionJobId, "deletionJobId must not be null");
+
+        var sourceResult = sourceDocumentRepository.findByIdAndUserId(sourceId.value(), userId.value());
+        if (sourceResult.isEmpty()) {
+            log.info("Source was already deleted userId={} sourceId={}", userId.value(), sourceId.value());
+            return false;
+        }
+        SourceDocumentEntity source = sourceResult.orElseThrow();
+        if (source.getStatus() != SourceDocumentEntity.Status.DELETING) {
+            throw new SourceDeletionException(BackgroundJobFailureKind.PERMANENT, "INVALID_SOURCE_STATE");
+        }
+        if (source.getObjectKey() != null) {
+            // File sources are not producible yet. Refuse to orphan a future object; the
+            // object-storage slice will provide deletion before enabling those sources.
+            throw new SourceDeletionException(
+                    BackgroundJobFailureKind.PERMANENT,
+                    "SOURCE_OBJECT_CLEANUP_REQUIRED"
+            );
+        }
+
+        long runningJobs = backgroundJobRepository.countRunningForSource(
+                userId.value(), sourceId.value().toString(), deletionJobId.value()
+        );
+        if (runningJobs > 0) {
+            throw new SourceDeletionException(BackgroundJobFailureKind.TRANSIENT, "SOURCE_BUSY");
+        }
+
+        int cancelledJobs = backgroundJobRepository.cancelPendingForSource(
+                userId.value(), sourceId.value().toString(), deletionJobId.value(), Instant.now()
+        );
+
+        // A source can be deleted while its ADD job is still queued. Remove encrypted
+        // staging as part of the same transaction so deletion never leaves copied text
+        // behind merely because passage creation did not finish.
+        if (source.getInboundMessageId() != null) {
+            inboundMessageRepository.findByIdAndUserId(source.getInboundMessageId(), userId.value())
+                    .ifPresent(inboundMessage -> {
+                        inboundMessage.setBodyCiphertext(null);
+                        inboundMessage.setMediaUrlCiphertext(null);
+                        inboundMessage.setMediaContentType(null);
+                        inboundMessageRepository.save(inboundMessage);
+                    });
+        }
+        sourceDocumentRepository.delete(source);
+        log.info(
+                "Deleted source userId={} sourceId={} cancelledJobCount={}",
+                userId.value(), sourceId.value(), cancelledJobs
+        );
+        return true;
+    }
+}

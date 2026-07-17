@@ -1,4 +1,4 @@
-package com.example.whatsanki.service;
+package com.example.whatsanki.service.util;
 
 public interface TextNormalizer {
     String normalizeDisplay(String text);

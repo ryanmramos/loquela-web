@@ -5,7 +5,7 @@ import com.example.whatsanki.dto.PastedTextAcceptanceDto;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
 import com.example.whatsanki.service.PastedTextIngestionService;
-import com.example.whatsanki.service.PastedTextLimitExceededException;
+import com.example.whatsanki.service.exception.PastedTextLimitExceededException;
 import com.example.whatsanki.service.TwilioCommandHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

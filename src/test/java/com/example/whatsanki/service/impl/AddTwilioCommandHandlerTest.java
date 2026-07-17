@@ -8,7 +8,7 @@ import com.example.whatsanki.dto.ParsedTwilioCommandDto;
 import com.example.whatsanki.dto.PastedTextAcceptanceDto;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.service.PastedTextIngestionService;
-import com.example.whatsanki.service.PastedTextLimitExceededException;
+import com.example.whatsanki.service.exception.PastedTextLimitExceededException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

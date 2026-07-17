@@ -1,17 +1,17 @@
-package com.example.whatsanki.service.impl;
+package com.example.whatsanki.service.validation;
 
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
+@Component
 @Profile("prod")
 @RequiredArgsConstructor
 public class ProductionConfigurationValidator implements ApplicationRunner {

@@ -27,9 +27,20 @@ class LayeredArchitectureTest {
             .allowEmptyShould(true);
 
     @ArchTest
-    static final ArchRule service_implementations_do_not_depend_on_controllers = noClasses()
-            .that().resideInAPackage("..service.impl..")
+    static final ArchRule service_layer_does_not_depend_on_controllers = noClasses()
+            .that().resideInAPackage("..service..")
             .should().dependOnClassesThat().resideInAPackage("..controller..");
+
+    @ArchTest
+    static final ArchRule service_utilities_do_not_access_repositories = noClasses()
+            .that().resideInAPackage("..service.util..")
+            .should().dependOnClassesThat().resideInAPackage("..repository..");
+
+    @ArchTest
+    static final ArchRule service_exceptions_are_grouped_together = classes()
+            .that().resideInAPackage("..service..")
+            .and().haveSimpleNameEndingWith("Exception")
+            .should().resideInAPackage("..service.exception..");
 
     @ArchTest
     static final ArchRule controllers_use_service_interfaces_not_implementations = noClasses()

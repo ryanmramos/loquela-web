@@ -139,4 +139,53 @@ public interface BackgroundJobRepository extends Repository<BackgroundJobEntity,
               and lease_expires_at <= :now
             """, nativeQuery = true)
     int recoverExpiredLeases(@Param("now") Instant now);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+            update background_job
+            set state = 'CANCELLED',
+                lease_owner = null,
+                lease_expires_at = null,
+                updated_at = :now
+            where user_id = :userId
+              and state in ('QUEUED', 'RETRY_WAIT')
+              and payload ->> 'sourceId' = :sourceId
+              and (:excludedJobId is null or id <> :excludedJobId)
+            """, nativeQuery = true)
+    int cancelPendingForSource(
+            @Param("userId") UUID userId,
+            @Param("sourceId") String sourceId,
+            @Param("excludedJobId") UUID excludedJobId,
+            @Param("now") Instant now
+    );
+
+    @Query(value = """
+            select count(*)
+            from background_job
+            where user_id = :userId
+              and state = 'RUNNING'
+              and payload ->> 'sourceId' = :sourceId
+              and id <> :excludedJobId
+            """, nativeQuery = true)
+    long countRunningForSource(
+            @Param("userId") UUID userId,
+            @Param("sourceId") String sourceId,
+            @Param("excludedJobId") UUID excludedJobId
+    );
+
+    @Query(value = """
+            select exists (
+                select 1
+                from background_job
+                where user_id = :userId
+                  and type = :jobType
+                  and state in ('QUEUED', 'RUNNING', 'RETRY_WAIT')
+                  and payload ->> 'sourceId' = :sourceId
+            )
+            """, nativeQuery = true)
+    boolean existsActiveForSourceAndType(
+            @Param("userId") UUID userId,
+            @Param("sourceId") String sourceId,
+            @Param("jobType") String jobType
+    );
 }

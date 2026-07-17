@@ -19,12 +19,12 @@ import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.PassageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.service.BackgroundJobService;
-import com.example.whatsanki.service.PassageSegmenter;
-import com.example.whatsanki.service.PastedTextIngestionException;
 import com.example.whatsanki.service.PastedTextIngestionService;
-import com.example.whatsanki.service.PastedTextLimitExceededException;
 import com.example.whatsanki.service.SensitiveDataEncryptionService;
-import com.example.whatsanki.service.TextNormalizer;
+import com.example.whatsanki.service.exception.PastedTextIngestionException;
+import com.example.whatsanki.service.exception.PastedTextLimitExceededException;
+import com.example.whatsanki.service.util.PassageSegmenter;
+import com.example.whatsanki.service.util.TextNormalizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -225,9 +225,10 @@ public class PastedTextIngestionServiceImpl implements PastedTextIngestionServic
         }
 
         SourceDocumentEntity source = sourceResult.orElseThrow();
-        if (source.getStatus() == SourceDocumentEntity.Status.READY) {
-            log.warn("Refused to downgrade ready source userId={} sourceId={} errorCode={}",
-                    userId.value(), sourceId.value(), errorCode);
+        if (source.getStatus() == SourceDocumentEntity.Status.READY
+                || source.getStatus() == SourceDocumentEntity.Status.DELETING) {
+            log.warn("Refused to overwrite terminal source lifecycle userId={} sourceId={} status={} errorCode={}",
+                    userId.value(), sourceId.value(), source.getStatus(), errorCode);
             return;
         }
         source.setStatus(SourceDocumentEntity.Status.FAILED);

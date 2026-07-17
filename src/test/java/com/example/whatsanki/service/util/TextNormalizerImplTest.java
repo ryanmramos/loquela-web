@@ -1,4 +1,4 @@
-package com.example.whatsanki.service.impl;
+package com.example.whatsanki.service.util;
 
 import org.junit.jupiter.api.Test;
 

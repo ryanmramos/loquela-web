@@ -30,4 +30,25 @@ public interface PassageRepository extends Repository<PassageEntity, UUID> {
             @Param("term") String term,
             Pageable pageable
     );
+
+    @Query(value = """
+            select p.*
+            from passage p
+            join source_document s on s.id = p.source_id and s.user_id = p.user_id
+            where p.user_id = :userId
+              and s.status = 'READY'
+              and s.language = :sourceLanguage
+              and p.search_vector @@ plainto_tsquery('simple', :term)
+            order by ts_rank_cd(p.search_vector, plainto_tsquery('simple', :term)) desc,
+                     abs(char_length(p.display_text) - :idealPassageCharacters),
+                     s.created_at desc,
+                     p.ordinal
+            """, nativeQuery = true)
+    List<PassageEntity> searchRankedReadyPassages(
+            @Param("userId") UUID userId,
+            @Param("sourceLanguage") String sourceLanguage,
+            @Param("term") String term,
+            @Param("idealPassageCharacters") int idealPassageCharacters,
+            Pageable pageable
+    );
 }

@@ -1,21 +1,21 @@
-package com.example.whatsanki.service.impl;
+package com.example.whatsanki.service.job;
 
 import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.BackgroundJobDispatcher;
-import com.example.whatsanki.service.BackgroundJobExecutionException;
 import com.example.whatsanki.service.BackgroundJobService;
+import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-@Service
+@Component
 @ConditionalOnProperty(prefix = "whatsanki.jobs", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class BackgroundJobRunner {

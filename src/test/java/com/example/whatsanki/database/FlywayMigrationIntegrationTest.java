@@ -23,7 +23,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(8);
+        assertThat(flyway.info().applied()).hasSize(9);
     }
 
     @Test
@@ -67,5 +67,22 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                   and indexdef ilike '% using gin %'
                 """, Integer.class);
         assertThat(ginIndexCount).isEqualTo(1);
+
+        Integer sourceLifecycleIndexCount = jdbcTemplate.queryForObject("""
+                select count(*)
+                from pg_indexes
+                where schemaname = 'public'
+                  and tablename = 'background_job'
+                  and indexname = 'idx_background_job_source_reference'
+                """, Integer.class);
+        assertThat(sourceLifecycleIndexCount).isEqualTo(1);
+
+        List<String> sourceColumns = jdbcTemplate.queryForList("""
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'source_document'
+                """, String.class);
+        assertThat(sourceColumns).contains("version");
     }
 }

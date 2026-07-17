@@ -1,4 +1,4 @@
-package com.example.whatsanki.service.impl;
+package com.example.whatsanki.service.validation;
 
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import org.junit.jupiter.api.Test;

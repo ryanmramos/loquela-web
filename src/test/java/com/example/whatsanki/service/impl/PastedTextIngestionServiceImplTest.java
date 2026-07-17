@@ -17,10 +17,10 @@ import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.PassageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.service.BackgroundJobService;
-import com.example.whatsanki.service.PassageSegmenter;
-import com.example.whatsanki.service.PastedTextLimitExceededException;
+import com.example.whatsanki.service.exception.PastedTextLimitExceededException;
 import com.example.whatsanki.service.SensitiveDataEncryptionService;
-import com.example.whatsanki.service.TextNormalizer;
+import com.example.whatsanki.service.util.PassageSegmenter;
+import com.example.whatsanki.service.util.TextNormalizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -211,6 +211,21 @@ class PastedTextIngestionServiceImplTest {
         assertThat(source.getErrorCode()).isEqualTo("EMPTY_TEXT");
         assertThat(source.getErrorDetailSafe()).isNull();
         verify(sourceDocumentRepository).save(source);
+    }
+
+    @Test
+    void doesNotOverwriteAConcurrentDeletingTransitionWithFailed() {
+        UserId userId = UserId.random();
+        SourceId sourceId = SourceId.random();
+        SourceDocumentEntity source = source(sourceId, userId, InboundMessageId.random());
+        source.setStatus(SourceDocumentEntity.Status.DELETING);
+        when(sourceDocumentRepository.findByIdAndUserId(sourceId.value(), userId.value()))
+                .thenReturn(Optional.of(source));
+
+        service.markFailed(userId, sourceId, "INVALID_SOURCE_STATE");
+
+        assertThat(source.getStatus()).isEqualTo(SourceDocumentEntity.Status.DELETING);
+        verify(sourceDocumentRepository, never()).save(any());
     }
 
     private AppUserEntity activeUser(UserId userId, String sourceLanguage) {
