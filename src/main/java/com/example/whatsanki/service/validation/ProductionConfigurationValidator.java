@@ -36,6 +36,7 @@ public class ProductionConfigurationValidator implements ApplicationRunner {
         boolean hasAccessKey = hasText(configuration.getObjectStore().getAccessKey());
         boolean hasSecretKey = hasText(configuration.getObjectStore().getSecretKey());
         if (hasAccessKey != hasSecretKey) {
+            // Both blank is valid for production workload identity/IAM roles.
             errors.add("OBJECT_STORE_ACCESS_KEY and OBJECT_STORE_SECRET_KEY must be configured together");
         }
         if ("fake".equalsIgnoreCase(configuration.getDictionary().getProvider())) {

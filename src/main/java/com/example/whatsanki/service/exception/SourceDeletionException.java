@@ -13,7 +13,11 @@ public class SourceDeletionException extends RuntimeException {
     private final String errorCode;
 
     public SourceDeletionException(BackgroundJobFailureKind failureKind, String errorCode) {
-        super(errorCode);
+        this(failureKind, errorCode, null);
+    }
+
+    public SourceDeletionException(BackgroundJobFailureKind failureKind, String errorCode, Throwable cause) {
+        super(errorCode, cause);
         this.failureKind = Objects.requireNonNull(failureKind, "failureKind must not be null");
         if (errorCode == null || !SAFE_ERROR_CODE.matcher(errorCode).matches()) {
             throw new IllegalArgumentException("errorCode must be an uppercase safe diagnostic code");

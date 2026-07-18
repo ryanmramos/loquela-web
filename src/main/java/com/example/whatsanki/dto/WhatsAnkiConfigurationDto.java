@@ -67,6 +67,13 @@ public class WhatsAnkiConfigurationDto {
         private String authToken = "";
         private String whatsappFrom = "";
         private URI statusCallbackUrl;
+
+        @NotEmpty
+        private List<@NotBlank String> mediaAllowedHosts = new ArrayList<>(List.of("api.twilio.com"));
+
+        @NotEmpty
+        private List<@NotBlank String> mediaRedirectAllowedHosts =
+                new ArrayList<>(List.of("mms.twiliocdn.com"));
     }
 
     @Getter
@@ -95,6 +102,12 @@ public class WhatsAnkiConfigurationDto {
 
         @NotNull
         private Duration extractionTimeout = Duration.ofMinutes(1);
+
+        @NotNull
+        private Duration mediaConnectTimeout = Duration.ofSeconds(10);
+
+        @NotNull
+        private Duration mediaReadTimeout = Duration.ofSeconds(30);
     }
 
     @Getter
@@ -158,6 +171,9 @@ public class WhatsAnkiConfigurationDto {
         private String accessKey = "";
         private String secretKey = "";
         private boolean pathStyle = true;
+
+        @NotNull
+        private Duration presignedUrlLifetime = Duration.ofMinutes(15);
     }
 
     @Getter

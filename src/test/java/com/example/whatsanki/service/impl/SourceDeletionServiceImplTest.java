@@ -9,7 +9,9 @@ import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.repository.BackgroundJobRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
+import com.example.whatsanki.service.ObjectStore;
 import com.example.whatsanki.service.exception.SourceDeletionException;
+import com.example.whatsanki.service.exception.ObjectStoreException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +37,7 @@ class SourceDeletionServiceImplTest {
     @Mock private SourceDocumentRepository sourceDocumentRepository;
     @Mock private BackgroundJobRepository backgroundJobRepository;
     @Mock private InboundMessageRepository inboundMessageRepository;
+    @Mock private ObjectStore objectStore;
 
     private SourceDeletionServiceImpl service;
 
@@ -42,7 +46,8 @@ class SourceDeletionServiceImplTest {
         service = new SourceDeletionServiceImpl(
                 sourceDocumentRepository,
                 backgroundJobRepository,
-                inboundMessageRepository
+                inboundMessageRepository,
+                objectStore
         );
     }
 
@@ -108,7 +113,7 @@ class SourceDeletionServiceImplTest {
     }
 
     @Test
-    void refusesToOrphanAStoredObjectBeforeObjectCleanupExists() {
+    void deletesStoredObjectBeforeDeletingSourceRow() {
         UserId userId = UserId.random();
         SourceId sourceId = SourceId.random();
         SourceDocumentEntity source = source(sourceId, null);
@@ -116,11 +121,37 @@ class SourceDeletionServiceImplTest {
         when(sourceDocumentRepository.findByIdAndUserId(sourceId.value(), userId.value()))
                 .thenReturn(Optional.of(source));
 
-        assertThatThrownBy(() -> service.delete(userId, sourceId, JobId.random()))
+        when(backgroundJobRepository.countRunningForSource(
+                eq(userId.value()), eq(sourceId.value().toString()), any()
+        )).thenReturn(0L);
+
+        assertThat(service.delete(userId, sourceId, JobId.random())).isTrue();
+
+        verify(objectStore).delete("users/internal/source/original");
+        verify(sourceDocumentRepository).delete(source);
+    }
+
+    @Test
+    void retriesWithoutDeletingDatabaseRowWhenObjectStoreIsUnavailable() {
+        UserId userId = UserId.random();
+        SourceId sourceId = SourceId.random();
+        JobId jobId = JobId.random();
+        SourceDocumentEntity source = source(sourceId, null);
+        source.setObjectKey("users/internal/source/original");
+        when(sourceDocumentRepository.findByIdAndUserId(sourceId.value(), userId.value()))
+                .thenReturn(Optional.of(source));
+        when(backgroundJobRepository.countRunningForSource(
+                userId.value(), sourceId.value().toString(), jobId.value()
+        )).thenReturn(0L);
+        doThrow(new ObjectStoreException("unavailable", new RuntimeException()))
+                .when(objectStore).delete(source.getObjectKey());
+
+        assertThatThrownBy(() -> service.delete(userId, sourceId, jobId))
                 .isInstanceOfSatisfying(SourceDeletionException.class, exception -> {
-                    assertThat(exception.failureKind()).isEqualTo(BackgroundJobFailureKind.PERMANENT);
-                    assertThat(exception.errorCode()).isEqualTo("SOURCE_OBJECT_CLEANUP_REQUIRED");
+                    assertThat(exception.failureKind()).isEqualTo(BackgroundJobFailureKind.TRANSIENT);
+                    assertThat(exception.errorCode()).isEqualTo("SOURCE_OBJECT_DELETE_FAILED");
                 });
+        verify(sourceDocumentRepository, never()).delete(any());
     }
 
     private SourceDocumentEntity source(SourceId sourceId, UUID inboundMessageId) {

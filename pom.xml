@@ -29,6 +29,7 @@
     <properties>
         <java.version>17</java.version>
         <twilio.version>12.1.1</twilio.version>
+        <aws.sdk.version>2.31.77</aws.sdk.version>
         <archunit.version>1.4.2</archunit.version>
         <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
@@ -66,6 +67,16 @@
             <groupId>com.twilio.sdk</groupId>
             <artifactId>twilio</artifactId>
             <version>${twilio.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+            <version>${aws.sdk.version}</version>
         </dependency>
 
         <dependency>

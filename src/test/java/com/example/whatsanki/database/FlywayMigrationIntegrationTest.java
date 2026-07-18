@@ -23,7 +23,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(9);
+        assertThat(flyway.info().applied()).hasSize(10);
     }
 
     @Test
@@ -84,5 +84,12 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                   and table_name = 'source_document'
                 """, String.class);
         assertThat(sourceColumns).contains("version");
+
+        String sourceStatusConstraint = jdbcTemplate.queryForObject("""
+                select pg_get_constraintdef(oid)
+                from pg_constraint
+                where conname = 'ck_source_document_status'
+                """, String.class);
+        assertThat(sourceStatusConstraint).contains("STORED");
     }
 }

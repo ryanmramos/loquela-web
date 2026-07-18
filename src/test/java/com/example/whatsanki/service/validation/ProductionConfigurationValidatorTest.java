@@ -34,7 +34,7 @@ class ProductionConfigurationValidatorTest {
     @Test
     void rejectsPartialObjectStoreCredentials() {
         WhatsAnkiConfigurationDto configuration = validConfiguration();
-        configuration.getObjectStore().setAccessKey("access-key");
+        configuration.getObjectStore().setSecretKey("");
 
         ProductionConfigurationValidator validator = new ProductionConfigurationValidator(configuration);
 
@@ -54,6 +54,8 @@ class ProductionConfigurationValidatorTest {
                 URI.create("https://whatsanki.example/webhooks/twilio/message-status")
         );
         configuration.getObjectStore().setEndpoint(URI.create("https://objects.example"));
+        configuration.getObjectStore().setAccessKey("access-key");
+        configuration.getObjectStore().setSecretKey("secret-key");
         configuration.getDictionary().setProvider("wiktionary");
         return configuration;
     }

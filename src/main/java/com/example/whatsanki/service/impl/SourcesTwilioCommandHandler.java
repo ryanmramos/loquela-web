@@ -59,6 +59,7 @@ public class SourcesTwilioCommandHandler implements TwilioCommandHandler {
     private String status(SourceSummaryDto source) {
         return switch (source.status()) {
             case RECEIVED, FETCHING, EXTRACTING, INDEXING -> "processing";
+            case STORED -> "stored (awaiting extraction)";
             case READY -> readyStatus(source);
             case FAILED -> source.errorCode() == null ? "failed" : "failed (" + source.errorCode() + ")";
             case DELETING -> "deleting";

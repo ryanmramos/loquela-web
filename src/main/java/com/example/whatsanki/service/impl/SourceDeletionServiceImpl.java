@@ -9,6 +9,8 @@ import com.example.whatsanki.repository.BackgroundJobRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.service.SourceDeletionService;
+import com.example.whatsanki.service.ObjectStore;
+import com.example.whatsanki.service.exception.ObjectStoreException;
 import com.example.whatsanki.service.exception.SourceDeletionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
     private final SourceDocumentRepository sourceDocumentRepository;
     private final BackgroundJobRepository backgroundJobRepository;
     private final InboundMessageRepository inboundMessageRepository;
+    private final ObjectStore objectStore;
 
     @Override
     @Transactional
@@ -43,20 +46,25 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
         if (source.getStatus() != SourceDocumentEntity.Status.DELETING) {
             throw new SourceDeletionException(BackgroundJobFailureKind.PERMANENT, "INVALID_SOURCE_STATE");
         }
-        if (source.getObjectKey() != null) {
-            // File sources are not producible yet. Refuse to orphan a future object; the
-            // object-storage slice will provide deletion before enabling those sources.
-            throw new SourceDeletionException(
-                    BackgroundJobFailureKind.PERMANENT,
-                    "SOURCE_OBJECT_CLEANUP_REQUIRED"
-            );
-        }
-
         long runningJobs = backgroundJobRepository.countRunningForSource(
                 userId.value(), sourceId.value().toString(), deletionJobId.value()
         );
         if (runningJobs > 0) {
             throw new SourceDeletionException(BackgroundJobFailureKind.TRANSIENT, "SOURCE_BUSY");
+        }
+
+        if (source.getObjectKey() != null) {
+            try {
+                // DeleteObject is idempotent. If the database transaction later rolls
+                // back, retrying this job safely repeats the object deletion first.
+                objectStore.delete(source.getObjectKey());
+            } catch (ObjectStoreException exception) {
+                throw new SourceDeletionException(
+                        BackgroundJobFailureKind.TRANSIENT,
+                        "SOURCE_OBJECT_DELETE_FAILED",
+                        exception
+                );
+            }
         }
 
         int cancelledJobs = backgroundJobRepository.cancelPendingForSource(

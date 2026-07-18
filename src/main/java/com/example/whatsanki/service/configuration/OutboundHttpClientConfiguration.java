@@ -1,0 +1,22 @@
+package com.example.whatsanki.service.configuration;
+
+import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.net.http.HttpClient;
+
+@Configuration(proxyBeanMethods = false)
+public class OutboundHttpClientConfiguration {
+
+    @Bean
+    HttpClient twilioMediaHttpClient(WhatsAnkiConfigurationDto configuration) {
+        // One immutable client shares connection pools across jobs. Transport-level
+        // redirects remain disabled so the downloader can validate Twilio's one CDN
+        // hop and deliberately omit credentials from the follow-up request.
+        return HttpClient.newBuilder()
+                .connectTimeout(configuration.getIngestion().getMediaConnectTimeout())
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .build();
+    }
+}
