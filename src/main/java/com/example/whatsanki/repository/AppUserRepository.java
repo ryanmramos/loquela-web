@@ -13,6 +13,8 @@ import java.util.UUID;
 public interface AppUserRepository extends JpaRepository<AppUserEntity, UUID> {
     Optional<AppUserEntity> findByWhatsappAddressHash(byte[] whatsappAddressHash);
 
+    Optional<AppUserEntity> findByIdAndStatus(UUID id, AppUserEntity.Status status);
+
     @Modifying
     @Query(value = """
             insert into app_user (
