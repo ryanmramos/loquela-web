@@ -14,17 +14,17 @@ class ConfiguredLanguagePairSupportTest {
     @Test
     void canonicalizesDeduplicatesAndChecksConfiguredPairs() {
         WhatsAnkiConfigurationDto configuration = configuration(
-                "es", "en", List.of("ES:EN", "en-US:es", "es:en")
+                "es", "en", List.of("ES:EN", "fr:en", "es:en")
         );
 
-        ConfiguredLanguagePairSupport support = new ConfiguredLanguagePairSupport(configuration);
+        ConfiguredLanguagePairSupport support = support(configuration);
 
         assertThat(support.supportedPairs()).containsExactly(
                 new LanguagePairDto("es", "en"),
-                new LanguagePairDto("en-US", "es")
+                new LanguagePairDto("fr", "en")
         );
-        assertThat(support.supports(new LanguagePairDto("EN-us", "ES"))).isTrue();
-        assertThat(support.supports(new LanguagePairDto("fr", "en"))).isFalse();
+        assertThat(support.supports(new LanguagePairDto("FR", "EN"))).isTrue();
+        assertThat(support.supports(new LanguagePairDto("en", "en"))).isFalse();
     }
 
     @Test
@@ -33,7 +33,7 @@ class ConfiguredLanguagePairSupportTest {
                 "es", "es", List.of("es:es", "es:en")
         );
 
-        ConfiguredLanguagePairSupport support = new ConfiguredLanguagePairSupport(configuration);
+        ConfiguredLanguagePairSupport support = support(configuration);
 
         assertThat(support.supports(new LanguagePairDto("ES", "es"))).isTrue();
         assertThat(support.supportedPairs()).contains(new LanguagePairDto("es", "es"));
@@ -45,7 +45,7 @@ class ConfiguredLanguagePairSupportTest {
                 "es", "en", List.of("es-en")
         );
 
-        assertThatThrownBy(() -> new ConfiguredLanguagePairSupport(configuration))
+        assertThatThrownBy(() -> support(configuration))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("<source>:<definition>");
     }
@@ -56,7 +56,7 @@ class ConfiguredLanguagePairSupportTest {
                 "es", "en", List.of("invalid_tag:en")
         );
 
-        assertThatThrownBy(() -> new ConfiguredLanguagePairSupport(configuration))
+        assertThatThrownBy(() -> support(configuration))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Invalid configured language pair");
     }
@@ -67,9 +67,26 @@ class ConfiguredLanguagePairSupportTest {
                 "es", "en", List.of("en:es")
         );
 
-        assertThatThrownBy(() -> new ConfiguredLanguagePairSupport(configuration))
+        assertThatThrownBy(() -> support(configuration))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("default language pair");
+    }
+
+    @Test
+    void rejectsConfiguredPairsOutsideTheActiveProviderCapabilities() {
+        WhatsAnkiConfigurationDto configuration = configuration(
+                "de", "en", List.of("de:en")
+        );
+
+        assertThatThrownBy(() -> support(configuration))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("de:en")
+                .hasMessageContaining("fake");
+    }
+
+    private ConfiguredLanguagePairSupport support(WhatsAnkiConfigurationDto configuration) {
+        FakeDictionaryProvider provider = new FakeDictionaryProvider();
+        return new ConfiguredLanguagePairSupport(configuration, () -> provider);
     }
 
     private WhatsAnkiConfigurationDto configuration(

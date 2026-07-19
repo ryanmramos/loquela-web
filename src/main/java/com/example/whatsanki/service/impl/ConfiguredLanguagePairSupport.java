@@ -2,6 +2,8 @@ package com.example.whatsanki.service.impl;
 
 import com.example.whatsanki.dto.LanguagePairDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
+import com.example.whatsanki.service.DictionaryProvider;
+import com.example.whatsanki.service.DictionaryProviderSelector;
 import com.example.whatsanki.service.LanguagePairSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,10 @@ public class ConfiguredLanguagePairSupport implements LanguagePairSupport {
 
     private final List<LanguagePairDto> supportedPairs;
 
-    public ConfiguredLanguagePairSupport(WhatsAnkiConfigurationDto configuration) {
+    public ConfiguredLanguagePairSupport(
+            WhatsAnkiConfigurationDto configuration,
+            DictionaryProviderSelector dictionaryProviderSelector
+    ) {
         // Parse configuration once so requests compare typed canonical pairs instead of
         // repeatedly interpreting provider capability strings on the webhook thread.
         LinkedHashSet<LanguagePairDto> canonicalPairs = new LinkedHashSet<>();
@@ -23,6 +28,17 @@ public class ConfiguredLanguagePairSupport implements LanguagePairSupport {
             canonicalPairs.add(parse(configuredPair));
         }
         supportedPairs = List.copyOf(canonicalPairs);
+
+        DictionaryProvider activeProvider = dictionaryProviderSelector.activeProvider();
+        for (LanguagePairDto supportedPair : supportedPairs) {
+            if (!activeProvider.supports(supportedPair)) {
+                throw new IllegalStateException(
+                        "Configured language pair " + supportedPair.sourceLanguage() + ":"
+                                + supportedPair.definitionLanguage() + " is not supported by dictionary provider "
+                                + activeProvider.providerId()
+                );
+            }
+        }
 
         LanguagePairDto defaultPair = new LanguagePairDto(
                 configuration.getLanguages().getDefaultSource(),
@@ -33,7 +49,11 @@ public class ConfiguredLanguagePairSupport implements LanguagePairSupport {
                     "The configured default language pair must be present in whatsanki.languages.supported-pairs"
             );
         }
-        log.info("Configured supported language pairs count={}", supportedPairs.size());
+        log.info(
+                "Configured supported language pairs providerId={} count={}",
+                activeProvider.providerId(),
+                supportedPairs.size()
+        );
     }
 
     @Override
