@@ -64,6 +64,8 @@ class UserIdentityServiceImplTest {
 
     @Test
     void createsNewUserWithConfiguredLanguageDefaults() {
+        configuration.getLanguages().setDefaultSource("ES-latn-us");
+        configuration.getLanguages().setDefaultDefinition("EN-us");
         byte[] hash = {4, 5, 6};
         byte[] ciphertext = {7, 8, 9};
         WhatsAppAddress address = new WhatsAppAddress("whatsapp:+15550000001");
@@ -71,14 +73,14 @@ class UserIdentityServiceImplTest {
         when(identityProtectionService.encrypt(address)).thenReturn(ciphertext);
         when(appUserRepository.findByWhatsappAddressHash(hash)).thenReturn(Optional.empty());
         when(appUserRepository.insertIfAbsent(
-                any(UUID.class), eq(hash), eq(ciphertext), eq("es"), eq("en"), any(Instant.class)
+                any(UUID.class), eq(hash), eq(ciphertext), eq("es-Latn-US"), eq("en-US"), any(Instant.class)
         )).thenReturn(1);
 
         var result = service.resolveOrCreate(address.value());
 
         assertThat(result.value()).isNotNull();
         verify(appUserRepository).insertIfAbsent(
-                eq(result.value()), eq(hash), eq(ciphertext), eq("es"), eq("en"), any(Instant.class)
+                eq(result.value()), eq(hash), eq(ciphertext), eq("es-Latn-US"), eq("en-US"), any(Instant.class)
         );
     }
 

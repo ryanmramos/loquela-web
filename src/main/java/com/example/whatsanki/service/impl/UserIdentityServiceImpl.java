@@ -3,6 +3,7 @@ package com.example.whatsanki.service.impl;
 import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.domain.WhatsAppAddress;
+import com.example.whatsanki.dto.LanguagePairDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.service.IdentityProtectionService;
@@ -38,15 +39,20 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     private UserId create(WhatsAppAddress address, byte[] addressHash) {
         UUID candidateId = UUID.randomUUID();
         Instant now = Instant.now();
+        LanguagePairDto defaultPair = new LanguagePairDto(
+                configuration.getLanguages().getDefaultSource(),
+                configuration.getLanguages().getDefaultDefinition()
+        );
 
         // The upsert makes simultaneous first messages from one sender safe. Only one
         // candidate wins; every competing transaction then resolves the persisted row.
+        // Canonicalize configured defaults before persistence just as LANGUAGE does.
         int inserted = appUserRepository.insertIfAbsent(
                 candidateId,
                 addressHash,
                 identityProtectionService.encrypt(address),
-                configuration.getLanguages().getDefaultSource(),
-                configuration.getLanguages().getDefaultDefinition(),
+                defaultPair.sourceLanguage(),
+                defaultPair.definitionLanguage(),
                 now
         );
         if (inserted == 1) {

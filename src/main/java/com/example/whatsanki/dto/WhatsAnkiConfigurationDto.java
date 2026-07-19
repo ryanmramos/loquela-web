@@ -252,6 +252,7 @@ public class WhatsAnkiConfigurationDto {
         private String defaultDefinition = "en";
 
         @NotEmpty
-        private List<@NotBlank String> supportedPairs = new ArrayList<>(List.of("es:en", "en:es"));
+        private List<@NotBlank String> supportedPairs =
+                new ArrayList<>(List.of("es:en", "en:es", "es:es", "en:en"));
     }
 }
