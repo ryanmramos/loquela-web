@@ -25,7 +25,8 @@ public class HelpTwilioCommandHandler implements TwilioCommandHandler {
             EXPORT [deck name]
             STATUS
             DELETE MY DATA
-            Send a TXT, PDF, or EPUB document""";
+            Send a text-layer PDF
+            Use ADD <text> for pasted text""";
 
     @Override
     public InboundMessageEntity.CommandType supportedCommand() {

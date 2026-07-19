@@ -1,6 +1,7 @@
 package com.example.whatsanki.service.impl;
 
 import com.example.whatsanki.domain.InboundMessageEntity;
+import com.example.whatsanki.domain.BackgroundJobEntity;
 import com.example.whatsanki.domain.InboundMessageId;
 import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.domain.SourceId;
@@ -8,10 +9,14 @@ import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.DetectedDocumentTypeDto;
 import com.example.whatsanki.dto.MediaFetchPreparationDto;
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
+import com.example.whatsanki.dto.ExtractDocumentJobPayloadDto;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.service.DocumentMediaLifecycleService;
+import com.example.whatsanki.service.BackgroundJobService;
 import com.example.whatsanki.service.SensitiveDataEncryptionService;
+import com.example.whatsanki.service.SourceObjectCleanupScheduler;
+import com.example.whatsanki.service.TwilioMediaCleanupScheduler;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import com.example.whatsanki.service.util.TwilioMediaUrlPolicy;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Objects;
 
@@ -32,6 +38,9 @@ public class DocumentMediaLifecycleServiceImpl implements DocumentMediaLifecycle
     private final InboundMessageRepository inboundMessageRepository;
     private final SensitiveDataEncryptionService encryptionService;
     private final TwilioMediaUrlPolicy mediaUrlPolicy;
+    private final BackgroundJobService backgroundJobService;
+    private final TwilioMediaCleanupScheduler twilioMediaCleanupScheduler;
+    private final SourceObjectCleanupScheduler sourceObjectCleanupScheduler;
 
     @Override
     @Transactional
@@ -97,9 +106,13 @@ public class DocumentMediaLifecycleServiceImpl implements DocumentMediaLifecycle
             throw MediaAcquisitionException.permanent("INVALID_SOURCE_STATE");
         }
 
+        boolean newlyStored = source.getStatus() == SourceDocumentEntity.Status.FETCHING;
         source.setKind(detectedType.sourceKind());
         source.setDetectedMediaType(detectedType.mediaType());
         source.setObjectKey(objectKey);
+        if (source.getOriginalStoredAt() == null) {
+            source.setOriginalStoredAt(Instant.now());
+        }
         source.setSha256(objectMetadata.sha256());
         source.setErrorCode(null);
         source.setErrorDetailSafe(null);
@@ -119,6 +132,13 @@ public class DocumentMediaLifecycleServiceImpl implements DocumentMediaLifecycle
         }
         sourceDocumentRepository.save(source);
         clearMediaStaging(source, userId);
+        if (newlyStored && outcome == CompletionOutcome.STORED) {
+            backgroundJobService.enqueue(
+                    userId,
+                    BackgroundJobEntity.Type.EXTRACT_DOCUMENT,
+                    ExtractDocumentJobPayloadDto.create(sourceId).toMap()
+            );
+        }
         return outcome;
     }
 
@@ -138,13 +158,16 @@ public class DocumentMediaLifecycleServiceImpl implements DocumentMediaLifecycle
                     userId.value(), sourceId.value(), source.getStatus());
             return false;
         }
-        source.setStatus(SourceDocumentEntity.Status.FAILED);
-        source.setErrorCode(validated.errorCode());
-        source.setErrorDetailSafe(null);
-        sourceDocumentRepository.save(source);
+        if (source.getStatus() != SourceDocumentEntity.Status.FAILED) {
+            source.setStatus(SourceDocumentEntity.Status.FAILED);
+            source.setErrorCode(validated.errorCode());
+            source.setErrorDetailSafe(null);
+            sourceDocumentRepository.save(source);
+        }
         if (clearStaging) {
             clearMediaStaging(source, userId);
         }
+        sourceObjectCleanupScheduler.enqueueIfNeeded(userId, sourceId);
         log.warn("Marked media acquisition failed userId={} sourceId={} errorCode={}",
                 userId.value(), sourceId.value(), errorCode);
         return true;
@@ -166,6 +189,11 @@ public class DocumentMediaLifecycleServiceImpl implements DocumentMediaLifecycle
                     inbound.setMediaUrlCiphertext(null);
                     inbound.setMediaContentType(null);
                     inboundMessageRepository.save(inbound);
+                    if (inbound.getTwilioMediaSid() != null) {
+                        twilioMediaCleanupScheduler.enqueueIfNeeded(
+                                userId, new InboundMessageId(inbound.getId())
+                        );
+                    }
                 });
     }
 

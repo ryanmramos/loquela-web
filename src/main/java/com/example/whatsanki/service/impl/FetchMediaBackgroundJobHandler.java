@@ -57,6 +57,22 @@ public class FetchMediaBackgroundJobHandler implements BackgroundJobHandler {
             throw new BackgroundJobExecutionException(
                     exception.failureKind(), exception.errorCode(), exception
             );
+        } catch (RuntimeException exception) {
+            if (job.attempts() >= job.maxAttempts()) {
+                documentIngestionService.markFailed(
+                        userId, payload.sourceId(), "MEDIA_ACQUISITION_FAILED", true
+                );
+            }
+            log.error(
+                    "Unexpected media acquisition failure jobId={} userId={} sourceId={} attempt={} maxAttempts={} exceptionType={}",
+                    job.jobId().value(), userId.value(), payload.sourceId().value(),
+                    job.attempts(), job.maxAttempts(), exception.getClass().getSimpleName()
+            );
+            throw new BackgroundJobExecutionException(
+                    BackgroundJobFailureKind.TRANSIENT,
+                    "MEDIA_ACQUISITION_FAILED",
+                    exception
+            );
         }
     }
 

@@ -19,7 +19,7 @@ public class DocumentTwilioCommandHandler implements TwilioCommandHandler {
     static final String ACCEPTED_RESPONSE =
             "Document accepted for secure storage. Send STATUS to check progress.";
     static final String UNSUPPORTED_RESPONSE =
-            "Send one TXT, text-layer PDF, or EPUB document at a time.";
+            "Send one text-layer PDF, or use ADD <text> for pasted text.";
 
     private final DocumentIngestionService documentIngestionService;
 

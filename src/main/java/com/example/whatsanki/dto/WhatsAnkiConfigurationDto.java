@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -108,6 +109,23 @@ public class WhatsAnkiConfigurationDto {
 
         @NotNull
         private Duration mediaReadTimeout = Duration.ofSeconds(30);
+
+        @Positive
+        private int extractionThreads = 2;
+
+        @AssertTrue(message = "whatsanki.ingestion.extraction-timeout must be positive")
+        public boolean isExtractionTimeoutPositive() {
+            return extractionTimeout != null && !extractionTimeout.isZero() && !extractionTimeout.isNegative();
+        }
+
+        @AssertTrue(message = "whatsanki.ingestion media timeouts must be positive")
+        public boolean areMediaTimeoutsPositive() {
+            return isPositive(mediaConnectTimeout) && isPositive(mediaReadTimeout);
+        }
+
+        private boolean isPositive(Duration duration) {
+            return duration != null && !duration.isZero() && !duration.isNegative();
+        }
     }
 
     @Getter
@@ -203,6 +221,25 @@ public class WhatsAnkiConfigurationDto {
 
         @NotNull
         private Duration exportArtifact = Duration.ofHours(24);
+
+        @NotNull
+        private Duration scanInterval = Duration.ofHours(1);
+
+        @Positive
+        private int scanBatchSize = 100;
+
+        @AssertTrue(message = "whatsanki.retention durations must be positive")
+        public boolean areDurationsPositive() {
+            return isPositive(inboundBody)
+                    && isPositive(originalDocument)
+                    && isPositive(lookupSession)
+                    && isPositive(exportArtifact)
+                    && isPositive(scanInterval);
+        }
+
+        private boolean isPositive(Duration duration) {
+            return duration != null && !duration.isZero() && !duration.isNegative();
+        }
     }
 
     @Getter

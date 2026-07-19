@@ -80,7 +80,17 @@ public class BackgroundJobEntity {
         updatedAt = Instant.now();
     }
 
-    public enum Type { FETCH_MEDIA, INGEST_TEXT, LOOKUP, EXPORT_DECK, DELETE_SOURCE, DELETE_USER_DATA }
+    public enum Type {
+        FETCH_MEDIA,
+        EXTRACT_DOCUMENT,
+        INGEST_TEXT,
+        LOOKUP,
+        EXPORT_DECK,
+        DELETE_TWILIO_MEDIA,
+        PURGE_SOURCE_OBJECT,
+        DELETE_SOURCE,
+        DELETE_USER_DATA
+    }
 
     public enum State {
         QUEUED, RUNNING, RETRY_WAIT, SUCCEEDED, DEAD, CANCELLED;

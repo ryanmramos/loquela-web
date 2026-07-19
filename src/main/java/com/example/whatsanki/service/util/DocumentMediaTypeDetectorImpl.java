@@ -5,6 +5,9 @@ import com.example.whatsanki.dto.DetectedDocumentTypeDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,6 +18,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -27,15 +35,16 @@ public class DocumentMediaTypeDetectorImpl implements DocumentMediaTypeDetector 
     private static final String EPUB = "application/epub+zip";
 
     private final WhatsAnkiConfigurationDto configuration;
+    private final ExecutorService documentExtractionExecutor;
 
     @Override
     public DetectedDocumentTypeDto detect(Path path, String declaredMediaType) {
         String declared = normalizeDeclaredType(declaredMediaType);
         try {
-            byte[] prefix = readPrefix(path, 8);
+            byte[] prefix = readPrefix(path, 1024);
             DetectedDocumentTypeDto detected;
-            if (startsWith(prefix, "%PDF-".getBytes(StandardCharsets.US_ASCII))) {
-                detected = new DetectedDocumentTypeDto(SourceDocumentEntity.Kind.PDF, PDF);
+            if (contains(prefix, "%PDF-".getBytes(StandardCharsets.US_ASCII))) {
+                detected = detectPdf(path);
             } else if (prefix.length >= 4 && prefix[0] == 'P' && prefix[1] == 'K') {
                 detected = detectEpub(path);
             } else {
@@ -50,6 +59,56 @@ public class DocumentMediaTypeDetectorImpl implements DocumentMediaTypeDetector 
             throw exception;
         } catch (IOException exception) {
             throw MediaAcquisitionException.permanent("UNREADABLE_DOCUMENT", exception);
+        }
+    }
+
+    private DetectedDocumentTypeDto detectPdf(Path path) {
+        // Structural validation also parses attacker-controlled bytes. Keep it on the
+        // same bounded executor as extraction so acquisition cannot block the job
+        // scheduler indefinitely before the source reaches durable storage.
+        Future<DetectedDocumentTypeDto> validation = documentExtractionExecutor.submit(
+                () -> detectPdfNow(path)
+        );
+        try {
+            return validation.get(
+                    configuration.getIngestion().getExtractionTimeout().toMillis(),
+                    TimeUnit.MILLISECONDS
+            );
+        } catch (TimeoutException exception) {
+            validation.cancel(true);
+            throw MediaAcquisitionException.transientFailure("PDF_VALIDATION_TIMEOUT", exception);
+        } catch (InterruptedException exception) {
+            validation.cancel(true);
+            Thread.currentThread().interrupt();
+            throw MediaAcquisitionException.transientFailure("PDF_VALIDATION_INTERRUPTED", exception);
+        } catch (ExecutionException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof MediaAcquisitionException acquisitionException) {
+                throw acquisitionException;
+            }
+            throw MediaAcquisitionException.permanent("INVALID_PDF", cause);
+        }
+    }
+
+    private DetectedDocumentTypeDto detectPdfNow(Path path) {
+        try (PDDocument document = Loader.loadPDF(path.toFile())) {
+            if (document.isEncrypted()) {
+                throw MediaAcquisitionException.permanent("ENCRYPTED_DOCUMENT");
+            }
+            int pageCount = document.getNumberOfPages();
+            if (pageCount < 1) {
+                throw MediaAcquisitionException.permanent("INVALID_PDF");
+            }
+            if (pageCount > configuration.getIngestion().getMaxPdfPages()) {
+                throw MediaAcquisitionException.permanent("PDF_TOO_MANY_PAGES");
+            }
+            return new DetectedDocumentTypeDto(SourceDocumentEntity.Kind.PDF, PDF);
+        } catch (InvalidPasswordException exception) {
+            throw MediaAcquisitionException.permanent("ENCRYPTED_DOCUMENT", exception);
+        } catch (MediaAcquisitionException exception) {
+            throw exception;
+        } catch (IOException | RuntimeException exception) {
+            throw MediaAcquisitionException.permanent("INVALID_PDF", exception);
         }
     }
 
@@ -112,15 +171,22 @@ public class DocumentMediaTypeDetectorImpl implements DocumentMediaTypeDetector 
         }
     }
 
-    private boolean startsWith(byte[] bytes, byte[] prefix) {
+    private boolean contains(byte[] bytes, byte[] prefix) {
         if (bytes.length < prefix.length) {
             return false;
         }
-        for (int index = 0; index < prefix.length; index++) {
-            if (bytes[index] != prefix[index]) {
-                return false;
+        for (int start = 0; start <= bytes.length - prefix.length; start++) {
+            boolean match = true;
+            for (int index = 0; index < prefix.length; index++) {
+                if (bytes[start + index] != prefix[index]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }

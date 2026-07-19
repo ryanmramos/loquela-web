@@ -32,6 +32,7 @@
         <aws.sdk.version>2.31.77</aws.sdk.version>
         <archunit.version>1.4.2</archunit.version>
         <testcontainers.version>1.21.4</testcontainers.version>
+        <pdfbox.version>3.0.8</pdfbox.version>
     </properties>
     <dependencies>
         <dependency>
@@ -77,6 +78,11 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>url-connection-client</artifactId>
             <version>${aws.sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${pdfbox.version}</version>
         </dependency>
 
         <dependency>

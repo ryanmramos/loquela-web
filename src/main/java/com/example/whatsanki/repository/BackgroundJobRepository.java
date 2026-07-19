@@ -188,4 +188,20 @@ public interface BackgroundJobRepository extends Repository<BackgroundJobEntity,
             @Param("sourceId") String sourceId,
             @Param("jobType") String jobType
     );
+
+    @Query(value = """
+            select exists (
+                select 1
+                from background_job
+                where user_id = :userId
+                  and type = :jobType
+                  and state in ('QUEUED', 'RUNNING', 'RETRY_WAIT')
+                  and payload ->> 'inboundMessageId' = :inboundMessageId
+            )
+            """, nativeQuery = true)
+    boolean existsActiveForInboundMessageAndType(
+            @Param("userId") UUID userId,
+            @Param("inboundMessageId") String inboundMessageId,
+            @Param("jobType") String jobType
+    );
 }

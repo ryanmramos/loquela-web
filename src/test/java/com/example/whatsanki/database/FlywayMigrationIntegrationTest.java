@@ -23,7 +23,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(10);
+        assertThat(flyway.info().applied()).hasSize(11);
     }
 
     @Test
@@ -83,7 +83,15 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                 where table_schema = 'public'
                   and table_name = 'source_document'
                 """, String.class);
-        assertThat(sourceColumns).contains("version");
+        assertThat(sourceColumns).contains("version", "original_stored_at");
+
+        List<String> inboundColumns = jdbcTemplate.queryForList("""
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'inbound_message'
+                """, String.class);
+        assertThat(inboundColumns).contains("twilio_media_sid");
 
         String sourceStatusConstraint = jdbcTemplate.queryForObject("""
                 select pg_get_constraintdef(oid)
@@ -91,5 +99,20 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                 where conname = 'ck_source_document_status'
                 """, String.class);
         assertThat(sourceStatusConstraint).contains("STORED");
+
+        String sourceStorageTimeConstraint = jdbcTemplate.queryForObject("""
+                select pg_get_constraintdef(oid)
+                from pg_constraint
+                where conname = 'ck_source_document_object_storage_time'
+                """, String.class);
+        assertThat(sourceStorageTimeConstraint).contains("original_stored_at");
+
+        String jobTypeConstraint = jdbcTemplate.queryForObject("""
+                select pg_get_constraintdef(oid)
+                from pg_constraint
+                where conname = 'ck_background_job_type'
+                """, String.class);
+        assertThat(jobTypeConstraint)
+                .contains("EXTRACT_DOCUMENT", "DELETE_TWILIO_MEDIA", "PURGE_SOURCE_OBJECT");
     }
 }

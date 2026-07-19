@@ -12,6 +12,8 @@ import com.example.whatsanki.service.SourceDeletionService;
 import com.example.whatsanki.service.ObjectStore;
 import com.example.whatsanki.service.exception.ObjectStoreException;
 import com.example.whatsanki.service.exception.SourceDeletionException;
+import com.example.whatsanki.service.TwilioMediaCleanupScheduler;
+import com.example.whatsanki.service.util.ObjectKeyFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,8 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
     private final BackgroundJobRepository backgroundJobRepository;
     private final InboundMessageRepository inboundMessageRepository;
     private final ObjectStore objectStore;
+    private final ObjectKeyFactory objectKeyFactory;
+    private final TwilioMediaCleanupScheduler twilioMediaCleanupScheduler;
 
     @Override
     @Transactional
@@ -53,11 +57,15 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
             throw new SourceDeletionException(BackgroundJobFailureKind.TRANSIENT, "SOURCE_BUSY");
         }
 
-        if (source.getObjectKey() != null) {
+        String objectKey = source.getObjectKey();
+        if (objectKey == null && source.getKind() != SourceDocumentEntity.Kind.PASTED_TEXT) {
+            objectKey = objectKeyFactory.originalSource(userId, sourceId);
+        }
+        if (objectKey != null) {
             try {
                 // DeleteObject is idempotent. If the database transaction later rolls
                 // back, retrying this job safely repeats the object deletion first.
-                objectStore.delete(source.getObjectKey());
+                objectStore.delete(objectKey);
             } catch (ObjectStoreException exception) {
                 throw new SourceDeletionException(
                         BackgroundJobFailureKind.TRANSIENT,
@@ -77,6 +85,11 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
         if (source.getInboundMessageId() != null) {
             inboundMessageRepository.findByIdAndUserId(source.getInboundMessageId(), userId.value())
                     .ifPresent(inboundMessage -> {
+                        if (inboundMessage.getTwilioMediaSid() != null) {
+                            twilioMediaCleanupScheduler.enqueueIfNeeded(
+                                    userId, new com.example.whatsanki.domain.InboundMessageId(inboundMessage.getId())
+                            );
+                        }
                         inboundMessage.setBodyCiphertext(null);
                         inboundMessage.setMediaUrlCiphertext(null);
                         inboundMessage.setMediaContentType(null);

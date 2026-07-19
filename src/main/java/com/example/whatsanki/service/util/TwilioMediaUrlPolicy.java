@@ -1,16 +1,23 @@
 package com.example.whatsanki.service.util;
 
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
+import com.example.whatsanki.dto.TwilioMediaReferenceDto;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
 public class TwilioMediaUrlPolicy {
+
+    private static final Pattern MEDIA_RESOURCE = Pattern.compile(
+            "((?:SM|MM)[0-9a-fA-F]{32})/Media/(ME[0-9a-fA-F]{32})"
+    );
 
     private final WhatsAnkiConfigurationDto configuration;
 
@@ -39,9 +46,20 @@ public class TwilioMediaUrlPolicy {
         String path = mediaUri.getRawPath();
         String resourcePath = path != null && path.startsWith(expectedPrefix)
                 ? path.substring(expectedPrefix.length()) : "";
-        if (!resourcePath.matches("(?:SM|MM)[0-9a-fA-F]{32}/Media/ME[0-9a-fA-F]{32}")) {
+        if (!MEDIA_RESOURCE.matcher(resourcePath).matches()) {
             throw MediaAcquisitionException.permanent("INVALID_MEDIA_URL");
         }
+    }
+
+    public TwilioMediaReferenceDto reference(URI mediaUri) {
+        validate(mediaUri);
+        String expectedPrefix = "/2010-04-01/Accounts/"
+                + configuration.getTwilio().getAccountSid() + "/Messages/";
+        Matcher matcher = MEDIA_RESOURCE.matcher(mediaUri.getRawPath().substring(expectedPrefix.length()));
+        if (!matcher.matches()) {
+            throw MediaAcquisitionException.permanent("INVALID_MEDIA_URL");
+        }
+        return new TwilioMediaReferenceDto(matcher.group(1), matcher.group(2));
     }
 
     public void validateRedirect(URI redirectUri) {

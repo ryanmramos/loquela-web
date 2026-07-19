@@ -26,6 +26,7 @@ public class InboundMessageEntity {
     @Column(name = "body_ciphertext") private byte[] bodyCiphertext;
     @Column(name = "media_url_ciphertext") private byte[] mediaUrlCiphertext;
     @Column(name = "media_content_type") private String mediaContentType;
+    @Column(name = "twilio_media_sid", length = 34) private String twilioMediaSid;
     @Enumerated(EnumType.STRING) @Column(name = "command_type", length = 32) private CommandType commandType;
     @Column(name = "received_at", nullable = false) private Instant receivedAt;
     @Column(name = "purge_after") private Instant purgeAfter;

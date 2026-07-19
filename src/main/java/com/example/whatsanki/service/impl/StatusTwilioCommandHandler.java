@@ -58,9 +58,12 @@ public class StatusTwilioCommandHandler implements TwilioCommandHandler {
     private String label(BackgroundJobEntity.Type type) {
         return switch (type) {
             case FETCH_MEDIA -> "Document download";
+            case EXTRACT_DOCUMENT -> "PDF extraction";
             case INGEST_TEXT -> "Text ingestion";
             case LOOKUP -> "Dictionary lookup";
             case EXPORT_DECK -> "Deck export";
+            case DELETE_TWILIO_MEDIA -> "Provider media cleanup";
+            case PURGE_SOURCE_OBJECT -> "Original-file cleanup";
             case DELETE_SOURCE -> "Source deletion";
             case DELETE_USER_DATA -> "Account deletion";
         };

@@ -27,6 +27,7 @@ class HelpTwilioCommandHandlerTest {
                 .contains("HELP")
                 .contains("LANGUAGE <source> <definition>")
                 .contains("ADD <text>")
+                .contains("text-layer PDF")
                 .contains("LOOKUP <word or phrase>")
                 .contains("EXPORT [deck name]")
                 .contains("STATUS");

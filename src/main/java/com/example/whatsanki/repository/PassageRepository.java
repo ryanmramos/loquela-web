@@ -13,6 +13,7 @@ import java.util.UUID;
 public interface PassageRepository extends Repository<PassageEntity, UUID> {
     PassageEntity save(PassageEntity passage);
     List<PassageEntity> saveAll(Iterable<PassageEntity> passages);
+    long deleteAllByUserIdAndSourceId(UUID userId, UUID sourceId);
     Optional<PassageEntity> findByIdAndUserId(UUID id, UUID userId);
     List<PassageEntity> findAllByUserIdAndSourceIdOrderByOrdinal(UUID userId, UUID sourceId);
 

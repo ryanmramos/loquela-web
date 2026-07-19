@@ -43,12 +43,12 @@ class DocumentTwilioCommandHandlerTest {
     }
 
     private TwilioCommandContextDto context() {
-        var media = new TwilioMediaMetadataDto(1, "https://api.twilio.com/media", "text/plain", null);
+        var media = new TwilioMediaMetadataDto(1, "https://api.twilio.com/media", "application/pdf", null);
         return new TwilioCommandContextDto(
                 UserId.random(),
                 InboundMessageId.random(),
                 new ParsedTwilioCommandDto(
-                        InboundMessageEntity.CommandType.DOCUMENT, null, "text/plain", media, null
+                        InboundMessageEntity.CommandType.DOCUMENT, null, "application/pdf", media, null
                 )
         );
     }

@@ -4,6 +4,8 @@ import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
@@ -12,6 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static com.example.whatsanki.support.PdfTestDocumentFactory.textPdf;
+import static com.example.whatsanki.support.PdfTestDocumentFactory.encryptedPdf;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,8 +26,19 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class DocumentMediaTypeDetectorImplTest {
 
     @TempDir Path temporaryDirectory;
-    private final DocumentMediaTypeDetectorImpl detector =
-            new DocumentMediaTypeDetectorImpl(new WhatsAnkiConfigurationDto());
+    private ExecutorService executor;
+    private DocumentMediaTypeDetectorImpl detector;
+
+    @BeforeEach
+    void setUp() {
+        executor = Executors.newSingleThreadExecutor();
+        detector = new DocumentMediaTypeDetectorImpl(new WhatsAnkiConfigurationDto(), executor);
+    }
+
+    @AfterEach
+    void tearDown() {
+        executor.shutdownNow();
+    }
 
     @Test
     void detectsStrictUtf8TextAndPdfByBytes() throws IOException {
@@ -30,7 +48,7 @@ class DocumentMediaTypeDetectorImplTest {
                 .isEqualTo(SourceDocumentEntity.Kind.TXT);
 
         Path pdf = temporaryDirectory.resolve("also-unknown.bin");
-        Files.writeString(pdf, "%PDF-1.7\nbody", StandardCharsets.US_ASCII);
+        Files.write(pdf, textPdf("A real PDF document."));
         assertThat(detector.detect(pdf, "application/pdf").sourceKind())
                 .isEqualTo(SourceDocumentEntity.Kind.PDF);
     }
@@ -51,7 +69,7 @@ class DocumentMediaTypeDetectorImplTest {
     @Test
     void rejectsDeclaredTypeMismatchAndInvalidUtf8() throws IOException {
         Path pdf = temporaryDirectory.resolve("fake.txt");
-        Files.writeString(pdf, "%PDF-1.7", StandardCharsets.US_ASCII);
+        Files.write(pdf, textPdf("A real PDF document."));
         assertThatThrownBy(() -> detector.detect(pdf, "text/plain"))
                 .isInstanceOfSatisfying(MediaAcquisitionException.class,
                         exception -> assertThat(exception.errorCode()).isEqualTo("MEDIA_TYPE_MISMATCH"));
@@ -61,5 +79,20 @@ class DocumentMediaTypeDetectorImplTest {
         assertThatThrownBy(() -> detector.detect(invalid, "text/plain"))
                 .isInstanceOfSatisfying(MediaAcquisitionException.class,
                         exception -> assertThat(exception.errorCode()).isEqualTo("INVALID_TEXT_ENCODING"));
+    }
+
+    @Test
+    void rejectsMalformedAndEncryptedPdfBeforeStorage() throws IOException {
+        Path malformed = temporaryDirectory.resolve("malformed.pdf");
+        Files.writeString(malformed, "%PDF-1.7\nnot a real document", StandardCharsets.US_ASCII);
+        assertThatThrownBy(() -> detector.detect(malformed, "application/pdf"))
+                .isInstanceOfSatisfying(MediaAcquisitionException.class,
+                        exception -> assertThat(exception.errorCode()).isEqualTo("INVALID_PDF"));
+
+        Path encrypted = temporaryDirectory.resolve("encrypted.pdf");
+        Files.write(encrypted, encryptedPdf("secret"));
+        assertThatThrownBy(() -> detector.detect(encrypted, "application/pdf"))
+                .isInstanceOfSatisfying(MediaAcquisitionException.class,
+                        exception -> assertThat(exception.errorCode()).isEqualTo("ENCRYPTED_DOCUMENT"));
     }
 }

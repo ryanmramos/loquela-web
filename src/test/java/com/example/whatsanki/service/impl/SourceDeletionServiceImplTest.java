@@ -10,6 +10,8 @@ import com.example.whatsanki.repository.BackgroundJobRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.service.ObjectStore;
+import com.example.whatsanki.service.TwilioMediaCleanupScheduler;
+import com.example.whatsanki.service.util.ObjectKeyFactory;
 import com.example.whatsanki.service.exception.SourceDeletionException;
 import com.example.whatsanki.service.exception.ObjectStoreException;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +40,7 @@ class SourceDeletionServiceImplTest {
     @Mock private BackgroundJobRepository backgroundJobRepository;
     @Mock private InboundMessageRepository inboundMessageRepository;
     @Mock private ObjectStore objectStore;
+    @Mock private TwilioMediaCleanupScheduler twilioMediaCleanupScheduler;
 
     private SourceDeletionServiceImpl service;
 
@@ -47,7 +50,9 @@ class SourceDeletionServiceImplTest {
                 sourceDocumentRepository,
                 backgroundJobRepository,
                 inboundMessageRepository,
-                objectStore
+                objectStore,
+                new ObjectKeyFactory(),
+                twilioMediaCleanupScheduler
         );
     }
 

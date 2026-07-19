@@ -16,6 +16,7 @@ import com.example.whatsanki.dto.FetchMediaJobPayloadDto;
 import com.example.whatsanki.dto.MediaFetchPreparationDto;
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
 import com.example.whatsanki.dto.TwilioMediaMetadataDto;
+import com.example.whatsanki.dto.TwilioMediaReferenceDto;
 import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
@@ -82,7 +83,7 @@ public class DocumentIngestionServiceImpl implements DocumentIngestionService {
         } catch (IllegalArgumentException exception) {
             throw MediaAcquisitionException.permanent("INVALID_MEDIA_URL", exception);
         }
-        mediaUrlPolicy.validate(mediaUri);
+        TwilioMediaReferenceDto mediaReference = mediaUrlPolicy.reference(mediaUri);
         SourceDocumentEntity.Kind declaredKind = declaredKind(media.contentType());
 
         var existing = sourceDocumentRepository.findByUserIdAndInboundMessageId(
@@ -101,6 +102,9 @@ public class DocumentIngestionServiceImpl implements DocumentIngestionService {
         if (inbound.getCommandType() != InboundMessageEntity.CommandType.DOCUMENT) {
             throw new IllegalStateException("Inbound message is not a document command");
         }
+        if (!mediaReference.messageSid().equalsIgnoreCase(inbound.getTwilioMessageSid())) {
+            throw MediaAcquisitionException.permanent("INVALID_MEDIA_URL");
+        }
         AppUserEntity user = appUserRepository.findById(userId.value())
                 .filter(candidate -> candidate.getStatus() == AppUserEntity.Status.ACTIVE)
                 .orElseThrow(() -> new IllegalStateException("Active user was not found for document command"));
@@ -109,6 +113,7 @@ public class DocumentIngestionServiceImpl implements DocumentIngestionService {
                 mediaUri.toASCIIString(), mediaEncryptionPurpose(userId, inboundMessageId)
         ));
         inbound.setMediaContentType(normalizeMediaType(media.contentType()));
+        inbound.setTwilioMediaSid(mediaReference.mediaSid());
         inboundMessageRepository.save(inbound);
 
         SourceId sourceId = SourceId.random();
@@ -168,26 +173,14 @@ public class DocumentIngestionServiceImpl implements DocumentIngestionService {
 
     @Override
     public void markFailed(UserId userId, SourceId sourceId, String errorCode, boolean clearStaging) {
-        // Claim the failure transition first. A stale worker must never delete an
-        // object after another worker has already advanced the source to STORED/READY.
-        boolean cleanupAllowed = lifecycleService.markFailed(
-                userId, sourceId, errorCode, clearStaging
-        );
-        if (cleanupAllowed && clearStaging) {
-            String objectKey = objectKeyFactory.originalSource(userId, sourceId);
-            try {
-                objectStore.delete(objectKey);
-            } catch (ObjectStoreException exception) {
-                throw MediaAcquisitionException.transientFailure("MEDIA_CLEANUP_FAILED", exception);
-            }
-        }
+        // Durable cleanup is queued by the lifecycle transaction. Acquisition failure
+        // can therefore retain its original diagnostic even when object storage is down.
+        lifecycleService.markFailed(userId, sourceId, errorCode, clearStaging);
     }
 
     private SourceDocumentEntity.Kind declaredKind(String mediaType) {
         return switch (normalizeMediaType(mediaType)) {
-            case "text/plain" -> SourceDocumentEntity.Kind.TXT;
             case "application/pdf" -> SourceDocumentEntity.Kind.PDF;
-            case "application/epub+zip" -> SourceDocumentEntity.Kind.EPUB;
             default -> throw MediaAcquisitionException.permanent("UNSUPPORTED_MEDIA_TYPE");
         };
     }
