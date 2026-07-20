@@ -2,9 +2,9 @@ package com.example.whatsanki.controller;
 
 import com.example.whatsanki.dto.TwilioWebhookRequestDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
-import com.example.whatsanki.service.TwiMLService;
-import com.example.whatsanki.service.TwilioSignatureService;
-import com.example.whatsanki.service.TwilioWebhookService;
+import com.example.whatsanki.service.twilio.TwiMLService;
+import com.example.whatsanki.service.twilio.TwilioSignatureService;
+import com.example.whatsanki.service.twilio.TwilioWebhookService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

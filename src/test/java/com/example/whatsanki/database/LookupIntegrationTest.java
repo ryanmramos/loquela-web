@@ -16,7 +16,7 @@ import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.LookupSessionRepository;
 import com.example.whatsanki.repository.PassageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.LookupService;
+import com.example.whatsanki.service.lookup.LookupService;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 

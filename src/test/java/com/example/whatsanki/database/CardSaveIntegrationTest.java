@@ -18,7 +18,7 @@ import com.example.whatsanki.repository.CardRepository;
 import com.example.whatsanki.repository.DeckRepository;
 import com.example.whatsanki.repository.LookupSessionRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.CardSaveService;
+import com.example.whatsanki.service.card.CardSaveService;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 

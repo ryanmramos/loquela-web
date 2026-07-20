@@ -8,9 +8,9 @@ import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.BackgroundJobService;
-import com.example.whatsanki.service.OriginalDocumentRetentionService;
-import com.example.whatsanki.service.TwilioMediaCleanupScheduler;
+import com.example.whatsanki.service.job.BackgroundJobService;
+import com.example.whatsanki.service.storage.OriginalDocumentRetentionService;
+import com.example.whatsanki.service.twilio.TwilioMediaCleanupScheduler;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 
