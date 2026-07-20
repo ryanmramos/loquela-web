@@ -8,6 +8,7 @@ import com.example.whatsanki.service.DictionaryProvider;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,6 +65,22 @@ class ConfiguredDictionaryProviderSelectorTest {
                 configuration
         )).isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("version");
+    }
+
+    @Test
+    void buildsAPairSpecificRouteWithSpecialistAndGenericFallback() {
+        WhatsAnkiConfigurationDto configuration = new WhatsAnkiConfigurationDto();
+        configuration.getDictionary().setProviderOrder(List.of("wiktionary"));
+        configuration.getDictionary().setRoutes(Map.of("es:en", List.of("rae", "wiktionary")));
+        DictionaryProvider wiktionary = provider("wiktionary", "v1");
+        DictionaryProvider rae = provider("rae", "v2");
+
+        ConfiguredDictionaryProviderSelector selector = new ConfiguredDictionaryProviderSelector(
+                List.of(wiktionary, rae), configuration
+        );
+
+        assertThat(selector.activeProvider()).isInstanceOf(RoutedDictionaryProvider.class);
+        assertThat(selector.activeProvider().supportedPairs()).contains(new LanguagePairDto("es", "en"));
     }
 
     private DictionaryProvider provider(String providerId, String providerVersion) {

@@ -1,12 +1,14 @@
 package com.example.whatsanki.service.impl;
 
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
+import com.example.whatsanki.dto.LanguagePairDto;
 import com.example.whatsanki.service.DictionaryProvider;
 import com.example.whatsanki.service.DictionaryProviderSelector;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,26 +35,25 @@ public class ConfiguredDictionaryProviderSelector implements DictionaryProviderS
             }
         }
 
-        String configuredProviderId = canonicalProviderId(configuration.getDictionary().getProvider());
-        activeProvider = providersById.get(configuredProviderId);
-        if (activeProvider == null) {
-            throw new IllegalStateException(
-                    "Dictionary provider '" + configuredProviderId + "' is not registered; available providers: "
-                            + new TreeSet<>(providersById.keySet())
-            );
-        }
-        if (activeProvider.providerVersion() == null || activeProvider.providerVersion().isBlank()) {
-            throw new IllegalStateException("Dictionary provider version is required for " + configuredProviderId);
-        }
-        if (activeProvider.supportedPairs() == null || activeProvider.supportedPairs().isEmpty()) {
-            throw new IllegalStateException("Dictionary provider must advertise at least one language pair: "
-                    + configuredProviderId);
-        }
+        List<String> configuredOrder = configuredOrder(configuration.getDictionary(), providersById.keySet());
+        List<DictionaryProvider> orderedProviders = configuredOrder.stream()
+                .map(providersById::get)
+                .toList();
+        orderedProviders.forEach(this::validateProvider);
+
+        Map<String, List<DictionaryProvider>> routes = configuredRoutes(
+                configuration.getDictionary(), providersById
+        );
+        activeProvider = routes.isEmpty() && orderedProviders.size() == 1
+                ? orderedProviders.get(0)
+                : new RoutedDictionaryProvider(orderedProviders, routes);
 
         log.info(
-                "Selected dictionary provider providerId={} providerVersion={} supportedPairCount={}",
-                configuredProviderId,
+                "Selected dictionary provider providerId={} providerVersion={} configuredProviderCount={} routeCount={} supportedPairCount={}",
+                activeProvider.providerId(),
                 activeProvider.providerVersion(),
+                orderedProviders.size(),
+                routes.size(),
                 activeProvider.supportedPairs().size()
         );
     }
@@ -71,5 +72,90 @@ public class ConfiguredDictionaryProviderSelector implements DictionaryProviderS
             throw new IllegalStateException("Invalid dictionary provider ID: " + value);
         }
         return canonical;
+    }
+
+    private List<String> configuredOrder(
+            WhatsAnkiConfigurationDto.Dictionary dictionary,
+            java.util.Set<String> registeredProviderIds
+    ) {
+        LinkedHashSet<String> ids = new LinkedHashSet<>();
+        List<String> configured = dictionary.getProviderOrder();
+        if (configured == null || configured.isEmpty()) {
+            ids.add(canonicalProviderId(dictionary.getProvider()));
+        } else {
+            configured.forEach(value -> ids.add(canonicalProviderId(value)));
+        }
+        for (String id : ids) {
+            if (!registeredProviderIds.contains(id)) {
+                throw new IllegalStateException(
+                        "Dictionary provider '" + id + "' is not registered; available providers: "
+                                + new TreeSet<>(registeredProviderIds)
+                );
+            }
+        }
+        return List.copyOf(ids);
+    }
+
+    private Map<String, List<DictionaryProvider>> configuredRoutes(
+            WhatsAnkiConfigurationDto.Dictionary dictionary,
+            Map<String, DictionaryProvider> providersById
+    ) {
+        Map<String, List<DictionaryProvider>> resolved = new LinkedHashMap<>();
+        if (dictionary.getRoutes() == null) {
+            return resolved;
+        }
+        dictionary.getRoutes().forEach((pair, ids) -> {
+            String canonicalPair = canonicalPair(pair);
+            if (ids == null || ids.isEmpty()) {
+                throw new IllegalStateException("Dictionary route must name at least one provider: " + canonicalPair);
+            }
+            LinkedHashSet<String> routeIds = new LinkedHashSet<>();
+            ids.forEach(id -> routeIds.add(canonicalProviderId(id)));
+            List<DictionaryProvider> routeProviders = routeIds.stream().map(id -> {
+                DictionaryProvider provider = providersById.get(id);
+                if (provider == null) {
+                    throw new IllegalStateException("Dictionary route " + canonicalPair
+                            + " references an unregistered provider: " + id);
+                }
+                validateProvider(provider);
+                return provider;
+            }).toList();
+            LanguagePairDto routePair = languagePair(canonicalPair);
+            if (routeProviders.stream().noneMatch(provider -> provider.supports(routePair))) {
+                throw new IllegalStateException("Dictionary route " + canonicalPair
+                        + " has no provider that supports the configured pair");
+            }
+            resolved.put(canonicalPair, routeProviders);
+        });
+        return Map.copyOf(resolved);
+    }
+
+    private String canonicalPair(String value) {
+        String[] tags = value == null ? new String[0] : value.strip().split(":", -1);
+        if (tags.length != 2) {
+            throw new IllegalStateException("Dictionary route keys must use <source>:<definition>: " + value);
+        }
+        try {
+            var pair = new LanguagePairDto(tags[0], tags[1]);
+            return pair.sourceLanguage() + ":" + pair.definitionLanguage();
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException("Invalid dictionary route language pair: " + value, exception);
+        }
+    }
+
+    private LanguagePairDto languagePair(String canonicalPair) {
+        String[] tags = canonicalPair.split(":", -1);
+        return new LanguagePairDto(tags[0], tags[1]);
+    }
+
+    private void validateProvider(DictionaryProvider provider) {
+        String providerId = canonicalProviderId(provider.providerId());
+        if (provider.providerVersion() == null || provider.providerVersion().isBlank()) {
+            throw new IllegalStateException("Dictionary provider version is required for " + providerId);
+        }
+        if (provider.supportedPairs() == null || provider.supportedPairs().isEmpty()) {
+            throw new IllegalStateException("Dictionary provider must advertise at least one language pair: "
+                    + providerId);
+        }
     }
 }

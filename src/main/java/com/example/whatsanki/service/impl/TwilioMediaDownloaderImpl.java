@@ -6,6 +6,7 @@ import com.example.whatsanki.service.TwilioMediaDownloader;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import com.example.whatsanki.service.util.TwilioMediaUrlPolicy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class TwilioMediaDownloaderImpl implements TwilioMediaDownloader {
     public TwilioMediaDownloaderImpl(
             WhatsAnkiConfigurationDto configuration,
             TwilioMediaUrlPolicy urlPolicy,
-            HttpClient httpClient
+            @Qualifier("twilioMediaHttpClient") HttpClient httpClient
     ) {
         this.configuration = configuration;
         this.urlPolicy = urlPolicy;

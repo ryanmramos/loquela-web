@@ -3,8 +3,8 @@ package com.example.whatsanki.service.impl;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.TwilioMediaClient;
 import com.example.whatsanki.service.exception.TwilioMediaCleanupException;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -16,12 +16,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class TwilioMediaClientImpl implements TwilioMediaClient {
 
     private final WhatsAnkiConfigurationDto configuration;
     private final HttpClient httpClient;
+
+    public TwilioMediaClientImpl(
+            WhatsAnkiConfigurationDto configuration,
+            @Qualifier("twilioMediaHttpClient") HttpClient httpClient
+    ) {
+        this.configuration = configuration;
+        this.httpClient = httpClient;
+    }
 
     @Override
     public void delete(String messageSid, String mediaSid) {

@@ -16,7 +16,9 @@ import org.springframework.validation.annotation.Validated;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.nio.file.Path;
 
 @Getter
@@ -236,11 +238,57 @@ public class WhatsAnkiConfigurationDto {
         @NotBlank
         private String provider = "fake";
 
+        /**
+         * Ordered default providers. When empty, {@link #provider} remains the
+         * backwards-compatible single-provider selection. Entries after the first are
+         * consulted only when the earlier provider has no definition for a supported
+         * pair; provider outages never silently change dictionary authority.
+         */
+        private List<@NotBlank String> providerOrder = new ArrayList<>();
+
+        /**
+         * Optional pair-specific provider preference, keyed as {@code source:definition}.
+         * This lets a language-specific provider precede a broad fallback such as
+         * Wiktionary without coupling lookup/card code to either implementation.
+         */
+        private Map<@NotBlank String, List<@NotBlank String>> routes = new LinkedHashMap<>();
+
+        /** Wikimedia Action API endpoint template for the generic prototype adapter. */
+        @NotBlank
+        private String wiktionaryBaseUrlTemplate = "https://{definitionLanguage}.wiktionary.org/w/api.php";
+
+        @NotEmpty
+        private List<@NotBlank String> wiktionaryAllowedHosts = new ArrayList<>(
+                List.of("en.wiktionary.org", "es.wiktionary.org")
+        );
+
+        @NotNull
+        private Duration connectTimeout = Duration.ofSeconds(3);
+
+        @NotNull
+        private Duration readTimeout = Duration.ofSeconds(8);
+
+        @Positive
+        private long maxResponseBytes = 1_048_576L;
+
+        @Positive
+        private int maxConcurrentRequests = 4;
+
+        /** Kept for a future commercial adapter; Wiktionary does not require a key. */
         private URI baseUrl;
         private String apiKey = "";
 
         @NotBlank
         private String userAgent = "WhatsAnki/0.1";
+
+        @AssertTrue(message = "whatsanki.dictionary timeouts must be positive")
+        public boolean areTimeoutsPositive() {
+            return positive(connectTimeout) && positive(readTimeout);
+        }
+
+        private boolean positive(Duration duration) {
+            return duration != null && !duration.isZero() && !duration.isNegative();
+        }
     }
 
     @Getter

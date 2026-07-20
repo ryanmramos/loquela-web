@@ -19,4 +19,15 @@ public class OutboundHttpClientConfiguration {
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
     }
+
+    @Bean("wiktionaryHttpClient")
+    HttpClient wiktionaryHttpClient(WhatsAnkiConfigurationDto configuration) {
+        // Wikimedia redirects are not part of the adapter contract. Keeping them off
+        // makes the fixed host allow-list meaningful and avoids following an arbitrary
+        // location supplied by an upstream error page.
+        return HttpClient.newBuilder()
+                .connectTimeout(configuration.getDictionary().getConnectTimeout())
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .build();
+    }
 }
