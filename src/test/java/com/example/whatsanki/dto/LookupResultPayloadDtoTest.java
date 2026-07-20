@@ -58,6 +58,25 @@ class LookupResultPayloadDtoTest {
                 .hasMessageContaining("consecutively");
     }
 
+    @Test
+    void reconstructsTypedSnapshotFromPersistedJsonValues() {
+        LookupResultPayloadDto original = LookupResultPayloadDto.create(
+                entry(), List.of(context(SourceDocumentEntity.Kind.PDF, Map.of("pageNumber", 9)))
+        );
+
+        LookupResultPayloadDto reconstructed = LookupResultPayloadDto.fromMap(original.toMap());
+
+        assertThat(reconstructed).isEqualTo(original);
+        assertThat(reconstructed.contexts().get(0).location()).containsEntry("pageNumber", 9);
+    }
+
+    @Test
+    void rejectsMalformedPersistedSnapshot() {
+        assertThatThrownBy(() -> LookupResultPayloadDto.fromMap(Map.of("schemaVersion", 1)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("dictionary");
+    }
+
     private DictionaryEntryDto entry() {
         return new DictionaryEntryDto(
                 "vivir",

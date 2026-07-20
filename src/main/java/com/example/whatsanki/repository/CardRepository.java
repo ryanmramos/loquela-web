@@ -10,5 +10,10 @@ import java.util.UUID;
 public interface CardRepository extends Repository<CardEntity, UUID> {
     CardEntity save(CardEntity card);
     Optional<CardEntity> findByIdAndUserId(UUID id, UUID userId);
+    Optional<CardEntity> findByUserIdAndSavedFromLookupSessionIdAndSavedFromContextNumber(
+            UUID userId,
+            UUID lookupSessionId,
+            int contextNumber
+    );
     List<CardEntity> findAllByUserIdAndDeckIdOrderByCreatedAt(UUID userId, UUID deckId);
 }

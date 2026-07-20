@@ -23,7 +23,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(13);
+        assertThat(flyway.info().applied()).hasSize(15);
     }
 
     @Test
@@ -126,5 +126,25 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                   and table_name = 'lookup_session'
                 """, String.class);
         assertThat(lookupColumns).contains("inbound_message_id", "status", "error_code", "updated_at");
+
+        List<String> cardColumns = jdbcTemplate.queryForList("""
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'card'
+                """, String.class);
+        assertThat(cardColumns).contains(
+                "saved_from_lookup_session_id", "saved_from_context_number", "anki_template_version"
+        );
+
+        Integer savedCardOriginIndexCount = jdbcTemplate.queryForObject("""
+                select count(*)
+                from pg_indexes
+                where schemaname = 'public'
+                  and tablename = 'card'
+                  and indexname = 'uk_card_user_saved_lookup_context'
+                  and indexdef ilike '% unique %'
+                """, Integer.class);
+        assertThat(savedCardOriginIndexCount).isEqualTo(1);
     }
 }

@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /** Versioned JSON snapshot stored in {@code lookup_session.result_payload}. */
 public record LookupResultPayloadDto(
@@ -92,5 +93,125 @@ public record LookupResultPayloadDto(
             numbered.add(NumberedContextExampleDto.from(index + 1, contexts.get(index)));
         }
         return new LookupResultPayloadDto(CURRENT_SCHEMA_VERSION, dictionaryEntry, numbered);
+    }
+
+    /**
+     * Rebuild the typed snapshot from JSON-native database values. SAVE uses this
+     * explicit codec so persisted snapshots remain stable across Jackson changes.
+     */
+    public static LookupResultPayloadDto fromMap(Map<String, Object> payload) {
+        Map<String, Object> root = requiredMap(payload, "lookup result");
+        int schemaVersion = requiredInt(root.get("schemaVersion"), "schemaVersion");
+        Map<String, Object> dictionary = requiredMap(root.get("dictionary"), "dictionary");
+
+        LanguagePairDto languagePair = new LanguagePairDto(
+                requiredString(dictionary.get("sourceLanguage"), "sourceLanguage"),
+                requiredString(dictionary.get("definitionLanguage"), "definitionLanguage")
+        );
+        DictionaryProvenanceDto provenance = provenance(
+                requiredMap(dictionary.get("provenance"), "provenance")
+        );
+        DictionaryEntryDto entry = new DictionaryEntryDto(
+                requiredString(dictionary.get("requestedTerm"), "requestedTerm"),
+                requiredString(dictionary.get("lemma"), "lemma"),
+                stringList(dictionary.get("forms"), "forms"),
+                senses(dictionary.get("senses")),
+                languagePair,
+                provenance
+        );
+
+        Object rawContexts = root.get("contexts");
+        if (!(rawContexts instanceof List<?> contextValues)) {
+            throw new IllegalArgumentException("contexts must be a list");
+        }
+        List<NumberedContextExampleDto> contexts = new ArrayList<>(contextValues.size());
+        for (Object rawContext : contextValues) {
+            Map<String, Object> context = requiredMap(rawContext, "context");
+            contexts.add(new NumberedContextExampleDto(
+                    requiredInt(context.get("number"), "number"),
+                    UUID.fromString(requiredString(context.get("passageId"), "passageId")),
+                    UUID.fromString(requiredString(context.get("sourceId"), "sourceId")),
+                    com.example.whatsanki.domain.SourceDocumentEntity.Kind.valueOf(
+                            requiredString(context.get("sourceKind"), "sourceKind")
+                    ),
+                    requiredString(context.get("sourceDisplayName"), "sourceDisplayName"),
+                    requiredString(context.get("sourceLanguage"), "sourceLanguage"),
+                    requiredInt(context.get("ordinal"), "ordinal"),
+                    requiredString(context.get("displayText"), "displayText"),
+                    requiredMap(context.get("location"), "location")
+            ));
+        }
+        return new LookupResultPayloadDto(schemaVersion, entry, contexts);
+    }
+
+    private static DictionaryProvenanceDto provenance(Map<String, Object> value) {
+        Map<String, Object> rawMetadata = requiredMap(value.get("metadata"), "metadata");
+        LinkedHashMap<String, String> metadata = new LinkedHashMap<>();
+        rawMetadata.forEach((key, item) -> metadata.put(key, requiredString(item, "metadata value")));
+        return new DictionaryProvenanceDto(
+                requiredString(value.get("providerId"), "providerId"),
+                requiredString(value.get("providerVersion"), "providerVersion"),
+                requiredString(value.get("sourceReference"), "sourceReference"),
+                optionalString(value.get("sourceUrl")),
+                requiredString(value.get("licenseIdentifier"), "licenseIdentifier"),
+                requiredString(value.get("attributionText"), "attributionText"),
+                metadata
+        );
+    }
+
+    private static List<DictionarySenseDto> senses(Object value) {
+        if (!(value instanceof List<?> rawSenses)) {
+            throw new IllegalArgumentException("senses must be a list");
+        }
+        List<DictionarySenseDto> senses = new ArrayList<>(rawSenses.size());
+        for (Object rawSense : rawSenses) {
+            Map<String, Object> sense = requiredMap(rawSense, "sense");
+            senses.add(new DictionarySenseDto(
+                    requiredString(sense.get("partOfSpeech"), "partOfSpeech"),
+                    requiredString(sense.get("definition"), "definition"),
+                    requiredString(sense.get("providerReference"), "providerReference")
+            ));
+        }
+        return senses;
+    }
+
+    private static List<String> stringList(Object value, String field) {
+        if (!(value instanceof List<?> rawValues)) {
+            throw new IllegalArgumentException(field + " must be a list");
+        }
+        return rawValues.stream().map(item -> requiredString(item, field + " item")).toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> requiredMap(Object value, String field) {
+        if (!(value instanceof Map<?, ?> rawMap)) {
+            throw new IllegalArgumentException(field + " must be an object");
+        }
+        LinkedHashMap<String, Object> result = new LinkedHashMap<>();
+        rawMap.forEach((key, item) -> {
+            if (!(key instanceof String stringKey)) {
+                throw new IllegalArgumentException(field + " keys must be strings");
+            }
+            result.put(stringKey, item);
+        });
+        return result;
+    }
+
+    private static int requiredInt(Object value, String field) {
+        if (!(value instanceof Number number)) {
+            throw new IllegalArgumentException(field + " must be a number");
+        }
+        return number.intValue();
+    }
+
+    private static String requiredString(Object value, String field) {
+        if (!(value instanceof String string) || string.isBlank()) {
+            throw new IllegalArgumentException(field + " must be a non-blank string");
+        }
+        return string;
+    }
+
+    private static String optionalString(Object value) {
+        return value instanceof String string ? string : "";
     }
 }
