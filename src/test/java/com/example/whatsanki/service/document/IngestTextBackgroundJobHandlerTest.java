@@ -9,7 +9,6 @@ import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.IngestTextJobPayloadDto;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
 import com.example.whatsanki.service.exception.PastedTextIngestionException;
-import com.example.whatsanki.service.document.PastedTextIngestionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

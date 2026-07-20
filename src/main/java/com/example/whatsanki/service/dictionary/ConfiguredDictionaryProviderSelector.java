@@ -1,9 +1,7 @@
 package com.example.whatsanki.service.dictionary;
 
-import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.dto.LanguagePairDto;
-import com.example.whatsanki.service.dictionary.DictionaryProvider;
-import com.example.whatsanki.service.dictionary.DictionaryProviderSelector;
+import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

@@ -1,23 +1,22 @@
 package com.example.whatsanki.service.document;
 
-import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.domain.BackgroundJobEntity;
+import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.domain.InboundMessageId;
 import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.DetectedDocumentTypeDto;
+import com.example.whatsanki.dto.ExtractDocumentJobPayloadDto;
 import com.example.whatsanki.dto.MediaFetchPreparationDto;
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
-import com.example.whatsanki.dto.ExtractDocumentJobPayloadDto;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.document.DocumentMediaLifecycleService;
-import com.example.whatsanki.service.job.BackgroundJobService;
 import com.example.whatsanki.service.SensitiveDataEncryptionService;
+import com.example.whatsanki.service.exception.MediaAcquisitionException;
+import com.example.whatsanki.service.job.BackgroundJobService;
 import com.example.whatsanki.service.storage.SourceObjectCleanupScheduler;
 import com.example.whatsanki.service.twilio.TwilioMediaCleanupScheduler;
-import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import com.example.whatsanki.service.util.TwilioMediaUrlPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -2,7 +2,6 @@ package com.example.whatsanki.service.twilio;
 
 import com.example.whatsanki.dto.DownloadedMediaDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.twilio.TwilioMediaDownloader;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import com.example.whatsanki.service.util.TwilioMediaUrlPolicy;
 import lombok.extern.slf4j.Slf4j;

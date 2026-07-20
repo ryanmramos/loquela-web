@@ -5,7 +5,6 @@ import com.example.whatsanki.dto.DictionaryLookupRequestDto;
 import com.example.whatsanki.dto.DictionaryProvenanceDto;
 import com.example.whatsanki.dto.DictionarySenseDto;
 import com.example.whatsanki.dto.LanguagePairDto;
-import com.example.whatsanki.service.dictionary.DictionaryProvider;
 import com.example.whatsanki.service.exception.DictionaryProviderException;
 import com.example.whatsanki.service.exception.UnsupportedDictionaryLanguagePairException;
 import org.junit.jupiter.api.Test;

@@ -4,7 +4,6 @@ import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.storage.SourceObjectCleanupLifecycleService;
 import com.example.whatsanki.service.exception.SourceObjectCleanupException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

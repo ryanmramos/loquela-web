@@ -5,7 +5,6 @@ import com.example.whatsanki.domain.ExportRequestId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.ExportRequestRepository;
-import com.example.whatsanki.service.export.DeckExportLifecycleService;
 import com.example.whatsanki.service.storage.ObjectStore;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Pageable;

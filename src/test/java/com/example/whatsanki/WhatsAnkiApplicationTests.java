@@ -1,7 +1,7 @@
 package com.example.whatsanki;
 
-import org.junit.jupiter.api.Test;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
+import org.junit.jupiter.api.Test;
 
 class WhatsAnkiApplicationTests extends PostgreSqlIntegrationTest {
 

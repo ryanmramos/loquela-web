@@ -1,10 +1,10 @@
 package com.example.whatsanki.dto;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Collections;
 
 /**
  * Immutable field contract for the packaged {@code WhatsAnki Context v1} Anki

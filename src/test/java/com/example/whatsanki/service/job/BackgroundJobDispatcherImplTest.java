@@ -5,7 +5,6 @@ import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.domain.JobId;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
-import com.example.whatsanki.service.job.BackgroundJobHandler;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -1,6 +1,5 @@
 package com.example.whatsanki.service.twilio;
 
-import com.example.whatsanki.service.twilio.TwiMLService;
 import org.springframework.stereotype.Service;
 
 @Service

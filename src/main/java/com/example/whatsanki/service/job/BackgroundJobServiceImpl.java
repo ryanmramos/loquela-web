@@ -8,8 +8,6 @@ import com.example.whatsanki.dto.BackgroundJobStatusDto;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.BackgroundJobRepository;
-import com.example.whatsanki.service.job.BackgroundJobRetryPolicy;
-import com.example.whatsanki.service.job.BackgroundJobService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

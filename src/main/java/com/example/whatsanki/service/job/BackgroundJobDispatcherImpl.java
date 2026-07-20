@@ -3,9 +3,7 @@ package com.example.whatsanki.service.job;
 import com.example.whatsanki.domain.BackgroundJobEntity;
 import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
-import com.example.whatsanki.service.job.BackgroundJobDispatcher;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
-import com.example.whatsanki.service.job.BackgroundJobHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

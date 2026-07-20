@@ -3,7 +3,6 @@ package com.example.whatsanki.service.dictionary;
 import com.example.whatsanki.dto.DictionaryEntryDto;
 import com.example.whatsanki.dto.DictionaryLookupRequestDto;
 import com.example.whatsanki.dto.LanguagePairDto;
-import com.example.whatsanki.service.exception.DictionaryProviderException;
 
 import java.util.List;
 import java.util.Optional;

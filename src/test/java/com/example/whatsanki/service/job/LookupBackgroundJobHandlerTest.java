@@ -8,9 +8,9 @@ import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.LookupExecutionResultDto;
 import com.example.whatsanki.dto.LookupJobPayloadDto;
-import com.example.whatsanki.service.lookup.LookupService;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
 import com.example.whatsanki.service.exception.LookupExecutionException;
+import com.example.whatsanki.service.lookup.LookupService;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

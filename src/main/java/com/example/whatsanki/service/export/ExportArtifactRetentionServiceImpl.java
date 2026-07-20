@@ -5,8 +5,6 @@ import com.example.whatsanki.domain.ExportRequestId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.ExportRequestRepository;
-import com.example.whatsanki.service.export.DeckExportLifecycleService;
-import com.example.whatsanki.service.export.ExportArtifactRetentionService;
 import com.example.whatsanki.service.storage.ObjectStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

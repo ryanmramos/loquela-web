@@ -2,8 +2,6 @@ package com.example.whatsanki.service.storage;
 
 import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
-import com.example.whatsanki.service.storage.ObjectStore;
-import com.example.whatsanki.service.storage.SourceObjectCleanupLifecycleService;
 import com.example.whatsanki.service.util.ObjectKeyFactory;
 import org.junit.jupiter.api.Test;
 

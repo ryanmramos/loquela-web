@@ -1,7 +1,7 @@
 package com.example.whatsanki.service.document;
 
-import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.domain.BackgroundJobEntity;
+import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.domain.InboundMessageId;
 import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.domain.SourceId;

@@ -1,7 +1,6 @@
 package com.example.whatsanki.service.twilio.command;
 
 import com.example.whatsanki.domain.InboundMessageEntity;
-import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.dto.SourceSummaryDto;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;

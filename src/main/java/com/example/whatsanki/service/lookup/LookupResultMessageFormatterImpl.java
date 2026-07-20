@@ -2,7 +2,6 @@ package com.example.whatsanki.service.lookup;
 
 import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.lookup.LookupResultMessageFormatter;
 import com.example.whatsanki.service.exception.OutboundDeliveryException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

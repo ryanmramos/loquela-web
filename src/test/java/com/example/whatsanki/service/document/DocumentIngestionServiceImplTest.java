@@ -18,12 +18,11 @@ import com.example.whatsanki.dto.TwilioMediaReferenceDto;
 import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.job.BackgroundJobService;
-import com.example.whatsanki.service.document.DocumentMediaLifecycleService;
-import com.example.whatsanki.service.storage.ObjectStore;
 import com.example.whatsanki.service.SensitiveDataEncryptionService;
-import com.example.whatsanki.service.twilio.TwilioMediaDownloader;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
+import com.example.whatsanki.service.job.BackgroundJobService;
+import com.example.whatsanki.service.storage.ObjectStore;
+import com.example.whatsanki.service.twilio.TwilioMediaDownloader;
 import com.example.whatsanki.service.util.DocumentMediaTypeDetector;
 import com.example.whatsanki.service.util.ObjectKeyFactory;
 import com.example.whatsanki.service.util.TextNormalizer;
@@ -45,8 +44,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)

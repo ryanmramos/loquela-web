@@ -4,7 +4,6 @@ import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.dto.ExtractedDocumentDto;
 import com.example.whatsanki.dto.ExtractedTextSectionDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.document.DocumentTextExtractor;
 import com.example.whatsanki.service.exception.DocumentExtractionException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

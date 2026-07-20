@@ -3,7 +3,6 @@ package com.example.whatsanki.service.storage;
 import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.storage.SourceObjectCleanupScheduler;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.Pageable;

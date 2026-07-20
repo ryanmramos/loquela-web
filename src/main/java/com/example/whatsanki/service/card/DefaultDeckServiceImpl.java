@@ -3,7 +3,6 @@ package com.example.whatsanki.service.card;
 import com.example.whatsanki.domain.DeckId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.repository.DeckRepository;
-import com.example.whatsanki.service.card.DefaultDeckService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

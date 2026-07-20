@@ -4,7 +4,6 @@ import com.example.whatsanki.dto.DictionaryEntryDto;
 import com.example.whatsanki.dto.DictionaryLookupRequestDto;
 import com.example.whatsanki.dto.LanguagePairDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.dictionary.DictionaryProvider;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

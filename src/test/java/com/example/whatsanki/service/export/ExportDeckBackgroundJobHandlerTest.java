@@ -7,7 +7,6 @@ import com.example.whatsanki.domain.JobId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.ExportDeckJobPayloadDto;
-import com.example.whatsanki.service.export.DeckExportService;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
 import com.example.whatsanki.service.exception.DeckExportException;
 import org.junit.jupiter.api.Test;

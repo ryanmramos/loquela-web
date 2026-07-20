@@ -2,7 +2,6 @@ package com.example.whatsanki.service.storage;
 
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.storage.ObjectStore;
 import com.example.whatsanki.service.exception.ObjectStoreException;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;

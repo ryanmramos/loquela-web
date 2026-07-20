@@ -18,7 +18,6 @@ import com.example.whatsanki.dto.LookupResultPayloadDto;
 import com.example.whatsanki.repository.CardRepository;
 import com.example.whatsanki.repository.LookupSessionRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.card.DefaultDeckService;
 import com.example.whatsanki.service.util.AnkiCardFieldMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

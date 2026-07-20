@@ -4,7 +4,6 @@ import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.domain.WhatsAppAddress;
 import com.example.whatsanki.dto.OutboundMessageDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.twilio.TwilioMessageClient;
 import com.example.whatsanki.service.exception.OutboundDeliveryException;
 import com.twilio.exception.ApiException;
 import org.junit.jupiter.api.BeforeEach;

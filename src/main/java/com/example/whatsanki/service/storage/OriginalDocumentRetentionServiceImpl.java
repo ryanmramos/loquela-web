@@ -4,8 +4,6 @@ import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.storage.OriginalDocumentRetentionService;
-import com.example.whatsanki.service.storage.SourceObjectCleanupScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;

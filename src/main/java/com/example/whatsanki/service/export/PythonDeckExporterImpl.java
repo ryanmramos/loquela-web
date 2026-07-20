@@ -3,7 +3,6 @@ package com.example.whatsanki.service.export;
 import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.dto.ExportedDeckDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.export.DeckExporter;
 import com.example.whatsanki.service.exception.DeckExportException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

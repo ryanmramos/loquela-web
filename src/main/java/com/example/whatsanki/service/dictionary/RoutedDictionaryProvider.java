@@ -3,7 +3,6 @@ package com.example.whatsanki.service.dictionary;
 import com.example.whatsanki.dto.DictionaryEntryDto;
 import com.example.whatsanki.dto.DictionaryLookupRequestDto;
 import com.example.whatsanki.dto.LanguagePairDto;
-import com.example.whatsanki.service.dictionary.DictionaryProvider;
 import com.example.whatsanki.service.exception.UnsupportedDictionaryLanguagePairException;
 import lombok.extern.slf4j.Slf4j;
 

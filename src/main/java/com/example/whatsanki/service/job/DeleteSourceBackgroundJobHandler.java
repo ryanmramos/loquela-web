@@ -5,7 +5,6 @@ import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.DeleteSourceJobPayloadDto;
-import com.example.whatsanki.service.job.BackgroundJobHandler;
 import com.example.whatsanki.service.SourceDeletionService;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
 import com.example.whatsanki.service.exception.SourceDeletionException;

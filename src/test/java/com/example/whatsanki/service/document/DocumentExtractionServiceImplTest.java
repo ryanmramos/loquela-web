@@ -9,8 +9,6 @@ import com.example.whatsanki.dto.ExtractedDocumentDto;
 import com.example.whatsanki.dto.ExtractedTextSectionDto;
 import com.example.whatsanki.dto.PassageDraftDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.document.DocumentExtractionLifecycleService;
-import com.example.whatsanki.service.document.DocumentTextExtractor;
 import com.example.whatsanki.service.storage.ObjectStore;
 import com.example.whatsanki.service.util.PassageSegmenterImpl;
 import com.example.whatsanki.service.util.TextNormalizerImpl;
@@ -25,8 +23,8 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

@@ -5,7 +5,6 @@ import com.example.whatsanki.domain.InboundMessageId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.TwilioMediaDeletionPreparationDto;
 import com.example.whatsanki.repository.InboundMessageRepository;
-import com.example.whatsanki.service.twilio.TwilioMediaCleanupLifecycleService;
 import com.example.whatsanki.service.exception.TwilioMediaCleanupException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

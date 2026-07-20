@@ -8,7 +8,6 @@ import com.example.whatsanki.domain.WhatsAppAddress;
 import com.example.whatsanki.dto.LookupDeliveryPartDto;
 import com.example.whatsanki.dto.LookupDeliveryPreparationDto;
 import com.example.whatsanki.dto.OutboundMessageDto;
-import com.example.whatsanki.service.lookup.LookupResultDeliveryLifecycleService;
 import com.example.whatsanki.service.twilio.OutboundMessenger;
 import org.junit.jupiter.api.Test;
 

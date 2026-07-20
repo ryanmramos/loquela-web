@@ -5,8 +5,6 @@ import com.example.whatsanki.domain.ProviderMessageId;
 import com.example.whatsanki.domain.WhatsAppAddress;
 import com.example.whatsanki.dto.OutboundMessageDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.twilio.OutboundMessenger;
-import com.example.whatsanki.service.twilio.TwilioMessageClient;
 import com.example.whatsanki.service.exception.OutboundDeliveryException;
 import com.twilio.exception.ApiException;
 import lombok.RequiredArgsConstructor;

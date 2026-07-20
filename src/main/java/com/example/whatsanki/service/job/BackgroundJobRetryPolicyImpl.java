@@ -1,7 +1,6 @@
 package com.example.whatsanki.service.job;
 
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.job.BackgroundJobRetryPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

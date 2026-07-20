@@ -5,10 +5,9 @@ import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.PurgeSourceObjectJobPayloadDto;
-import com.example.whatsanki.service.job.BackgroundJobHandler;
-import com.example.whatsanki.service.storage.SourceObjectCleanupService;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
 import com.example.whatsanki.service.exception.SourceObjectCleanupException;
+import com.example.whatsanki.service.storage.SourceObjectCleanupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

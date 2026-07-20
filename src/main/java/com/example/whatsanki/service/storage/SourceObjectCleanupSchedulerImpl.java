@@ -6,7 +6,6 @@ import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.PurgeSourceObjectJobPayloadDto;
 import com.example.whatsanki.repository.BackgroundJobRepository;
 import com.example.whatsanki.service.job.BackgroundJobService;
-import com.example.whatsanki.service.storage.SourceObjectCleanupScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

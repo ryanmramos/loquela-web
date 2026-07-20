@@ -1,7 +1,6 @@
 package com.example.whatsanki.service.twilio;
 
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.twilio.TwilioMediaClient;
 import com.example.whatsanki.service.exception.TwilioMediaCleanupException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;

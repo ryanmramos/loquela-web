@@ -7,7 +7,6 @@ import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.ExtractDocumentJobPayloadDto;
-import com.example.whatsanki.service.document.DocumentExtractionService;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
 import com.example.whatsanki.service.exception.DocumentExtractionException;
 import org.junit.jupiter.api.Test;

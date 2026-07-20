@@ -9,7 +9,6 @@ import com.example.whatsanki.dto.DocumentExtractionPreparationDto;
 import com.example.whatsanki.dto.PassageDraftDto;
 import com.example.whatsanki.repository.PassageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.document.DocumentExtractionLifecycleService;
 import com.example.whatsanki.service.exception.DocumentExtractionException;
 import com.example.whatsanki.service.util.TextNormalizer;
 import lombok.RequiredArgsConstructor;

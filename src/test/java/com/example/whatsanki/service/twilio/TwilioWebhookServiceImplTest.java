@@ -8,8 +8,6 @@ import com.example.whatsanki.dto.TwilioWebhookRequestDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.InboundMessageRepository;
-import com.example.whatsanki.service.twilio.TwilioCommandParser;
-import com.example.whatsanki.service.twilio.TwilioCommandService;
 import com.example.whatsanki.service.UserIdentityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

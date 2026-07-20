@@ -7,7 +7,6 @@ import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.dto.ClaimedBackgroundJobDto;
 import com.example.whatsanki.dto.FetchMediaJobPayloadDto;
-import com.example.whatsanki.service.document.DocumentIngestionService;
 import com.example.whatsanki.service.exception.BackgroundJobExecutionException;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import org.junit.jupiter.api.Test;

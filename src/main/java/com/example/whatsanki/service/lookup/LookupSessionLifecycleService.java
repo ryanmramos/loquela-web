@@ -3,11 +3,11 @@ package com.example.whatsanki.service.lookup;
 import com.example.whatsanki.domain.InboundMessageId;
 import com.example.whatsanki.domain.LookupSessionId;
 import com.example.whatsanki.domain.UserId;
+import com.example.whatsanki.dto.ContextExampleDto;
 import com.example.whatsanki.dto.DictionaryEntryDto;
 import com.example.whatsanki.dto.LanguagePairDto;
 import com.example.whatsanki.dto.LookupAcceptanceDto;
 import com.example.whatsanki.dto.LookupExecutionPreparationDto;
-import com.example.whatsanki.dto.ContextExampleDto;
 
 import java.time.Instant;
 import java.util.List;

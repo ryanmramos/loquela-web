@@ -5,7 +5,6 @@ import com.example.whatsanki.dto.ParsedTwilioCommandDto;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
 import com.example.whatsanki.service.TwilioCommandHandler;
-import com.example.whatsanki.service.twilio.TwilioCommandService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

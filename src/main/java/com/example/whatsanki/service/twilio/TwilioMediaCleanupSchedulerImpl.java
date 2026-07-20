@@ -7,12 +7,11 @@ import com.example.whatsanki.dto.DeleteTwilioMediaJobPayloadDto;
 import com.example.whatsanki.repository.BackgroundJobRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.service.job.BackgroundJobService;
-import com.example.whatsanki.service.twilio.TwilioMediaCleanupScheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.PageRequest;
 
 @Service
 @RequiredArgsConstructor

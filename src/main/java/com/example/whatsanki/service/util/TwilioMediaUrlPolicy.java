@@ -1,7 +1,7 @@
 package com.example.whatsanki.service.util;
 
-import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.dto.TwilioMediaReferenceDto;
+import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

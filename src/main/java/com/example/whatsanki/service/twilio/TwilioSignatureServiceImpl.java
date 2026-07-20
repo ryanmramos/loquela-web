@@ -1,7 +1,6 @@
 package com.example.whatsanki.service.twilio;
 
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.service.twilio.TwilioSignatureService;
 import com.twilio.security.RequestValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

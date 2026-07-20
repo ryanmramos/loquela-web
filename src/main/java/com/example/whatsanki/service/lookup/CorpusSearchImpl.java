@@ -10,7 +10,6 @@ import com.example.whatsanki.dto.CorpusSearchOptionsDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.PassageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
-import com.example.whatsanki.service.lookup.CorpusSearch;
 import com.example.whatsanki.service.util.TextNormalizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

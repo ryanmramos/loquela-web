@@ -4,12 +4,12 @@ import com.example.whatsanki.domain.LookupSessionEntity;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import java.time.Instant;
 
 public interface LookupSessionRepository extends Repository<LookupSessionEntity, UUID> {
     LookupSessionEntity save(LookupSessionEntity session);

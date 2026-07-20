@@ -12,8 +12,6 @@ import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.LookupSessionRepository;
 import com.example.whatsanki.repository.OutboundMessageRepository;
 import com.example.whatsanki.service.IdentityProtectionService;
-import com.example.whatsanki.service.lookup.LookupFailureMessageFormatter;
-import com.example.whatsanki.service.lookup.LookupResultMessageFormatter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

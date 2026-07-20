@@ -3,23 +3,22 @@ package com.example.whatsanki.service.util;
 import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.exception.MediaAcquisitionException;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
-import static com.example.whatsanki.support.PdfTestDocumentFactory.textPdf;
 import static com.example.whatsanki.support.PdfTestDocumentFactory.encryptedPdf;
-
+import static com.example.whatsanki.support.PdfTestDocumentFactory.textPdf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

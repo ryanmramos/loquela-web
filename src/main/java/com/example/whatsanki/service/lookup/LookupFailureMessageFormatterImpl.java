@@ -1,6 +1,5 @@
 package com.example.whatsanki.service.lookup;
 
-import com.example.whatsanki.service.lookup.LookupFailureMessageFormatter;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
