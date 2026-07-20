@@ -1,0 +1,10 @@
+{{#VideoRecognition}}
+{{#Video}}
+<div class="wa-shell"><main class="wa-card">
+  <header class="wa-header wa-video-head"><div class="wa-source"><span class="wa-dot"></span><span class="wa-source-text">{{SourceName}}{{#SourceLocator}} · {{SourceLocator}}{{/SourceLocator}}</span></div><span>Listening</span></header>
+  <div class="wa-video">{{Video}}</div>
+  <section class="wa-context" dir="auto"><div><p class="wa-sentence">{{ContextBefore}}<mark class="wa-target">{{ContextTarget}}</mark>{{ContextAfter}}</p>{{#SentenceAudio}}<div class="wa-audio">{{SentenceAudio}}</div>{{/SentenceAudio}}</div></section>
+  <footer class="wa-footer"><span>{{LanguagePair}}</span><span>Replay as needed</span></footer>
+</main></div>
+{{/Video}}
+{{/VideoRecognition}}

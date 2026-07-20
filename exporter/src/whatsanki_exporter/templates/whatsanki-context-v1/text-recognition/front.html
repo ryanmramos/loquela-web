@@ -1,0 +1,15 @@
+{{#TextRecognition}}
+<div class="wa-shell">
+  <main class="wa-card">
+    <header class="wa-header">
+      {{#SourceName}}<div class="wa-source"><span class="wa-dot"></span><span class="wa-source-text">{{SourceName}}{{#SourceLocator}} · {{SourceLocator}}{{/SourceLocator}}</span></div>{{/SourceName}}
+      {{#SentenceAudio}}<div class="wa-audio">{{SentenceAudio}}</div>{{/SentenceAudio}}
+    </header>
+    <section class="wa-context" dir="auto">
+      <div><p class="wa-sentence">{{ContextBefore}}<mark class="wa-target">{{ContextTarget}}</mark>{{ContextAfter}}</p>
+      <p class="wa-hint">Understand the sentence. What does the highlighted word express here?</p></div>
+    </section>
+    <footer class="wa-footer"><span>{{LanguagePair}}</span><span>Reveal the answer</span></footer>
+  </main>
+</div>
+{{/TextRecognition}}

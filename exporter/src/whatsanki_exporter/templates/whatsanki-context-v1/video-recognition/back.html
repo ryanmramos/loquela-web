@@ -1,0 +1,8 @@
+{{#VideoRecognition}}
+<div class="wa-shell"><main class="wa-card">
+  <div id="answer"></div>
+  <header class="wa-answer-head"><div class="wa-term-row"><div dir="auto"><p class="wa-kicker">Target word</p><h1 class="wa-term">{{Term}}</h1>{{#Pronunciation}}<p class="wa-pronunciation">{{Pronunciation}}</p>{{/Pronunciation}}</div>{{#WordAudio}}<div class="wa-word-audio">{{WordAudio}}</div>{{/WordAudio}}</div></header>
+  <section class="wa-answer-body"><div class="wa-chips">{{#PartOfSpeech}}<span class="wa-chip">{{PartOfSpeech}}</span>{{/PartOfSpeech}}{{#Gender}}<span class="wa-chip">{{Gender}}</span>{{/Gender}}{{#Number}}<span class="wa-chip">{{Number}}</span>{{/Number}}</div><div dir="auto"><p class="wa-label">Definition in context</p><p class="wa-definition"><strong>{{Definition}}</strong>{{#DefinitionDetail}}<span class="wa-definition-detail">{{DefinitionDetail}}</span>{{/DefinitionDetail}}</p></div><div class="wa-example" dir="auto"><p class="wa-sentence">{{ContextBefore}}<strong>{{ContextTarget}}</strong>{{ContextAfter}}</p>{{#ContextTranslation}}<p class="wa-translation">{{ContextTranslation}}</p>{{/ContextTranslation}}</div></section>
+  <footer class="wa-footer"><span>{{SourceName}}</span><span>{{SourceLocator}}</span></footer>
+</main></div>
+{{/VideoRecognition}}

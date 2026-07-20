@@ -17,6 +17,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.nio.file.Path;
 
 @Getter
 @Setter
@@ -57,6 +58,10 @@ public class WhatsAnkiConfigurationDto {
     @Valid
     @NotNull
     private Dictionary dictionary = new Dictionary();
+
+    @Valid
+    @NotNull
+    private Exporter exporter = new Exporter();
 
     @Valid
     @NotNull
@@ -236,6 +241,30 @@ public class WhatsAnkiConfigurationDto {
 
         @NotBlank
         private String userAgent = "WhatsAnki/0.1";
+    }
+
+    @Getter
+    @Setter
+    public static class Exporter {
+        @NotBlank
+        private String pythonExecutable = "python3";
+
+        @NotBlank
+        private String module = "whatsanki_exporter";
+
+        @NotNull
+        private Path workingDirectory = Path.of("exporter");
+
+        @NotNull
+        private Duration timeout = Duration.ofMinutes(2);
+
+        @Positive
+        private long maxArtifactBytes = 100L * 1024 * 1024;
+
+        @AssertTrue(message = "whatsanki.exporter.timeout must be positive")
+        public boolean isTimeoutPositive() {
+            return timeout != null && !timeout.isZero() && !timeout.isNegative();
+        }
     }
 
     @Getter

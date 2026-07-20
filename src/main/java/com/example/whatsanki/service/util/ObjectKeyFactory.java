@@ -1,6 +1,7 @@
 package com.example.whatsanki.service.util;
 
 import com.example.whatsanki.domain.SourceId;
+import com.example.whatsanki.domain.ExportRequestId;
 import com.example.whatsanki.domain.UserId;
 import org.springframework.stereotype.Component;
 
@@ -13,5 +14,11 @@ public class ObjectKeyFactory {
         Objects.requireNonNull(userId, "userId must not be null");
         Objects.requireNonNull(sourceId, "sourceId must not be null");
         return "users/" + userId.value() + "/sources/" + sourceId.value() + "/original";
+    }
+
+    public String exportedDeck(UserId userId, ExportRequestId exportRequestId) {
+        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(exportRequestId, "exportRequestId must not be null");
+        return "users/" + userId.value() + "/exports/" + exportRequestId.value() + "/deck.apkg";
     }
 }

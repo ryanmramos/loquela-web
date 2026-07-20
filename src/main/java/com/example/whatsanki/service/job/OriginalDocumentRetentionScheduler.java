@@ -2,6 +2,7 @@ package com.example.whatsanki.service.job;
 
 import com.example.whatsanki.service.OriginalDocumentRetentionService;
 import com.example.whatsanki.service.TwilioMediaCleanupScheduler;
+import com.example.whatsanki.service.ExportArtifactRetentionService;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,6 +19,7 @@ public class OriginalDocumentRetentionScheduler {
     private final OriginalDocumentRetentionService retentionService;
     private final TwilioMediaCleanupScheduler twilioMediaCleanupScheduler;
     private final WhatsAnkiConfigurationDto configuration;
+    private final ExportArtifactRetentionService exportArtifactRetentionService;
 
     @Scheduled(
             initialDelayString = "${whatsanki.retention.scan-interval:PT1H}",
@@ -33,5 +35,13 @@ public class OriginalDocumentRetentionScheduler {
     )
     public void schedulePendingTwilioMediaCleanup() {
         twilioMediaCleanupScheduler.enqueuePending(configuration.getRetention().getScanBatchSize());
+    }
+
+    @Scheduled(
+            initialDelayString = "${whatsanki.retention.scan-interval:PT1H}",
+            fixedDelayString = "${whatsanki.retention.scan-interval:PT1H}"
+    )
+    public void scheduleExpiredExportArtifacts() {
+        exportArtifactRetentionService.deleteExpiredArtifacts(Instant.now());
     }
 }
