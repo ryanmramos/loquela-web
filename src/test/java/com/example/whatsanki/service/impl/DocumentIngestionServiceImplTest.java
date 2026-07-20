@@ -117,6 +117,7 @@ class DocumentIngestionServiceImplTest {
         assertThat(source.getValue().getKind()).isEqualTo(SourceDocumentEntity.Kind.PDF);
         assertThat(source.getValue().getStatus()).isEqualTo(SourceDocumentEntity.Status.RECEIVED);
         assertThat(source.getValue().getDisplayName()).isEqualTo("My book.pdf");
+        assertThat(source.getValue().getLanguage()).isEqualTo("es");
         verify(backgroundJobService).enqueue(
                 userId, BackgroundJobEntity.Type.FETCH_MEDIA,
                 FetchMediaJobPayloadDto.create(accepted.sourceId()).toMap()

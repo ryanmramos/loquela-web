@@ -19,7 +19,7 @@ import java.util.List;
 public class SourcesTwilioCommandHandler implements TwilioCommandHandler {
 
     static final int SOURCE_LIST_LIMIT = 10;
-    static final String NO_SOURCES_RESPONSE = "You have no sources yet. Send ADD <text> to create one.";
+    static final String NO_SOURCES_RESPONSE = "You have no sources yet. Send *ADD* <text> to create one.";
 
     private final SourceManagementService sourceManagementService;
 
@@ -52,7 +52,7 @@ public class SourcesTwilioCommandHandler implements TwilioCommandHandler {
                 response.append('\n');
             }
         }
-        response.append("\nDelete one with DELETE SOURCE <id>.");
+        response.append("\nDelete one with *DELETE SOURCE* <id>.");
         return new TwilioWebhookResponseDto(response.toString());
     }
 

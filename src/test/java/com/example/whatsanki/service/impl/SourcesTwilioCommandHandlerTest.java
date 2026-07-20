@@ -49,7 +49,7 @@ class SourcesTwilioCommandHandlerTest {
                 .contains("failed-id — Import — failed (EMPTY_TEXT)")
                 .contains("working-id — Notes — processing")
                 .contains("deleting-id — Old source — deleting")
-                .endsWith("Delete one with DELETE SOURCE <id>.");
+                .endsWith("Delete one with *DELETE SOURCE* <id>.");
     }
 
     private TwilioCommandContextDto context() {

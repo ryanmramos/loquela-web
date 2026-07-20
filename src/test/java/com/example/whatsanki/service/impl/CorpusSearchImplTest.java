@@ -108,6 +108,7 @@ class CorpusSearchImplTest {
     private SourceDocumentEntity source(UUID sourceId, String name) {
         SourceDocumentEntity source = new SourceDocumentEntity();
         source.setId(sourceId);
+        source.setKind(SourceDocumentEntity.Kind.PASTED_TEXT);
         source.setDisplayName(name);
         source.setLanguage("es");
         source.setCreatedAt(Instant.now());

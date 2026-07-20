@@ -24,13 +24,13 @@ class HelpTwilioCommandHandlerTest {
 
         assertThat(reply)
                 .startsWith("WhatsAnki commands:")
-                .contains("HELP")
-                .contains("LANGUAGE <source> <definition>")
-                .contains("ADD <text>")
+                .contains("*HELP*")
+                .contains("*LANGUAGE* <source> <definition>")
+                .contains("*ADD* <text>")
                 .contains("text-layer PDF")
-                .contains("LOOKUP <word or phrase>")
-                .contains("EXPORT [deck name]")
-                .contains("STATUS");
+                .contains("*LOOKUP* <word or phrase>")
+                .contains("*EXPORT* [deck name]")
+                .contains("*STATUS*");
     }
 
     private TwilioCommandContextDto context() {

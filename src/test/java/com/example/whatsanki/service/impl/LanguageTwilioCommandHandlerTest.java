@@ -73,7 +73,7 @@ class LanguageTwilioCommandHandlerTest {
                 - es → en
                 - en → es
 
-                Use LANGUAGE <source> <definition>.""");
+                Use *LANGUAGE* <source> <definition>.""");
     }
 
     @Test

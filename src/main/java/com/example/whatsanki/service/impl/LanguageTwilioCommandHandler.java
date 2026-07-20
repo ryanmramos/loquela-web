@@ -74,7 +74,7 @@ public class LanguageTwilioCommandHandler implements TwilioCommandHandler {
                 Supported pairs:
                 %s
 
-                Use LANGUAGE <source> <definition>.""".formatted(
+                Use *LANGUAGE* <source> <definition>.""".formatted(
                 requested.sourceLanguage(),
                 requested.definitionLanguage(),
                 supported

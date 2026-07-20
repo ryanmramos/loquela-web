@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class AddTwilioCommandHandler implements TwilioCommandHandler {
 
-    public static final String ACCEPTED_RESPONSE = "Text accepted for ingestion. Send STATUS to check progress.";
+    public static final String ACCEPTED_RESPONSE = "Text accepted for ingestion. Send *STATUS* to check progress.";
 
     private final PastedTextIngestionService pastedTextIngestionService;
 
@@ -46,7 +46,7 @@ public class AddTwilioCommandHandler implements TwilioCommandHandler {
                     context.userId().value(), exception.maximumCharacters()
             );
             return new TwilioWebhookResponseDto(
-                    "Text is too long. Send at most " + exception.maximumCharacters() + " characters with ADD."
+                    "Text is too long. Send at most " + exception.maximumCharacters() + " characters with *ADD*."
             );
         }
     }

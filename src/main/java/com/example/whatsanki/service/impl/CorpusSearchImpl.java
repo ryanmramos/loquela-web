@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,14 +43,15 @@ public class CorpusSearchImpl implements CorpusSearch {
     @Transactional(readOnly = true)
     public List<ContextExampleDto> findExamples(
             UserId userId,
-            String term,
+            List<String> terms,
             CorpusSearchOptionsDto options
     ) {
         Objects.requireNonNull(userId, "userId must not be null");
         Objects.requireNonNull(options, "options must not be null");
         validateOptions(options);
 
-        String normalizedTerm = normalizeTerm(term);
+        List<String> normalizedTerms = normalizeTerms(terms);
+        String searchQuery = webSearchQuery(normalizedTerms);
         long requestedCandidates = (long) options.limit()
                 * configuration.getSearch().getCandidateMultiplier();
         int candidateLimit = (int) Math.min(
@@ -59,15 +61,17 @@ public class CorpusSearchImpl implements CorpusSearch {
         List<PassageEntity> rankedCandidates = passageRepository.searchRankedReadyPassages(
                 userId.value(),
                 options.sourceLanguage().value(),
-                normalizedTerm,
+                searchQuery,
                 configuration.getSearch().getIdealPassageCharacters(),
                 PageRequest.of(0, candidateLimit)
         );
 
         if (rankedCandidates.isEmpty()) {
             log.info(
-                    "Corpus search completed userId={} sourceLanguage={} termCharacters={} candidateCount=0 resultCount=0",
-                    userId.value(), options.sourceLanguage().value(), codePointLength(normalizedTerm)
+                    "Corpus search completed userId={} sourceLanguage={} termCount={} "
+                            + "termCharacters={} candidateCount=0 resultCount=0",
+                    userId.value(), options.sourceLanguage().value(), normalizedTerms.size(),
+                    totalCodePoints(normalizedTerms)
             );
             return List.of();
         }
@@ -89,30 +93,58 @@ public class CorpusSearchImpl implements CorpusSearch {
                 .toList();
 
         log.info(
-                "Corpus search completed userId={} sourceLanguage={} termCharacters={} candidateCount={} resultCount={}",
+                "Corpus search completed userId={} sourceLanguage={} termCount={} termCharacters={} "
+                        + "candidateCount={} resultCount={}",
                 userId.value(),
                 options.sourceLanguage().value(),
-                codePointLength(normalizedTerm),
+                normalizedTerms.size(),
+                totalCodePoints(normalizedTerms),
                 rankedCandidates.size(),
                 results.size()
         );
         return results;
     }
 
-    private String normalizeTerm(String term) {
-        if (term == null || term.isBlank()) {
-            throw new IllegalArgumentException("term must not be blank");
+    private List<String> normalizeTerms(List<String> terms) {
+        if (terms == null || terms.isEmpty()) {
+            throw new IllegalArgumentException("terms must not be empty");
         }
-        String normalized = textNormalizer.normalizeForSearch(term);
-        int length = codePointLength(normalized);
-        if (normalized.isBlank() || length > configuration.getSearch().getMaxTermCharacters()) {
+        LinkedHashSet<String> normalized = new LinkedHashSet<>();
+        for (String term : terms) {
+            if (term == null || term.isBlank()) {
+                throw new IllegalArgumentException("terms must not contain blanks");
+            }
+            String value = textNormalizer.normalizeForSearch(term);
+            int length = codePointLength(value);
+            if (value.isBlank() || length > configuration.getSearch().getMaxTermCharacters()) {
+                throw new IllegalArgumentException(
+                        "term must contain between 1 and "
+                                + configuration.getSearch().getMaxTermCharacters()
+                                + " characters"
+                );
+            }
+            normalized.add(value);
+        }
+        if (normalized.size() > configuration.getSearch().getMaxDictionarySearchTerms()) {
             throw new IllegalArgumentException(
-                    "term must contain between 1 and "
-                            + configuration.getSearch().getMaxTermCharacters()
-                            + " characters"
+                    "term count must not exceed " + configuration.getSearch().getMaxDictionarySearchTerms()
             );
         }
-        return normalized;
+        return List.copyOf(normalized);
+    }
+
+    private String webSearchQuery(List<String> normalizedTerms) {
+        String query = normalizedTerms.stream()
+                .map(term -> term.replace('"', ' ').strip())
+                .filter(term -> !term.isBlank())
+                .map(term -> term.chars().anyMatch(Character::isWhitespace)
+                        ? "\"" + term + "\""
+                        : term)
+                .collect(Collectors.joining(" OR "));
+        if (query.isBlank()) {
+            throw new IllegalArgumentException("terms must contain searchable characters");
+        }
+        return query;
     }
 
     private void validateOptions(CorpusSearchOptionsDto options) {
@@ -166,6 +198,7 @@ public class CorpusSearchImpl implements CorpusSearch {
         return new ContextExampleDto(
                 passage.getId(),
                 new SourceId(passage.getSourceId()),
+                source.getKind(),
                 source.getDisplayName(),
                 new LanguageTag(source.getLanguage()),
                 passage.getOrdinal(),
@@ -176,5 +209,9 @@ public class CorpusSearchImpl implements CorpusSearch {
 
     private int codePointLength(String value) {
         return value.codePointCount(0, value.length());
+    }
+
+    private int totalCodePoints(List<String> terms) {
+        return terms.stream().mapToInt(this::codePointLength).sum();
     }
 }

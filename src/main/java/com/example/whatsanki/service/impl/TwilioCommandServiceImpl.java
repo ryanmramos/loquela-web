@@ -19,7 +19,7 @@ import java.util.Map;
 public class TwilioCommandServiceImpl implements TwilioCommandService {
 
     static final String UNKNOWN_COMMAND_RESPONSE =
-            "Send HELP to see the supported commands. Use ADD <text> to save pasted text.";
+            "Send *HELP* to see the supported commands. Use *ADD* <text> to save pasted text.";
     static final String NOT_IMPLEMENTED_RESPONSE =
             "That command is recognized but is coming in a later milestone.";
 

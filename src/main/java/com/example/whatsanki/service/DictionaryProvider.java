@@ -3,6 +3,7 @@ package com.example.whatsanki.service;
 import com.example.whatsanki.dto.DictionaryEntryDto;
 import com.example.whatsanki.dto.DictionaryLookupRequestDto;
 import com.example.whatsanki.dto.LanguagePairDto;
+import com.example.whatsanki.service.exception.DictionaryProviderException;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +29,9 @@ public interface DictionaryProvider {
     /**
      * Returns an immutable entry, or an empty result when the term is not present.
      * Unsupported pairs are programmer/configuration errors and should be rejected
-     * before any outbound provider request is made.
+     * before any outbound provider request is made. External adapters classify
+     * timeouts, throttling, temporary upstream failures, and deterministic rejection
+     * with {@code DictionaryProviderException}; they must not leak response content.
      */
     Optional<DictionaryEntryDto> lookup(DictionaryLookupRequestDto request);
 

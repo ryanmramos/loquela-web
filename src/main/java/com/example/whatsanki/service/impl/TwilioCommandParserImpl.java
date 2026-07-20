@@ -16,12 +16,12 @@ import java.util.Locale;
 @Slf4j
 public class TwilioCommandParserImpl implements TwilioCommandParser {
 
-    static final String ADD_USAGE = "ADD requires text. Example: ADD La casa es grande.";
-    static final String LOOKUP_USAGE = "LOOKUP requires a word or phrase. Example: LOOKUP casa.";
-    static final String LANGUAGE_USAGE = "Use LANGUAGE <source> <definition>. Example: LANGUAGE es en.";
-    static final String SAVE_USAGE = "Use SAVE <positive number>. Example: SAVE 1.";
-    static final String DELETE_SOURCE_USAGE = "Use DELETE SOURCE <source-id>.";
-    static final String DELETE_USAGE = "Use DELETE SOURCE <source-id> or DELETE MY DATA.";
+    static final String ADD_USAGE = "*ADD* requires text. Example: *ADD* La casa es grande.";
+    static final String LOOKUP_USAGE = "*LOOKUP* requires a word or phrase. Example: *LOOKUP* casa.";
+    static final String LANGUAGE_USAGE = "Use *LANGUAGE* <source> <definition>. Example: *LANGUAGE* es en.";
+    static final String SAVE_USAGE = "Use *SAVE* <positive number>. Example: *SAVE* 1.";
+    static final String DELETE_SOURCE_USAGE = "Use *DELETE SOURCE* <source-id>.";
+    static final String DELETE_USAGE = "Use *DELETE SOURCE* <source-id> or *DELETE MY DATA*.";
     static final String DOCUMENT_MEDIA_USAGE = "The document attachment is missing its media URL or content type.";
     static final String NO_ARGUMENTS_USAGE = "This command does not accept additional text.";
 

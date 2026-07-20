@@ -17,6 +17,7 @@ public interface PassageRepository extends Repository<PassageEntity, UUID> {
     Optional<PassageEntity> findByIdAndUserId(UUID id, UUID userId);
     List<PassageEntity> findAllByUserIdAndSourceIdOrderByOrdinal(UUID userId, UUID sourceId);
 
+    /** Low-level ingestion verification query; user-facing lookup uses the language-scoped query below. */
     @Query(value = """
             select p.*
             from passage p
@@ -39,8 +40,8 @@ public interface PassageRepository extends Repository<PassageEntity, UUID> {
             where p.user_id = :userId
               and s.status = 'READY'
               and s.language = :sourceLanguage
-              and p.search_vector @@ plainto_tsquery('simple', :term)
-            order by ts_rank_cd(p.search_vector, plainto_tsquery('simple', :term)) desc,
+              and p.search_vector @@ websearch_to_tsquery('simple', :term)
+            order by ts_rank_cd(p.search_vector, websearch_to_tsquery('simple', :term)) desc,
                      abs(char_length(p.display_text) - :idealPassageCharacters),
                      s.created_at desc,
                      p.ordinal

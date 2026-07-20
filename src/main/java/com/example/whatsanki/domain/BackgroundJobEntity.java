@@ -85,6 +85,7 @@ public class BackgroundJobEntity {
         EXTRACT_DOCUMENT,
         INGEST_TEXT,
         LOOKUP,
+        DELIVER_LOOKUP_RESULT,
         EXPORT_DECK,
         DELETE_TWILIO_MEDIA,
         PURGE_SOURCE_OBJECT,

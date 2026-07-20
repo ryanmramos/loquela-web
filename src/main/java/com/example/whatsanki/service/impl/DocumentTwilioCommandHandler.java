@@ -17,9 +17,9 @@ import org.springframework.stereotype.Service;
 public class DocumentTwilioCommandHandler implements TwilioCommandHandler {
 
     static final String ACCEPTED_RESPONSE =
-            "Document accepted for secure storage. Send STATUS to check progress.";
+            "Document accepted for secure storage. Send *STATUS* to check progress.";
     static final String UNSUPPORTED_RESPONSE =
-            "Send one text-layer PDF, or use ADD <text> for pasted text.";
+            "Send one text-layer PDF, or use *ADD* <text> for pasted text.";
 
     private final DocumentIngestionService documentIngestionService;
 

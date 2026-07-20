@@ -23,7 +23,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(11);
+        assertThat(flyway.info().applied()).hasSize(13);
     }
 
     @Test
@@ -38,6 +38,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
         assertThat(tables).contains(
                 "app_user", "inbound_message", "source_document", "passage",
                 "background_job", "lookup_session", "deck", "card", "export_request",
+                "outbound_message",
                 "flyway_schema_history"
         );
     }
@@ -113,6 +114,17 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                 where conname = 'ck_background_job_type'
                 """, String.class);
         assertThat(jobTypeConstraint)
-                .contains("EXTRACT_DOCUMENT", "DELETE_TWILIO_MEDIA", "PURGE_SOURCE_OBJECT");
+                .contains(
+                        "EXTRACT_DOCUMENT", "DELETE_TWILIO_MEDIA", "PURGE_SOURCE_OBJECT",
+                        "DELIVER_LOOKUP_RESULT"
+                );
+
+        List<String> lookupColumns = jdbcTemplate.queryForList("""
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'lookup_session'
+                """, String.class);
+        assertThat(lookupColumns).contains("inbound_message_id", "status", "error_code", "updated_at");
     }
 }

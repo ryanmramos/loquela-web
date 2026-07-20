@@ -3,6 +3,7 @@ package com.example.whatsanki.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.AssertTrue;
@@ -44,6 +45,10 @@ public class WhatsAnkiConfigurationDto {
     @Valid
     @NotNull
     private Search search = new Search();
+
+    @Valid
+    @NotNull
+    private Outbound outbound = new Outbound();
 
     @Valid
     @NotNull
@@ -172,6 +177,32 @@ public class WhatsAnkiConfigurationDto {
 
         @Positive
         private int idealPassageCharacters = 320;
+
+        @Positive
+        private int lookupResults = 5;
+
+        @Positive
+        private int lookupMaxResultsPerSource = 2;
+
+        @Positive
+        private int maxDictionarySearchTerms = 32;
+
+        @AssertTrue(message = "whatsanki.search lookup result limits must be internally consistent")
+        public boolean areLookupLimitsValid() {
+            return lookupResults <= maxResults
+                    && lookupMaxResultsPerSource <= lookupResults;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class Outbound {
+        /** Leaves room below Twilio's body limit for transport-specific handling. */
+        @Min(200)
+        private int maxMessageCharacters = 1_500;
+
+        @Positive
+        private int maxLookupParts = 10;
     }
 
     @Getter

@@ -33,13 +33,13 @@ public class DeleteSourceTwilioCommandHandler implements TwilioCommandHandler {
         );
         return switch (result.outcome()) {
             case QUEUED -> new TwilioWebhookResponseDto(
-                    "Source deletion queued. Send STATUS to check progress."
+                    "Source deletion queued. Send *STATUS* to check progress."
             );
             case ALREADY_PENDING -> new TwilioWebhookResponseDto(
-                    "Source deletion is already in progress. Send STATUS to check progress."
+                    "Source deletion is already in progress. Send *STATUS* to check progress."
             );
             case NOT_FOUND_OR_DELETED -> new TwilioWebhookResponseDto(
-                    "Source not found or already deleted. Send SOURCES to list current source IDs."
+                    "Source not found or already deleted. Send *SOURCES* to list current source IDs."
             );
         };
     }

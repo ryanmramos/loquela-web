@@ -61,6 +61,7 @@ public class StatusTwilioCommandHandler implements TwilioCommandHandler {
             case EXTRACT_DOCUMENT -> "PDF extraction";
             case INGEST_TEXT -> "Text ingestion";
             case LOOKUP -> "Dictionary lookup";
+            case DELIVER_LOOKUP_RESULT -> "Lookup result delivery";
             case EXPORT_DECK -> "Deck export";
             case DELETE_TWILIO_MEDIA -> "Provider media cleanup";
             case PURGE_SOURCE_OBJECT -> "Original-file cleanup";

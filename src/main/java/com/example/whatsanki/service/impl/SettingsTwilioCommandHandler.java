@@ -36,7 +36,7 @@ public class SettingsTwilioCommandHandler implements TwilioCommandHandler {
                 Source language: %s
                 Definition language: %s
 
-                Change it with LANGUAGE <source> <definition>.""".formatted(
+                Change it with *LANGUAGE* <source> <definition>.""".formatted(
                 languagePair.sourceLanguage(),
                 languagePair.definitionLanguage()
         ));

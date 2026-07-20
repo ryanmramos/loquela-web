@@ -51,7 +51,7 @@ class AddTwilioCommandHandlerTest {
         )).thenThrow(new PastedTextLimitExceededException(5));
 
         assertThat(handler.handle(context).reply())
-                .isEqualTo("Text is too long. Send at most 5 characters with ADD.");
+                .isEqualTo("Text is too long. Send at most 5 characters with *ADD*.");
     }
 
     private TwilioCommandContextDto context(String text) {
