@@ -51,6 +51,15 @@ class TwilioCommandParserImplTest {
     }
 
     @Test
+    void parsesTheAccountDeletionConfirmationCodeWithoutRetainingItInTheCommandArgument() {
+        ParsedTwilioCommandDto command = parser.parse(request("DELETE MY DATA CONFIRM abcd2345"));
+
+        assertThat(command.commandType()).isEqualTo(InboundMessageEntity.CommandType.DELETE_MY_DATA);
+        assertThat(command.normalizedValue()).isEqualTo("ABCD2345");
+        assertThat(command.isValid()).isTrue();
+    }
+
+    @Test
     void treatsUnknownSingleTokenAsLookupAlias() {
         ParsedTwilioCommandDto command = parser.parse(request("Überraschung"));
 
@@ -151,6 +160,8 @@ class TwilioCommandParserImplTest {
                 Arguments.of("SAVE one", InboundMessageEntity.CommandType.SAVE, TwilioCommandParserImpl.SAVE_USAGE),
                 Arguments.of("DELETE SOURCE", InboundMessageEntity.CommandType.DELETE_SOURCE, TwilioCommandParserImpl.DELETE_SOURCE_USAGE),
                 Arguments.of("DELETE everything", InboundMessageEntity.CommandType.UNKNOWN, TwilioCommandParserImpl.DELETE_USAGE),
+                Arguments.of("DELETE MY DATA CONFIRM nope", InboundMessageEntity.CommandType.DELETE_MY_DATA,
+                        TwilioCommandParserImpl.DELETE_MY_DATA_CONFIRMATION_USAGE),
                 Arguments.of("HELP now", InboundMessageEntity.CommandType.HELP, TwilioCommandParserImpl.NO_ARGUMENTS_USAGE)
         );
     }

@@ -21,6 +21,8 @@ public class TwilioCommandParserImpl implements TwilioCommandParser {
     static final String SAVE_USAGE = "Use *SAVE* <positive number>. Example: *SAVE* 1.";
     static final String DELETE_SOURCE_USAGE = "Use *DELETE SOURCE* <source-id>.";
     static final String DELETE_USAGE = "Use *DELETE SOURCE* <source-id> or *DELETE MY DATA*.";
+    static final String DELETE_MY_DATA_CONFIRMATION_USAGE =
+            "Use *DELETE MY DATA CONFIRM* <code> from the deletion confirmation message.";
     static final String DOCUMENT_MEDIA_USAGE = "The document attachment is missing its media URL or content type.";
     static final String NO_ARGUMENTS_USAGE = "This command does not accept additional text.";
 
@@ -113,8 +115,27 @@ public class TwilioCommandParserImpl implements TwilioCommandParser {
                     DELETE_SOURCE_USAGE
             );
         }
-        if ("MY".equals(deleteParts.keyword()) && "DATA".equals(recognitionText(deleteParts.argument()).toUpperCase(Locale.ROOT))) {
-            return command(InboundMessageEntity.CommandType.DELETE_MY_DATA, argument, "MY DATA", null, null);
+        if ("MY".equals(deleteParts.keyword())) {
+            CommandParts myParts = splitCommand(displayText(deleteParts.argument()));
+            if (!"DATA".equals(myParts.keyword())) {
+                return command(InboundMessageEntity.CommandType.UNKNOWN, blankToNull(argument), null, null, DELETE_USAGE);
+            }
+            String suffix = recognitionText(myParts.argument());
+            if (suffix.isEmpty()) {
+                return command(InboundMessageEntity.CommandType.DELETE_MY_DATA, argument, "REQUEST", null, null);
+            }
+            CommandParts confirmationParts = splitCommand(suffix);
+            String code = recognitionText(confirmationParts.argument()).toUpperCase(Locale.ROOT);
+            if ("CONFIRM".equals(confirmationParts.keyword()) && code.matches("[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{8}")) {
+                return command(InboundMessageEntity.CommandType.DELETE_MY_DATA, argument, code, null, null);
+            }
+            return command(
+                    InboundMessageEntity.CommandType.DELETE_MY_DATA,
+                    argument,
+                    null,
+                    null,
+                    DELETE_MY_DATA_CONFIRMATION_USAGE
+            );
         }
         return command(InboundMessageEntity.CommandType.UNKNOWN, blankToNull(argument), null, null, DELETE_USAGE);
     }

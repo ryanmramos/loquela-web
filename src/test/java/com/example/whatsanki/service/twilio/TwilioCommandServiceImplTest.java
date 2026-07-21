@@ -7,6 +7,7 @@ import com.example.whatsanki.dto.ParsedTwilioCommandDto;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
 import com.example.whatsanki.service.TwilioCommandHandler;
+import com.example.whatsanki.service.AccountDeletionService;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -20,6 +21,8 @@ import static org.mockito.Mockito.when;
 
 class TwilioCommandServiceImplTest {
 
+    private final AccountDeletionService accountDeletionService = mock(AccountDeletionService.class);
+
     @Test
     void dispatchesToHandlerRegisteredForCommandType() {
         TwilioCommandHandler handler = mock(TwilioCommandHandler.class);
@@ -27,7 +30,7 @@ class TwilioCommandServiceImplTest {
         TwilioWebhookResponseDto expected = new TwilioWebhookResponseDto("status");
         when(handler.supportedCommand()).thenReturn(InboundMessageEntity.CommandType.STATUS);
         when(handler.handle(context)).thenReturn(expected);
-        TwilioCommandServiceImpl service = new TwilioCommandServiceImpl(List.of(handler));
+        TwilioCommandServiceImpl service = service(List.of(handler));
 
         assertThat(service.handle(context)).isSameAs(expected);
         verify(handler).handle(context);
@@ -37,7 +40,7 @@ class TwilioCommandServiceImplTest {
     void returnsParserValidationErrorBeforeDispatch() {
         TwilioCommandHandler handler = mock(TwilioCommandHandler.class);
         when(handler.supportedCommand()).thenReturn(InboundMessageEntity.CommandType.STATUS);
-        TwilioCommandServiceImpl service = new TwilioCommandServiceImpl(List.of(handler));
+        TwilioCommandServiceImpl service = service(List.of(handler));
         TwilioCommandContextDto context = context(
                 InboundMessageEntity.CommandType.STATUS,
                 "This command does not accept additional text."
@@ -50,7 +53,7 @@ class TwilioCommandServiceImplTest {
 
     @Test
     void returnsGuidanceForUnknownAndMilestoneMessageForUnsupportedCommand() {
-        TwilioCommandServiceImpl service = new TwilioCommandServiceImpl(List.of());
+        TwilioCommandServiceImpl service = service(List.of());
 
         assertThat(service.handle(context(InboundMessageEntity.CommandType.UNKNOWN, null)).reply())
                 .isEqualTo(TwilioCommandServiceImpl.UNKNOWN_COMMAND_RESPONSE);
@@ -65,9 +68,25 @@ class TwilioCommandServiceImplTest {
         when(first.supportedCommand()).thenReturn(InboundMessageEntity.CommandType.STATUS);
         when(second.supportedCommand()).thenReturn(InboundMessageEntity.CommandType.STATUS);
 
-        assertThatThrownBy(() -> new TwilioCommandServiceImpl(List.of(first, second)))
+        assertThatThrownBy(() -> service(List.of(first, second)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("STATUS");
+    }
+
+    @Test
+    void rejectsMutatingCommandsWhileAccountDeletionIsInProgress() {
+        TwilioCommandHandler handler = mock(TwilioCommandHandler.class);
+        TwilioCommandContextDto context = context(InboundMessageEntity.CommandType.ADD, null);
+        when(handler.supportedCommand()).thenReturn(InboundMessageEntity.CommandType.ADD);
+        when(accountDeletionService.isDeletionInProgress(context.userId())).thenReturn(true);
+
+        assertThat(service(List.of(handler)).handle(context).reply())
+                .isEqualTo(TwilioCommandServiceImpl.ACCOUNT_DELETION_IN_PROGRESS_RESPONSE);
+        verify(handler, never()).handle(context);
+    }
+
+    private TwilioCommandServiceImpl service(List<TwilioCommandHandler> handlers) {
+        return new TwilioCommandServiceImpl(handlers, accountDeletionService);
     }
 
     private TwilioCommandContextDto context(

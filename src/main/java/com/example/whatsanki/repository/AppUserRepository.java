@@ -15,6 +15,10 @@ public interface AppUserRepository extends JpaRepository<AppUserEntity, UUID> {
 
     Optional<AppUserEntity> findByIdAndStatus(UUID id, AppUserEntity.Status status);
 
+    /** Explicitly declares the inherited lookup so compiled service call sites remain binary-stable. */
+    @Override
+    Optional<AppUserEntity> findById(UUID id);
+
     @Modifying
     @Query(value = """
             insert into app_user (

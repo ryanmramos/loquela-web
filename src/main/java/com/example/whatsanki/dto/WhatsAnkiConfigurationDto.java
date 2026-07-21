@@ -71,6 +71,10 @@ public class WhatsAnkiConfigurationDto {
 
     @Valid
     @NotNull
+    private AccountDeletion accountDeletion = new AccountDeletion();
+
+    @Valid
+    @NotNull
     private Languages languages = new Languages();
 
     @Getter
@@ -347,6 +351,20 @@ public class WhatsAnkiConfigurationDto {
 
         private boolean isPositive(Duration duration) {
             return duration != null && !duration.isZero() && !duration.isNegative();
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class AccountDeletion {
+        @NotNull
+        private Duration confirmationLifetime = Duration.ofMinutes(10);
+
+        @AssertTrue(message = "whatsanki.account-deletion.confirmation-lifetime must be positive")
+        public boolean isConfirmationLifetimePositive() {
+            return confirmationLifetime != null
+                    && !confirmationLifetime.isZero()
+                    && !confirmationLifetime.isNegative();
         }
     }
 

@@ -159,6 +159,43 @@ public interface BackgroundJobRepository extends Repository<BackgroundJobEntity,
             @Param("now") Instant now
     );
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = """
+            update background_job
+            set state = 'CANCELLED',
+                lease_owner = null,
+                lease_expires_at = null,
+                updated_at = :now
+            where user_id = :userId
+              and state in ('QUEUED', 'RETRY_WAIT')
+              and (:excludedJobId is null or id <> :excludedJobId)
+            """, nativeQuery = true)
+    int cancelPendingForUser(
+            @Param("userId") UUID userId,
+            @Param("excludedJobId") UUID excludedJobId,
+            @Param("now") Instant now
+    );
+
+    @Query(value = """
+            select count(*)
+            from background_job
+            where user_id = :userId
+              and state = 'RUNNING'
+              and id <> :excludedJobId
+            """, nativeQuery = true)
+    long countRunningForUser(@Param("userId") UUID userId, @Param("excludedJobId") UUID excludedJobId);
+
+    @Query(value = """
+            select exists (
+                select 1
+                from background_job
+                where user_id = :userId
+                  and type = 'DELETE_USER_DATA'
+                  and state in ('QUEUED', 'RUNNING', 'RETRY_WAIT')
+            )
+            """, nativeQuery = true)
+    boolean existsActiveUserDeletion(@Param("userId") UUID userId);
+
     @Query(value = """
             select count(*)
             from background_job

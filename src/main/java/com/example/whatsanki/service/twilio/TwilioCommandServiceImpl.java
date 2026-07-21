@@ -4,6 +4,7 @@ import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.dto.ParsedTwilioCommandDto;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
+import com.example.whatsanki.service.AccountDeletionService;
 import com.example.whatsanki.service.TwilioCommandHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,17 @@ public class TwilioCommandServiceImpl implements TwilioCommandService {
             "Send *HELP* to see the supported commands. Use *ADD* <text> to save pasted text.";
     static final String NOT_IMPLEMENTED_RESPONSE =
             "That command is recognized but is coming in a later milestone.";
+    static final String ACCOUNT_DELETION_IN_PROGRESS_RESPONSE =
+            "Account deletion is in progress. Only *STATUS*, *HELP*, and *DELETE MY DATA* are available.";
 
     private final Map<InboundMessageEntity.CommandType, TwilioCommandHandler> handlers;
+    private final AccountDeletionService accountDeletionService;
 
-    public TwilioCommandServiceImpl(List<TwilioCommandHandler> registeredHandlers) {
+    public TwilioCommandServiceImpl(
+            List<TwilioCommandHandler> registeredHandlers,
+            AccountDeletionService accountDeletionService
+    ) {
+        this.accountDeletionService = accountDeletionService;
         EnumMap<InboundMessageEntity.CommandType, TwilioCommandHandler> mappedHandlers =
                 new EnumMap<>(InboundMessageEntity.CommandType.class);
         for (TwilioCommandHandler handler : registeredHandlers) {
@@ -54,6 +62,14 @@ public class TwilioCommandServiceImpl implements TwilioCommandService {
         if (command.commandType() == InboundMessageEntity.CommandType.UNKNOWN) {
             log.info("Received ambiguous or unknown command userId={}", context.userId().value());
             return new TwilioWebhookResponseDto(UNKNOWN_COMMAND_RESPONSE);
+        }
+        if (accountDeletionService.isDeletionInProgress(context.userId())
+                && command.commandType() != InboundMessageEntity.CommandType.STATUS
+                && command.commandType() != InboundMessageEntity.CommandType.HELP
+                && command.commandType() != InboundMessageEntity.CommandType.DELETE_MY_DATA) {
+            log.info("Rejected command while account deletion is in progress userId={} commandType={}",
+                    context.userId().value(), command.commandType());
+            return new TwilioWebhookResponseDto(ACCOUNT_DELETION_IN_PROGRESS_RESPONSE);
         }
 
         TwilioCommandHandler handler = handlers.get(command.commandType());
