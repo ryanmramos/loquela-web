@@ -137,6 +137,24 @@ class SourceDeletionServiceImplTest {
     }
 
     @Test
+    void deletesYouTubeSourceWithoutInventingAnObjectKey() {
+        UserId userId = UserId.random();
+        SourceId sourceId = SourceId.random();
+        SourceDocumentEntity source = source(sourceId, null);
+        source.setKind(SourceDocumentEntity.Kind.YOUTUBE_VIDEO);
+        when(sourceDocumentRepository.findByIdAndUserId(sourceId.value(), userId.value()))
+                .thenReturn(Optional.of(source));
+        when(backgroundJobRepository.countRunningForSource(
+                eq(userId.value()), eq(sourceId.value().toString()), any()
+        )).thenReturn(0L);
+
+        assertThat(service.delete(userId, sourceId, JobId.random())).isTrue();
+
+        verify(objectStore, never()).delete(any());
+        verify(sourceDocumentRepository).delete(source);
+    }
+
+    @Test
     void retriesWithoutDeletingDatabaseRowWhenObjectStoreIsUnavailable() {
         UserId userId = UserId.random();
         SourceId sourceId = SourceId.random();

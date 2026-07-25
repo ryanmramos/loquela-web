@@ -1,5 +1,6 @@
 package com.example.whatsanki.service.util;
 
+import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.dto.AnkiCardFieldsDto;
 import com.example.whatsanki.dto.DictionaryEntryDto;
 import com.example.whatsanki.dto.DictionarySenseDto;
@@ -18,10 +19,13 @@ import java.util.regex.Pattern;
 public class AnkiCardFieldMapper {
 
     private static final Pattern WORD_BOUNDARY_TEMPLATE = Pattern.compile("(?iu)(?<![\\p{L}\\p{N}])%s(?![\\p{L}\\p{N}])");
+    private static final Pattern YOUTUBE_VIDEO_ID = Pattern.compile("[A-Za-z0-9_-]{11}");
 
     public AnkiCardFieldsDto map(DictionaryEntryDto entry, NumberedContextExampleDto context) {
         ContextSplit split = splitContext(entry, context.displayText());
         DictionarySenseDto primarySense = entry.senses().get(0);
+        boolean videoContext = context.sourceKind() == SourceDocumentEntity.Kind.YOUTUBE_VIDEO;
+        String videoUrl = videoContext ? videoUrl(context.location()) : "";
 
         return new AnkiCardFieldsDto(
                 AnkiCardFieldsDto.CURRENT_SCHEMA_VERSION,
@@ -39,12 +43,12 @@ public class AnkiCardFieldMapper {
                 "",
                 "",
                 wordFamily(entry),
-                context.sourceDisplayName(),
+                sourceName(context),
                 sourceLocator(context.location()),
                 entry.languagePair().sourceLanguage() + " → " + entry.languagePair().definitionLanguage(),
-                "", "", "",
-                "1", // Current PDF/text cards deliberately generate the text-recognition template only.
-                "", ""
+                "", "", videoUrl,
+                videoContext ? "" : "1",
+                videoContext ? "1" : "", ""
         );
     }
 
@@ -108,6 +112,38 @@ public class AnkiCardFieldMapper {
             return timestamp(number.longValue());
         }
         return "";
+    }
+
+    private String sourceName(NumberedContextExampleDto context) {
+        if (context.sourceKind() != SourceDocumentEntity.Kind.YOUTUBE_VIDEO) {
+            return context.sourceDisplayName();
+        }
+        Object channelName = context.location().get("channelName");
+        return channelName instanceof String channel && !channel.isBlank()
+                ? "YouTube · " + channel.strip()
+                : "YouTube · " + context.sourceDisplayName();
+    }
+
+    private String videoUrl(Map<String, Object> location) {
+        Object videoIdValue = location.get("videoId");
+        if (!(videoIdValue instanceof String videoId) || !YOUTUBE_VIDEO_ID.matcher(videoId).matches()) {
+            throw new IllegalArgumentException("YouTube context has an invalid video id");
+        }
+        long playbackStartMs = nonNegativeLong(location.get("playbackStartMs"),
+                nonNegativeLong(location.get("startMs"), -1));
+        if (playbackStartMs < 0) {
+            throw new IllegalArgumentException("YouTube context has no playback timestamp");
+        }
+        // Only this controlled URL shape crosses the exporter HTML boundary. The
+        // exporter independently validates it before Anki renders it in an iframe.
+        return "https://www.youtube-nocookie.com/embed/%s?start=%d&rel=0"
+                .formatted(videoId, playbackStartMs / 1_000);
+    }
+
+    private long nonNegativeLong(Object value, long fallback) {
+        return value instanceof Number number && number.longValue() >= 0
+                ? number.longValue()
+                : fallback;
     }
 
     private String timestamp(long milliseconds) {

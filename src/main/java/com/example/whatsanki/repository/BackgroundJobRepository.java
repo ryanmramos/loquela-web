@@ -227,6 +227,22 @@ public interface BackgroundJobRepository extends Repository<BackgroundJobEntity,
     );
 
     @Query(value = """
+            select id
+            from background_job
+            where user_id = :userId
+              and type = :jobType
+              and state in ('QUEUED', 'RUNNING', 'RETRY_WAIT')
+              and payload ->> 'sourceId' = :sourceId
+            order by created_at desc
+            limit 1
+            """, nativeQuery = true)
+    Optional<UUID> findActiveIdForSourceAndType(
+            @Param("userId") UUID userId,
+            @Param("sourceId") String sourceId,
+            @Param("jobType") String jobType
+    );
+
+    @Query(value = """
             select exists (
                 select 1
                 from background_job

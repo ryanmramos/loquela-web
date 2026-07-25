@@ -58,7 +58,7 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
         }
 
         String objectKey = source.getObjectKey();
-        if (objectKey == null && source.getKind() != SourceDocumentEntity.Kind.PASTED_TEXT) {
+        if (objectKey == null && isObjectBacked(source.getKind())) {
             objectKey = objectKeyFactory.originalSource(userId, sourceId);
         }
         if (objectKey != null) {
@@ -102,5 +102,11 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
                 userId.value(), sourceId.value(), cancelledJobs
         );
         return true;
+    }
+
+    private boolean isObjectBacked(SourceDocumentEntity.Kind kind) {
+        return kind == SourceDocumentEntity.Kind.PDF
+                || kind == SourceDocumentEntity.Kind.TXT
+                || kind == SourceDocumentEntity.Kind.EPUB;
     }
 }

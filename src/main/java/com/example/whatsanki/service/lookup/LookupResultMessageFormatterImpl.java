@@ -76,10 +76,10 @@ public class LookupResultMessageFormatterImpl implements LookupResultMessageForm
             result.append(", p. ").append(page.intValue());
         }
 
-        // Location JSON is deliberately source-neutral. A future subtitle source can
-        // become clickable without changing lookup persistence or the delivery outbox.
+        // Location JSON remains source-neutral. Subtitle passages include a playback
+        // lead so the learner hears a few seconds before the matched caption.
         String videoId = optionalText(location.get("videoId"));
-        Object startMs = location.get("startMs");
+        Object startMs = location.getOrDefault("playbackStartMs", location.get("startMs"));
         if (videoId != null && YOUTUBE_VIDEO_ID.matcher(videoId).matches()
                 && startMs instanceof Number timestamp && timestamp.longValue() >= 0) {
             result.append("\nhttps://www.youtube.com/watch?v=")

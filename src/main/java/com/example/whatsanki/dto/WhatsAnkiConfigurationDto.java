@@ -75,6 +75,10 @@ public class WhatsAnkiConfigurationDto {
 
     @Valid
     @NotNull
+    private Youtube youtube = new Youtube();
+
+    @Valid
+    @NotNull
     private Languages languages = new Languages();
 
     @Getter
@@ -365,6 +369,26 @@ public class WhatsAnkiConfigurationDto {
             return confirmationLifetime != null
                     && !confirmationLifetime.isZero()
                     && !confirmationLifetime.isNegative();
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class Youtube {
+        @NotBlank private String executable = "yt-dlp";
+        private String expectedVersion = "";
+        private boolean automaticCaptionFallback = true;
+        @NotNull private Duration processTimeout = Duration.ofMinutes(1);
+        @Positive private int maxMetadataBytes = 1_048_576;
+        @Positive private int maxSubtitleBytes = 5_242_880;
+        @Positive private int maxCapturedErrorBytes = 16_384;
+        @Positive private int maxCaptionCues = 50_000;
+        @NotNull private Duration playbackLead = Duration.ofSeconds(3);
+
+        @AssertTrue(message = "whatsanki.youtube durations must be non-negative and timeout must be positive")
+        public boolean areDurationsValid() {
+            return processTimeout != null && !processTimeout.isZero() && !processTimeout.isNegative()
+                    && playbackLead != null && !playbackLead.isNegative();
         }
     }
 

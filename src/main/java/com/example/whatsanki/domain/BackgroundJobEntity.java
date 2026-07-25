@@ -84,6 +84,7 @@ public class BackgroundJobEntity {
         FETCH_MEDIA,
         EXTRACT_DOCUMENT,
         INGEST_TEXT,
+        FETCH_VIDEO_SUBTITLES,
         LOOKUP,
         DELIVER_LOOKUP_RESULT,
         EXPORT_DECK,

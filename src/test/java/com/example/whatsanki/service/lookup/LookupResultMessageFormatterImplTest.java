@@ -39,7 +39,8 @@ class LookupResultMessageFormatterImplTest {
                         context("PDF book", Map.of("pageNumber", 12)),
                         context("Video", Map.of(
                                 "videoId", "dQw4w9WgXcQ",
-                                "startMs", 65_900
+                                "startMs", 65_900,
+                                "playbackStartMs", 62_900
                         ))
                 )
         ).toMap();
@@ -52,7 +53,7 @@ class LookupResultMessageFormatterImplTest {
                 .contains("1. Quiero *vivir* aquí.")
                 .contains("— PDF book, p. 12")
                 .contains("2. Quiero *vivir* aquí.")
-                .contains("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=65s")
+                .contains("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=62s")
                 .contains("Dictionary attribution: Test data");
     }
 

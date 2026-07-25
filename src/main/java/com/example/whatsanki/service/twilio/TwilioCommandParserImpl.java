@@ -17,6 +17,7 @@ public class TwilioCommandParserImpl implements TwilioCommandParser {
 
     static final String ADD_USAGE = "*ADD* requires text. Example: *ADD* La casa es grande.";
     static final String LOOKUP_USAGE = "*LOOKUP* requires a word or phrase. Example: *LOOKUP* casa.";
+    static final String YOUTUBE_USAGE = "*YOUTUBE* requires one YouTube video URL.";
     static final String LANGUAGE_USAGE = "Use *LANGUAGE* <source> <definition>. Example: *LANGUAGE* es en.";
     static final String SAVE_USAGE = "Use *SAVE* <positive number>. Example: *SAVE* 1.";
     static final String DELETE_SOURCE_USAGE = "Use *DELETE SOURCE* <source-id>.";
@@ -45,6 +46,7 @@ public class TwilioCommandParserImpl implements TwilioCommandParser {
             case "LANGUAGE" -> language(parts.argument());
             case "ADD" -> requiredText(InboundMessageEntity.CommandType.ADD, parts.argument(), ADD_USAGE);
             case "LOOKUP" -> requiredText(InboundMessageEntity.CommandType.LOOKUP, parts.argument(), LOOKUP_USAGE);
+            case "YOUTUBE" -> requiredText(InboundMessageEntity.CommandType.YOUTUBE, parts.argument(), YOUTUBE_USAGE);
             case "SAVE" -> save(parts.argument());
             case "SOURCES" -> withoutArguments(InboundMessageEntity.CommandType.SOURCES, parts.argument());
             case "DELETE" -> delete(parts.argument());

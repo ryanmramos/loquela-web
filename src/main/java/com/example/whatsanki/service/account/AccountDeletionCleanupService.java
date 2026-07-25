@@ -52,7 +52,9 @@ public class AccountDeletionCleanupService {
         sourceDocumentRepository.findAllByUserIdOrderByCreatedAtDesc(userId.value()).forEach(source -> {
             if (source.getObjectKey() != null) {
                 keys.add(source.getObjectKey());
-            } else if (source.getKind() != SourceDocumentEntity.Kind.PASTED_TEXT) {
+            } else if (source.getKind() == SourceDocumentEntity.Kind.PDF
+                    || source.getKind() == SourceDocumentEntity.Kind.TXT
+                    || source.getKind() == SourceDocumentEntity.Kind.EPUB) {
                 // Object keys are deterministic, so this also covers a worker that put
                 // an object but crashed before it could persist its metadata.
                 keys.add(objectKeyFactory.originalSource(userId, new SourceId(source.getId())));

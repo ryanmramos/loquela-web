@@ -140,6 +140,7 @@ class TwilioCommandParserImplTest {
                 Arguments.of("LANGUAGE es en", InboundMessageEntity.CommandType.LANGUAGE),
                 Arguments.of("ADD Érase una vez", InboundMessageEntity.CommandType.ADD),
                 Arguments.of("LOOKUP tener ganas de", InboundMessageEntity.CommandType.LOOKUP),
+                Arguments.of("YOUTUBE https://youtu.be/dQw4w9WgXcQ", InboundMessageEntity.CommandType.YOUTUBE),
                 Arguments.of("SAVE 2", InboundMessageEntity.CommandType.SAVE),
                 Arguments.of("SOURCES", InboundMessageEntity.CommandType.SOURCES),
                 Arguments.of("DELETE SOURCE a1b2c3", InboundMessageEntity.CommandType.DELETE_SOURCE),
@@ -154,6 +155,7 @@ class TwilioCommandParserImplTest {
         return Stream.of(
                 Arguments.of("ADD", InboundMessageEntity.CommandType.ADD, TwilioCommandParserImpl.ADD_USAGE),
                 Arguments.of("LOOKUP", InboundMessageEntity.CommandType.LOOKUP, TwilioCommandParserImpl.LOOKUP_USAGE),
+                Arguments.of("YOUTUBE", InboundMessageEntity.CommandType.YOUTUBE, TwilioCommandParserImpl.YOUTUBE_USAGE),
                 Arguments.of("LANGUAGE es", InboundMessageEntity.CommandType.LANGUAGE, TwilioCommandParserImpl.LANGUAGE_USAGE),
                 Arguments.of("LANGUAGE invalid_tag en", InboundMessageEntity.CommandType.LANGUAGE, TwilioCommandParserImpl.LANGUAGE_USAGE),
                 Arguments.of("SAVE 0", InboundMessageEntity.CommandType.SAVE, TwilioCommandParserImpl.SAVE_USAGE),

@@ -46,6 +46,39 @@ class AnkiCardFieldMapperTest {
     }
 
     @Test
+    void createsVideoRecognitionCardAtContextLeadTimestamp() {
+        NumberedContextExampleDto video = new NumberedContextExampleDto(
+                1, UUID.randomUUID(), UUID.randomUUID(), SourceDocumentEntity.Kind.YOUTUBE_VIDEO,
+                "A lesson", "es", 0, "Quiero vivir aquí.", Map.of(
+                        "videoId", "dQw4w9WgXcQ", "startMs", 65_900,
+                        "playbackStartMs", 62_900, "channelName", "Spanish School"
+                )
+        );
+
+        AnkiCardFieldsDto fields = mapper.map(entry(), video);
+
+        assertThat(fields.video()).isEqualTo(
+                "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?start=62&rel=0"
+        );
+        assertThat(fields.sourceName()).isEqualTo("YouTube · Spanish School");
+        assertThat(fields.sourceLocator()).isEqualTo("1:05");
+        assertThat(fields.textRecognition()).isEmpty();
+        assertThat(fields.videoRecognition()).isEqualTo("1");
+    }
+
+    @Test
+    void rejectsVideoContextWithoutTrustedPlaybackLocation() {
+        NumberedContextExampleDto video = new NumberedContextExampleDto(
+                1, UUID.randomUUID(), UUID.randomUUID(), SourceDocumentEntity.Kind.YOUTUBE_VIDEO,
+                "Video", "es", 0, "Quiero vivir aquí.", Map.of("videoId", "not-valid")
+        );
+
+        assertThatThrownBy(() -> mapper.map(entry(), video))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("video id");
+    }
+
+    @Test
     void rejectsAContextThatCannotSafelySupplyTheHighlightedTarget() {
         assertThatThrownBy(() -> mapper.map(entry(), context("Ella estudia aquí.", Map.of())))
                 .isInstanceOf(IllegalArgumentException.class)

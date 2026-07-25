@@ -7,7 +7,7 @@ from uuid import UUID
 
 from test_contract import valid_snapshot
 from whatsanki_exporter.contract import parse_snapshot
-from whatsanki_exporter.export import export_package, stable_guid, stable_integer
+from whatsanki_exporter.export import _templates, export_package, stable_guid, stable_integer
 
 
 class ExportPackageTest(unittest.TestCase):
@@ -38,6 +38,29 @@ class ExportPackageTest(unittest.TestCase):
         self.assertEqual(stable_integer(value, bits=31), stable_integer(value, bits=31))
         self.assertEqual(stable_guid(value), stable_guid(value))
         self.assertGreater(stable_integer(value, bits=31), 0)
+
+    def test_video_template_embeds_timestamped_url_before_caption_context(self):
+        source = valid_snapshot()
+        fields = source["cards"][0]["anki"]["fields"]
+        fields["TextRecognition"] = ""
+        fields["VideoRecognition"] = "1"
+        fields["Video"] = "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?start=62&rel=0"
+        snapshot = parse_snapshot(source)
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory, "video.apkg")
+            export_package(snapshot, output)
+            with zipfile.ZipFile(output) as archive:
+                collection = Path(directory, "video.collection.anki2")
+                collection.write_bytes(archive.read("collection.anki2"))
+            with sqlite3.connect(collection) as database:
+                stored_fields = database.execute("select flds from notes").fetchone()[0]
+                self.assertIn("youtube-nocookie.com/embed/dQw4w9WgXcQ", stored_fields)
+                self.assertIn("start=62&amp;rel=0", stored_fields)
+
+        video_front = _templates()[1]["qfmt"]
+        self.assertLess(video_front.index("<iframe"), video_front.index("{{ContextBefore}}"))
+        self.assertIn("Open this moment on YouTube", video_front)
 
 
 if __name__ == "__main__":

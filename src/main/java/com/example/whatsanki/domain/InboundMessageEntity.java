@@ -39,6 +39,6 @@ public class InboundMessageEntity {
 
     public enum CommandType {
         HELP, SETTINGS, LANGUAGE, ADD, LOOKUP, SAVE, SOURCES, DELETE_SOURCE,
-        EXPORT, STATUS, DELETE_MY_DATA, DOCUMENT, UNKNOWN
+        EXPORT, STATUS, DELETE_MY_DATA, YOUTUBE, DOCUMENT, UNKNOWN
     }
 }

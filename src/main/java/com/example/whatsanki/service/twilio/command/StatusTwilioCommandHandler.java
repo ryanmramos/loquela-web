@@ -60,6 +60,7 @@ public class StatusTwilioCommandHandler implements TwilioCommandHandler {
             case FETCH_MEDIA -> "Document download";
             case EXTRACT_DOCUMENT -> "PDF extraction";
             case INGEST_TEXT -> "Text ingestion";
+            case FETCH_VIDEO_SUBTITLES -> "YouTube captions";
             case LOOKUP -> "Dictionary lookup";
             case DELIVER_LOOKUP_RESULT -> "Lookup result delivery";
             case EXPORT_DECK -> "Deck export";

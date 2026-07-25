@@ -71,6 +71,30 @@ class ContractTest(unittest.TestCase):
         with self.assertRaises(ContractError):
             parse_snapshot(snapshot)
 
+    def test_accepts_only_a_controlled_youtube_video_url(self):
+        snapshot = valid_snapshot()
+        fields = snapshot["cards"][0]["anki"]["fields"]
+        fields["TextRecognition"] = ""
+        fields["VideoRecognition"] = "1"
+        fields["Video"] = "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?start=62&rel=0"
+
+        parsed = parse_snapshot(snapshot)
+
+        self.assertIn(fields["Video"], parsed.cards[0].fields)
+
+    def test_rejects_unpaired_or_untrusted_video_fields(self):
+        unpaired = valid_snapshot()
+        unpaired["cards"][0]["anki"]["fields"]["VideoRecognition"] = "1"
+        untrusted = valid_snapshot()
+        untrusted_fields = untrusted["cards"][0]["anki"]["fields"]
+        untrusted_fields["VideoRecognition"] = "1"
+        untrusted_fields["Video"] = "javascript:alert(1)"
+
+        with self.assertRaises(ContractError):
+            parse_snapshot(unpaired)
+        with self.assertRaises(ContractError):
+            parse_snapshot(untrusted)
+
 
 if __name__ == "__main__":
     unittest.main()

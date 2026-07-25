@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any
 from uuid import UUID
 
@@ -17,7 +18,10 @@ FIELD_ORDER = (
 )
 REQUIRED_FIELDS = ("Term", "ContextTarget", "Definition")
 ENABLEMENT_FIELDS = ("TextRecognition", "VideoRecognition", "Recall")
-MEDIA_FIELDS = ("SentenceAudio", "WordAudio", "Video")
+MEDIA_FIELDS = ("SentenceAudio", "WordAudio")
+YOUTUBE_EMBED_URL = re.compile(
+    r"https://www\.youtube-nocookie\.com/embed/[A-Za-z0-9_-]{11}\?start=\d+&rel=0"
+)
 
 
 class ContractError(ValueError):
@@ -88,8 +92,12 @@ def _card(value: Any, index: int) -> CardSnapshot:
     # Fail closed instead of emitting dangling or attacker-controlled references.
     if any(fields[name].strip() for name in MEDIA_FIELDS):
         raise ContractError("snapshot v1 does not support media fields")
-    if fields["VideoRecognition"].strip():
-        raise ContractError("snapshot v1 does not support video recognition")
+    video_enabled = bool(fields["VideoRecognition"].strip())
+    video_url = fields["Video"].strip()
+    if video_enabled != bool(video_url):
+        raise ContractError("video recognition and video URL must be enabled together")
+    if video_url and YOUTUBE_EMBED_URL.fullmatch(video_url) is None:
+        raise ContractError("video URL is not an approved YouTube embed URL")
     return CardSnapshot(_uuid(card.get("stableId"), "card.stableId"), tuple(ordered))
 
 
