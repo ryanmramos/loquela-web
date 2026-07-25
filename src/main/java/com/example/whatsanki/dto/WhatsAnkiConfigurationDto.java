@@ -270,6 +270,19 @@ public class WhatsAnkiConfigurationDto {
                 List.of("en.wiktionary.org", "es.wiktionary.org")
         );
 
+        /** Fixed origin for the unofficial RAE API Spanish dictionary adapter. */
+        @NotNull
+        private URI raeBaseUrl = URI.create("https://rae-api.com");
+
+        @NotEmpty
+        private List<@NotBlank String> raeAllowedHosts = new ArrayList<>(List.of("rae-api.com"));
+
+        /**
+         * Optional for the API's free tier, but configured server-side to unlock the
+         * quota associated with a developer key. It must never enter logs or URLs.
+         */
+        private String raeApiKey = "";
+
         @NotNull
         private Duration connectTimeout = Duration.ofSeconds(3);
 
@@ -282,7 +295,7 @@ public class WhatsAnkiConfigurationDto {
         @Positive
         private int maxConcurrentRequests = 4;
 
-        /** Kept for a future commercial adapter; Wiktionary does not require a key. */
+        /** Kept for a future commercial adapter. */
         private URI baseUrl;
         private String apiKey = "";
 

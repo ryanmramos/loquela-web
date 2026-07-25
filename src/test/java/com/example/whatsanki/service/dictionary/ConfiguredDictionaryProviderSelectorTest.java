@@ -70,12 +70,12 @@ class ConfiguredDictionaryProviderSelectorTest {
     void buildsAPairSpecificRouteWithSpecialistAndGenericFallback() {
         WhatsAnkiConfigurationDto configuration = new WhatsAnkiConfigurationDto();
         configuration.getDictionary().setProviderOrder(List.of("wiktionary"));
-        configuration.getDictionary().setRoutes(Map.of("es:en", List.of("rae", "wiktionary")));
+        configuration.getDictionary().setRoutes(Map.of("es:en", List.of("specialist", "wiktionary")));
         DictionaryProvider wiktionary = provider("wiktionary", "v1");
-        DictionaryProvider rae = provider("rae", "v2");
+        DictionaryProvider specialist = provider("specialist", "v2");
 
         ConfiguredDictionaryProviderSelector selector = new ConfiguredDictionaryProviderSelector(
-                List.of(wiktionary, rae), configuration
+                List.of(wiktionary, specialist), configuration
         );
 
         assertThat(selector.activeProvider()).isInstanceOf(RoutedDictionaryProvider.class);

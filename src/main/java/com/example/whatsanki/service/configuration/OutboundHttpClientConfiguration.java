@@ -30,4 +30,14 @@ public class OutboundHttpClientConfiguration {
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
     }
+
+    @Bean("raeHttpClient")
+    HttpClient raeHttpClient(WhatsAnkiConfigurationDto configuration) {
+        // The API key is added per request by the adapter. Redirects remain disabled
+        // so credentials cannot be forwarded to an origin outside the allow-list.
+        return HttpClient.newBuilder()
+                .connectTimeout(configuration.getDictionary().getConnectTimeout())
+                .followRedirects(HttpClient.Redirect.NEVER)
+                .build();
+    }
 }
