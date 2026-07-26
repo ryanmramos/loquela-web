@@ -65,10 +65,12 @@ public class BrowserSecurityConfiguration {
                         .sessionFixation(fixation -> fixation.migrateSession()))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) ->
-                                writeProblem(request, response, 401, "Authentication required",
+                                writeProblem(request, response, 401, "AUTHENTICATION_REQUIRED",
+                                        "Authentication required",
                                         "Sign in with Google to access this resource."))
                         .accessDeniedHandler((request, response, exception) ->
-                                writeProblem(request, response, 403, "Access denied",
+                                writeProblem(request, response, 403, "ACCESS_DENIED",
+                                        "Access denied",
                                         "The authenticated session cannot perform this operation.")))
                 .logout(logout -> logout
                         .logoutUrl("/api/v1/session/logout")
@@ -135,6 +137,7 @@ public class BrowserSecurityConfiguration {
             HttpServletRequest request,
             jakarta.servlet.http.HttpServletResponse response,
             int status,
+            String code,
             String title,
             String detail
     ) throws java.io.IOException {
@@ -146,6 +149,7 @@ public class BrowserSecurityConfiguration {
                         URI.create("https://loquela.app/problems/" + status),
                         title,
                         status,
+                        code,
                         detail,
                         request.getRequestURI(),
                         MDC.get("correlationId"),

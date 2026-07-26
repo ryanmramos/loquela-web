@@ -4,6 +4,7 @@ import { catchError, throwError } from 'rxjs';
 
 import { RUNTIME_CONFIG } from '@core/config/runtime-config';
 import { ApiFieldError, ApiProblem, ApiProblemError } from '@core/errors/api-problem';
+import type { ApiProblemDto } from '@api/generated/models/api-problem-dto';
 
 import { isApiRequest } from './api-request';
 import { CORRELATION_ID_HEADER } from './correlation-id.interceptor';
@@ -49,8 +50,8 @@ export function mapApiProblem(
     body.correlationId.length > 0
       ? body.correlationId
       : (responseCorrelationId ?? requestCorrelationId ?? UNKNOWN_CORRELATION_ID);
-  const detail = body['detail'];
-  const fieldErrors = body['fieldErrors'];
+  const detail = body.detail;
+  const fieldErrors = body.fieldErrors;
   const problem: ApiProblem = {
     type: body.type,
     title: body.title,
@@ -78,21 +79,16 @@ function fallbackProblem(status: number, correlationId: string | null): ApiProbl
   };
 }
 
-function isCompleteProblem(value: Readonly<Record<string, unknown>>): value is Readonly<
-  Record<string, unknown>
-> & {
-  readonly type: string;
-  readonly title: string;
-  readonly status: number;
-  readonly code: string;
-  readonly correlationId: string;
-} {
+function isCompleteProblem(
+  value: Readonly<Record<string, unknown>>,
+): value is Readonly<Record<string, unknown>> & ApiProblemDto {
   return (
     typeof value['type'] === 'string' &&
     typeof value['title'] === 'string' &&
     typeof value['status'] === 'number' &&
     typeof value['code'] === 'string' &&
-    typeof value['correlationId'] === 'string'
+    typeof value['correlationId'] === 'string' &&
+    isFieldErrors(value['fieldErrors'])
   );
 }
 

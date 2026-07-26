@@ -10,12 +10,15 @@ import { apiCredentialsInterceptor } from '@core/http/api-credentials.intercepto
 import { correlationIdInterceptor } from '@core/http/correlation-id.interceptor';
 import { requestDeadlineInterceptor } from '@core/http/request-deadline.interceptor';
 import { apiProblemInterceptor } from '@core/http/api-problem.interceptor';
+import { provideApiConfiguration } from '@api/generated/api-configuration';
 
 export function createAppConfig(runtimeConfig: RuntimeConfig): ApplicationConfig {
   return {
     providers: [
       provideBrowserGlobalErrorListeners(),
       provideRuntimeConfig(runtimeConfig),
+      // An empty generated-client root preserves same-origin /api paths from the contract.
+      provideApiConfiguration(''),
       provideRouter(
         routes,
         withInMemoryScrolling({

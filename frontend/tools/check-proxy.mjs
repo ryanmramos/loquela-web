@@ -11,6 +11,18 @@ const backend = createServer((request, response) => {
     response.end(JSON.stringify({ status: 'UP' }));
     return;
   }
+  if (request.url === '/api/v1/session') {
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(
+      JSON.stringify({
+        userId: '529b7902-040a-4a40-8905-aa4ee06d2413',
+        sourceLanguage: 'es',
+        definitionLanguage: 'en',
+        linkedAccounts: { google: true, whatsapp: false },
+      }),
+    );
+    return;
+  }
 
   response.writeHead(404);
   response.end();
@@ -57,7 +69,12 @@ try {
   if (!response.ok || body.status !== 'UP') {
     throw new Error('The proxied health endpoint returned an unexpected response.');
   }
-  console.log('Local Angular proxy reaches the backend health endpoint.');
+  const sessionResponse = await fetch(`http://127.0.0.1:${frontendPort}/api/v1/session`);
+  const session = await sessionResponse.json();
+  if (!sessionResponse.ok || session.userId !== '529b7902-040a-4a40-8905-aa4ee06d2413') {
+    throw new Error('The proxied browser session endpoint returned an unexpected response.');
+  }
+  console.log('Local Angular proxy reaches the backend health and browser session endpoints.');
 } catch (error) {
   console.error(angularOutput);
   throw error;

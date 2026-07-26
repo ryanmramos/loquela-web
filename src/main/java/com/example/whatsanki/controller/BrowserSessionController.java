@@ -4,6 +4,7 @@ import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.dto.BrowserSessionDto;
 import com.example.whatsanki.service.BrowserSessionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,8 +25,18 @@ public class BrowserSessionController {
     private final BrowserSessionService browserSessionService;
 
     @GetMapping
-    @Operation(summary = "Return the current authenticated browser session")
-    @ApiResponse(responseCode = "200", description = "Authenticated session")
+    @Operation(
+            operationId = "getBrowserSession",
+            summary = "Return the current authenticated browser session"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Authenticated session",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = BrowserSessionDto.class)
+            )
+    )
     @ApiResponse(
             responseCode = "401",
             description = "No authenticated browser session",
@@ -36,7 +47,7 @@ public class BrowserSessionController {
     )
     public ResponseEntity<BrowserSessionDto> current(
             @AuthenticationPrincipal OidcUser principal,
-            CsrfToken csrfToken
+            @Parameter(hidden = true) CsrfToken csrfToken
     ) {
         csrfToken.getToken();
         return ResponseEntity.ok(browserSessionService.getByGoogleSubject(principal.getSubject()));

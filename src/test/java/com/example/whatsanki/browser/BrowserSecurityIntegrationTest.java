@@ -59,7 +59,9 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.title").value("Authentication required"));
+                .andExpect(jsonPath("$.title").value("Authentication required"))
+                .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"))
+                .andExpect(jsonPath("$.fieldErrors").isEmpty());
     }
 
     @Test
@@ -93,7 +95,9 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
     void browserMutationWithoutCsrfFailsAndLogoutWithCsrfSucceeds() throws Exception {
         mockMvc.perform(post("/api/v1/session/logout").with(oidcLogin()))
                 .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
+                .andExpect(jsonPath("$.fieldErrors").isEmpty());
 
         mockMvc.perform(post("/api/v1/session/logout")
                         .with(oidcLogin())

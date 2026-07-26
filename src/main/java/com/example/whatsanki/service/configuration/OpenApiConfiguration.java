@@ -3,11 +3,14 @@ package com.example.whatsanki.service.configuration;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
 public class OpenApiConfiguration {
@@ -27,6 +30,8 @@ public class OpenApiConfiguration {
                                 effective value. Retriable create commands use Idempotency-Key. Versioned mutations
                                 use If-Match and return the new ETag.
                                 """))
+                // Generated browser clients must remain same-origin in every environment.
+                .servers(List.of(new Server().url("/").description("Same-origin browser API")))
                 .components(new Components().addSecuritySchemes(
                         SESSION_COOKIE_SCHEME,
                         new SecurityScheme()

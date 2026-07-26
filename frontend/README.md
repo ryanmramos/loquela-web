@@ -26,6 +26,8 @@ npm run lint
 npm run format:check
 npm run architecture:check # import, storage, and sanitizer boundaries
 npm run proxy:check        # live local proxy smoke test with an isolated backend
+npm run api:generate       # validate the contract and regenerate the Angular client
+npm run api:check          # incompatible-schema and deterministic-drift checks
 npm run e2e               # Playwright; installs no browser automatically
 npm run audit:dependencies
 npm run licenses:check
@@ -39,15 +41,26 @@ npx playwright install chromium
 
 ## OpenAPI client
 
-The Angular client generator is pinned and configured in `ng-openapi-gen.json`. Once the backend
-contract export is added in Step 6:
+The Angular client generator is pinned and configured in `ng-openapi-gen.json`. From the repository
+root, intentionally refresh Spring's committed browser contract after reviewing a backend API
+change:
 
 ```bash
+./mvnw -Dtest=BrowserOpenApiContractIntegrationTest \
+  -Dloquela.openapi.export=true test
+```
+
+Then regenerate and validate the client:
+
+```bash
+cd frontend
 npm run api:generate
+npm run api:check
 ```
 
 Generated code belongs under `src/app/api/generated` and must never be edited manually. The
-generator decision is recorded in
+application accesses it through stable adapters under `src/app/api/api-adapters`. The generator
+decision is recorded in
 [`../docs/frontend/ADR-001-OPENAPI_CLIENT_GENERATOR.md`](../docs/frontend/ADR-001-OPENAPI_CLIENT_GENERATOR.md).
 
 ## Runtime configuration and local API

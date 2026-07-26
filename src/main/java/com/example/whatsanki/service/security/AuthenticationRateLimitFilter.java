@@ -67,6 +67,7 @@ public final class AuthenticationRateLimitFilter extends OncePerRequestFilter {
                             URI.create("https://loquela.app/problems/rate-limit"),
                             "Too many requests",
                             429,
+                            "AUTH_RATE_LIMITED",
                             "Too many authentication or account-linking requests.",
                             request.getRequestURI(),
                             MDC.get("correlationId"),

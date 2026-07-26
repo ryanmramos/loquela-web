@@ -1,0 +1,144 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "title" : "Loquela Browser API",
+    "description" : "Authenticated, DTO-only browser contracts under /api/v1. Twilio webhooks are\nintentionally excluded. Enums use string values. Collection endpoints use opaque\ncursor pagination. Clients may send X-Correlation-ID; the server always returns the\neffective value. Retriable create commands use Idempotency-Key. Versioned mutations\nuse If-Match and return the new ETag.\n",
+    "version" : "v1"
+  },
+  "servers" : [ {
+    "url" : "/",
+    "description" : "Same-origin browser API"
+  } ],
+  "security" : [ {
+    "browserSession" : [ ]
+  } ],
+  "paths" : {
+    "/api/v1/session" : {
+      "get" : {
+        "tags" : [ "browser-session-controller" ],
+        "summary" : "Return the current authenticated browser session",
+        "operationId" : "getBrowserSession",
+        "responses" : {
+          "200" : {
+            "description" : "Authenticated session",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserSessionDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "No authenticated browser session",
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiProblemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "BrowserSessionDto" : {
+        "type" : "object",
+        "properties" : {
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "definitionLanguage" : {
+            "type" : "string"
+          },
+          "linkedAccounts" : {
+            "$ref" : "#/components/schemas/LinkedAccountsDto"
+          }
+        },
+        "required" : [ "definitionLanguage", "linkedAccounts", "sourceLanguage", "userId" ]
+      },
+      "LinkedAccountsDto" : {
+        "type" : "object",
+        "properties" : {
+          "google" : {
+            "type" : "boolean"
+          },
+          "whatsapp" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "google", "whatsapp" ]
+      },
+      "ApiProblemDto" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "instance" : {
+            "type" : "string"
+          },
+          "correlationId" : {
+            "type" : "string"
+          },
+          "fieldErrors" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FieldErrorDto"
+            }
+          }
+        },
+        "required" : [ "code", "correlationId", "fieldErrors", "status", "title", "type" ]
+      },
+      "FieldErrorDto" : {
+        "type" : "object",
+        "properties" : {
+          "field" : {
+            "type" : "string"
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "code", "field", "message" ]
+      }
+    },
+    "securitySchemes" : {
+      "browserSession" : {
+        "type" : "apiKey",
+        "name" : "LOQUELA_SESSION",
+        "in" : "cookie"
+      }
+    }
+  }
+}
