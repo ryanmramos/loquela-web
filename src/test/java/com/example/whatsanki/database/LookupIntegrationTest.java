@@ -20,7 +20,6 @@ import com.example.whatsanki.service.lookup.LookupService;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -148,10 +147,7 @@ class LookupIntegrationTest extends PostgreSqlIntegrationTest {
     }
 
     private AppUserEntity user(String label, String sourceLanguage, String definitionLanguage) {
-        String identity = label + "-" + UUID.randomUUID();
         AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(identity.getBytes(StandardCharsets.UTF_8));
-        user.setWhatsappAddressCiphertext(("encrypted-" + identity).getBytes(StandardCharsets.UTF_8));
         user.setSourceLanguage(sourceLanguage);
         user.setDefinitionLanguage(definitionLanguage);
         user.setStatus(AppUserEntity.Status.ACTIVE);

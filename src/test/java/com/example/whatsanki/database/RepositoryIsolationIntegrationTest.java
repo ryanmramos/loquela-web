@@ -4,10 +4,12 @@ import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.domain.PassageEntity;
 import com.example.whatsanki.domain.SourceDocumentEntity;
+import com.example.whatsanki.domain.UserIdentityEntity;
 import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.PassageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
+import com.example.whatsanki.repository.UserIdentityRepository;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
@@ -25,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class RepositoryIsolationIntegrationTest extends PostgreSqlIntegrationTest {
 
     private final AppUserRepository appUserRepository;
+    private final UserIdentityRepository userIdentityRepository;
     private final InboundMessageRepository inboundMessageRepository;
     private final SourceDocumentRepository sourceDocumentRepository;
     private final PassageRepository passageRepository;
@@ -32,12 +35,14 @@ class RepositoryIsolationIntegrationTest extends PostgreSqlIntegrationTest {
 
     RepositoryIsolationIntegrationTest(
             AppUserRepository appUserRepository,
+            UserIdentityRepository userIdentityRepository,
             InboundMessageRepository inboundMessageRepository,
             SourceDocumentRepository sourceDocumentRepository,
             PassageRepository passageRepository,
             EntityManager entityManager
     ) {
         this.appUserRepository = appUserRepository;
+        this.userIdentityRepository = userIdentityRepository;
         this.inboundMessageRepository = inboundMessageRepository;
         this.sourceDocumentRepository = sourceDocumentRepository;
         this.passageRepository = passageRepository;
@@ -47,9 +52,14 @@ class RepositoryIsolationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     @Transactional
     void rejectsDuplicateWhatsAppIdentityHash() {
-        appUserRepository.saveAndFlush(user("same-hash"));
+        byte[] hash = "same-hash".getBytes(StandardCharsets.UTF_8);
+        AppUserEntity first = appUserRepository.saveAndFlush(user("first"));
+        AppUserEntity second = appUserRepository.saveAndFlush(user("second"));
+        userIdentityRepository.saveAndFlush(identity(first.getId(), hash, "ciphertext-1"));
 
-        assertThatThrownBy(() -> appUserRepository.saveAndFlush(user("same-hash")))
+        assertThatThrownBy(() -> userIdentityRepository.saveAndFlush(
+                identity(second.getId(), hash, "ciphertext-2")
+        ))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
@@ -59,18 +69,22 @@ class RepositoryIsolationIntegrationTest extends PostgreSqlIntegrationTest {
         byte[] hash = "upsert-hash".getBytes(StandardCharsets.UTF_8);
         Instant now = Instant.now();
 
-        int firstInsert = appUserRepository.insertIfAbsent(
-                UUID.randomUUID(), hash, "ciphertext-1".getBytes(StandardCharsets.UTF_8),
-                "es", "en", now
+        AppUserEntity first = appUserRepository.saveAndFlush(user("first-upsert"));
+        AppUserEntity second = appUserRepository.saveAndFlush(user("second-upsert"));
+        int firstInsert = userIdentityRepository.insertIfAbsent(
+                UUID.randomUUID(), first.getId(), "WHATSAPP", hash,
+                "ciphertext-1".getBytes(StandardCharsets.UTF_8), null, null, now
         );
-        int duplicateInsert = appUserRepository.insertIfAbsent(
-                UUID.randomUUID(), hash, "ciphertext-2".getBytes(StandardCharsets.UTF_8),
-                "es", "en", now
+        int duplicateInsert = userIdentityRepository.insertIfAbsent(
+                UUID.randomUUID(), second.getId(), "WHATSAPP", hash,
+                "ciphertext-2".getBytes(StandardCharsets.UTF_8), null, null, now
         );
 
         assertThat(firstInsert).isEqualTo(1);
         assertThat(duplicateInsert).isZero();
-        assertThat(appUserRepository.findByWhatsappAddressHash(hash)).isPresent();
+        assertThat(userIdentityRepository.findByProviderAndProviderSubjectHash(
+                UserIdentityEntity.Provider.WHATSAPP, hash
+        )).isPresent();
     }
 
     @Test
@@ -123,12 +137,20 @@ class RepositoryIsolationIntegrationTest extends PostgreSqlIntegrationTest {
 
     private AppUserEntity user(String identity) {
         AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(identity.getBytes(StandardCharsets.UTF_8));
-        user.setWhatsappAddressCiphertext(("encrypted-" + identity).getBytes(StandardCharsets.UTF_8));
         user.setSourceLanguage("es");
         user.setDefinitionLanguage("en");
         user.setStatus(AppUserEntity.Status.ACTIVE);
         return user;
+    }
+
+    private UserIdentityEntity identity(UUID userId, byte[] hash, String ciphertext) {
+        UserIdentityEntity identity = new UserIdentityEntity();
+        identity.setUserId(userId);
+        identity.setProvider(UserIdentityEntity.Provider.WHATSAPP);
+        identity.setProviderSubjectHash(hash);
+        identity.setProviderSubjectCiphertext(ciphertext.getBytes(StandardCharsets.UTF_8));
+        identity.setVerifiedAt(Instant.now());
+        return identity;
     }
 
     private InboundMessageEntity message(UUID userId, String sid) {

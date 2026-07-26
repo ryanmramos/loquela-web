@@ -32,6 +32,12 @@ public class ProductionConfigurationValidator implements ApplicationRunner {
         requireText("TWILIO_WHATSAPP_FROM", configuration.getTwilio().getWhatsappFrom(), errors);
         requireHttps("TWILIO_STATUS_CALLBACK_URL", configuration.getTwilio().getStatusCallbackUrl(), errors);
         requireHttps("OBJECT_STORE_ENDPOINT", configuration.getObjectStore().getEndpoint(), errors);
+        if (!configuration.getSecurity().isGoogleOauthEnabled()) {
+            errors.add("WHATSANKI_GOOGLE_OAUTH_ENABLED must be true in production");
+        }
+        if (!configuration.getSecurity().isSecureCookies()) {
+            errors.add("WHATSANKI_SECURE_COOKIES must be true in production");
+        }
 
         boolean hasAccessKey = hasText(configuration.getObjectStore().getAccessKey());
         boolean hasSecretKey = hasText(configuration.getObjectStore().getSecretKey());

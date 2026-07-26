@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -129,8 +128,6 @@ class PdfCorpusIntegrationTest extends PostgreSqlIntegrationTest {
     private UserId user() {
         String identity = "pdf-owner-" + UUID.randomUUID();
         AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(identity.getBytes(StandardCharsets.UTF_8));
-        user.setWhatsappAddressCiphertext(("encrypted-" + identity).getBytes(StandardCharsets.UTF_8));
         user.setSourceLanguage("es");
         user.setDefinitionLanguage("en");
         user.setStatus(AppUserEntity.Status.ACTIVE);

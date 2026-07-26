@@ -8,7 +8,6 @@ import com.example.whatsanki.service.UserLanguageSettingsService;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -67,8 +66,6 @@ class LanguageSettingsIntegrationTest extends PostgreSqlIntegrationTest {
 
     private AppUserEntity user(String identity) {
         AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(identity.getBytes(StandardCharsets.UTF_8));
-        user.setWhatsappAddressCiphertext(("encrypted-" + identity).getBytes(StandardCharsets.UTF_8));
         user.setSourceLanguage("es");
         user.setDefinitionLanguage("en");
         user.setStatus(AppUserEntity.Status.ACTIVE);

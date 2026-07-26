@@ -23,7 +23,6 @@ import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageRequest;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.UUID;
@@ -159,8 +158,6 @@ class PastedTextAddIntegrationTest extends PostgreSqlIntegrationTest {
     private UserId user(String label) {
         String identity = label + "-" + UUID.randomUUID();
         AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(identity.getBytes(StandardCharsets.UTF_8));
-        user.setWhatsappAddressCiphertext(("encrypted-" + identity).getBytes(StandardCharsets.UTF_8));
         user.setSourceLanguage("es");
         user.setDefinitionLanguage("en");
         user.setStatus(AppUserEntity.Status.ACTIVE);

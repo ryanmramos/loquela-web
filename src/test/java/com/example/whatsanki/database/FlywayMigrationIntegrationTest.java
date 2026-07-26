@@ -2,10 +2,13 @@ package com.example.whatsanki.database;
 
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationVersion;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -23,7 +26,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(17);
+        assertThat(flyway.info().applied()).hasSize(19);
     }
 
     @Test
@@ -39,8 +42,18 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                 "app_user", "inbound_message", "source_document", "passage",
                 "background_job", "lookup_session", "deck", "card", "export_request",
                 "outbound_message", "account_deletion_request", "video_source",
+                "user_identity", "spring_session", "spring_session_attributes",
                 "flyway_schema_history"
         );
+
+        List<String> appUserColumns = jdbcTemplate.queryForList("""
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'app_user'
+                """, String.class);
+        assertThat(appUserColumns)
+                .doesNotContain("whatsapp_address_hash", "whatsapp_address_ciphertext");
     }
 
     @Test
@@ -146,5 +159,54 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                   and indexdef ilike '% unique %'
                 """, Integer.class);
         assertThat(savedCardOriginIndexCount).isEqualTo(1);
+    }
+
+    @Test
+    void backfillsLegacyWhatsAppIdentitiesBeforeDroppingLegacyColumns() {
+        String schema = "identity_backfill_test";
+        DataSource dataSource = jdbcTemplate.getDataSource();
+        assertThat(dataSource).isNotNull();
+        jdbcTemplate.execute("drop schema if exists " + schema + " cascade");
+        jdbcTemplate.execute("create schema " + schema);
+
+        try {
+            Flyway throughLegacySchema = Flyway.configure()
+                    .dataSource(dataSource)
+                    .locations("classpath:db/migration")
+                    .defaultSchema(schema)
+                    .schemas(schema)
+                    .target(MigrationVersion.fromVersion("017"))
+                    .load();
+            throughLegacySchema.migrate();
+
+            UUID userId = UUID.randomUUID();
+            byte[] subjectHash = {1, 2, 3, 4};
+            byte[] subjectCiphertext = {5, 6, 7, 8};
+            jdbcTemplate.update("""
+                    insert into identity_backfill_test.app_user (
+                        id, whatsapp_address_hash, whatsapp_address_ciphertext,
+                        source_language, definition_language, status, created_at, updated_at
+                    ) values (?, ?, ?, 'es', 'en', 'ACTIVE', now(), now())
+                    """, userId, subjectHash, subjectCiphertext);
+
+            Flyway latestSchema = Flyway.configure()
+                    .dataSource(dataSource)
+                    .locations("classpath:db/migration")
+                    .defaultSchema(schema)
+                    .schemas(schema)
+                    .load();
+            latestSchema.migrate();
+
+            assertThat(jdbcTemplate.queryForObject("""
+                    select count(*)
+                    from identity_backfill_test.user_identity
+                    where user_id = ?
+                      and provider = 'WHATSAPP'
+                      and provider_subject_hash = ?
+                      and provider_subject_ciphertext = ?
+                    """, Integer.class, userId, subjectHash, subjectCiphertext)).isEqualTo(1);
+        } finally {
+            jdbcTemplate.execute("drop schema if exists " + schema + " cascade");
+        }
     }
 }

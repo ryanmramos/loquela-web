@@ -1,14 +1,18 @@
 package com.example.whatsanki.service.identity;
 
 import com.example.whatsanki.domain.AppUserEntity;
+import com.example.whatsanki.domain.UserId;
+import com.example.whatsanki.domain.UserIdentityEntity;
 import com.example.whatsanki.domain.WhatsAppAddress;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.AppUserRepository;
+import com.example.whatsanki.repository.UserIdentityRepository;
 import com.example.whatsanki.service.IdentityProtectionService;
+import com.example.whatsanki.service.card.DefaultDeckService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -26,44 +30,46 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UserIdentityServiceImplTest {
 
-    @Mock
-    private AppUserRepository appUserRepository;
-
-    @Mock
-    private IdentityProtectionService identityProtectionService;
+    @Mock private AppUserRepository appUserRepository;
+    @Mock private UserIdentityRepository userIdentityRepository;
+    @Mock private IdentityProtectionService identityProtectionService;
+    @Mock private DefaultDeckService defaultDeckService;
 
     private WhatsAnkiConfigurationDto configuration;
-
-    @InjectMocks
     private UserIdentityServiceImpl service;
 
     @BeforeEach
     void setUp() {
         configuration = new WhatsAnkiConfigurationDto();
-        service = new UserIdentityServiceImpl(appUserRepository, identityProtectionService, configuration);
-    }
-
-    @Test
-    void normalizesAndResolvesExistingUserWithoutCreatingAnother() {
-        byte[] hash = {1, 2, 3};
-        UUID existingId = UUID.randomUUID();
-        AppUserEntity existingUser = new AppUserEntity();
-        existingUser.setId(existingId);
-        when(identityProtectionService.hash(new WhatsAppAddress("whatsapp:+15550000001"))).thenReturn(hash);
-        when(appUserRepository.findByWhatsappAddressHash(hash)).thenReturn(Optional.of(existingUser));
-
-        var result = service.resolveOrCreate("  WHATSAPP:+15550000001  ");
-
-        assertThat(result.value()).isEqualTo(existingId);
-        verify(identityProtectionService, never()).encrypt(any());
-        verify(appUserRepository, never()).insertIfAbsent(
-                any(UUID.class), any(byte[].class), any(byte[].class),
-                any(String.class), any(String.class), any(Instant.class)
+        service = new UserIdentityServiceImpl(
+                appUserRepository,
+                userIdentityRepository,
+                identityProtectionService,
+                defaultDeckService,
+                configuration
         );
     }
 
     @Test
-    void createsNewUserWithConfiguredLanguageDefaults() {
+    void normalizesAndResolvesExistingWhatsAppIdentity() {
+        byte[] hash = {1, 2, 3};
+        UUID existingId = UUID.randomUUID();
+        UserIdentityEntity identity = identity(existingId, UserIdentityEntity.Provider.WHATSAPP, hash);
+        WhatsAppAddress address = new WhatsAppAddress("whatsapp:+15550000001");
+        when(identityProtectionService.hash(address)).thenReturn(hash);
+        when(userIdentityRepository.findByProviderAndProviderSubjectHash(
+                UserIdentityEntity.Provider.WHATSAPP, hash
+        )).thenReturn(Optional.of(identity));
+
+        UserId result = service.resolveOrCreate("  WHATSAPP:+15550000001  ");
+
+        assertThat(result.value()).isEqualTo(existingId);
+        verify(identityProtectionService, never()).encrypt(any());
+        verify(appUserRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void createsWhatsAppOnlyUserWithConfiguredLanguageDefaults() {
         configuration.getLanguages().setDefaultSource("ES-latn-us");
         configuration.getLanguages().setDefaultDefinition("EN-us");
         byte[] hash = {4, 5, 6};
@@ -71,40 +77,83 @@ class UserIdentityServiceImplTest {
         WhatsAppAddress address = new WhatsAppAddress("whatsapp:+15550000001");
         when(identityProtectionService.hash(address)).thenReturn(hash);
         when(identityProtectionService.encrypt(address)).thenReturn(ciphertext);
-        when(appUserRepository.findByWhatsappAddressHash(hash)).thenReturn(Optional.empty());
-        when(appUserRepository.insertIfAbsent(
-                any(UUID.class), eq(hash), eq(ciphertext), eq("es-Latn-US"), eq("en-US"), any(Instant.class)
+        when(userIdentityRepository.findByProviderAndProviderSubjectHash(
+                UserIdentityEntity.Provider.WHATSAPP, hash
+        )).thenReturn(Optional.empty());
+        when(appUserRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userIdentityRepository.insertIfAbsent(
+                any(), any(), eq("WHATSAPP"), eq(hash), eq(ciphertext),
+                eq(null), eq(null), any(Instant.class)
         )).thenReturn(1);
 
-        var result = service.resolveOrCreate(address.value());
+        UserId result = service.resolveOrCreate(address.value());
 
-        assertThat(result.value()).isNotNull();
-        verify(appUserRepository).insertIfAbsent(
-                eq(result.value()), eq(hash), eq(ciphertext), eq("es-Latn-US"), eq("en-US"), any(Instant.class)
+        ArgumentCaptor<AppUserEntity> user = ArgumentCaptor.forClass(AppUserEntity.class);
+        verify(appUserRepository).saveAndFlush(user.capture());
+        assertThat(user.getValue().getId()).isEqualTo(result.value());
+        assertThat(user.getValue().getSourceLanguage()).isEqualTo("es-Latn-US");
+        assertThat(user.getValue().getDefinitionLanguage()).isEqualTo("en-US");
+        verify(defaultDeckService, never()).resolveOrCreate(any(), any());
+    }
+
+    @Test
+    void createsCompleteGoogleOnlyUserAndDefaultDeck() {
+        byte[] hash = {10, 11, 12};
+        when(identityProtectionService.hashSubject("google-subject")).thenReturn(hash);
+        when(userIdentityRepository.findByProviderAndProviderSubjectHash(
+                UserIdentityEntity.Provider.GOOGLE, hash
+        )).thenReturn(Optional.empty());
+        when(appUserRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userIdentityRepository.insertIfAbsent(
+                any(), any(), eq("GOOGLE"), eq(hash), eq(null),
+                eq("learner@example.com"), eq("Learner"), any(Instant.class)
+        )).thenReturn(1);
+
+        UserId result = service.resolveOrCreateGoogle(
+                "google-subject", "learner@example.com", "Learner"
+        );
+
+        verify(defaultDeckService).resolveOrCreate(eq(result), any(Instant.class));
+        verify(identityProtectionService, never()).encryptSubject(any());
+        verify(userIdentityRepository).insertIfAbsent(
+                any(), eq(result.value()), eq("GOOGLE"), eq(hash), eq(null),
+                eq("learner@example.com"), eq("Learner"), any(Instant.class)
         );
     }
 
     @Test
-    void returnsWinningUserWhenConcurrentCreationLosesConflict() {
-        byte[] hash = {10, 11, 12};
-        byte[] ciphertext = {13, 14, 15};
-        UUID winningId = UUID.randomUUID();
-        AppUserEntity winningUser = new AppUserEntity();
-        winningUser.setId(winningId);
-        WhatsAppAddress address = new WhatsAppAddress("whatsapp:+15550000001");
-        when(identityProtectionService.hash(address)).thenReturn(hash);
-        when(identityProtectionService.encrypt(address)).thenReturn(ciphertext);
-        when(appUserRepository.findByWhatsappAddressHash(hash))
-                .thenReturn(Optional.empty(), Optional.of(winningUser));
-        when(appUserRepository.insertIfAbsent(
-                any(UUID.class), eq(hash), eq(ciphertext), eq("es"), eq("en"), any(Instant.class)
+    void returnsWinningUserAndDeletesEmptyCandidateAfterConcurrentConflict() {
+        byte[] hash = {13, 14, 15};
+        UUID winnerId = UUID.randomUUID();
+        UserIdentityEntity winner = identity(winnerId, UserIdentityEntity.Provider.GOOGLE, hash);
+        when(identityProtectionService.hashSubject("google-subject")).thenReturn(hash);
+        when(userIdentityRepository.findByProviderAndProviderSubjectHash(
+                UserIdentityEntity.Provider.GOOGLE, hash
+        )).thenReturn(Optional.empty(), Optional.of(winner));
+        when(appUserRepository.saveAndFlush(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userIdentityRepository.insertIfAbsent(
+                any(), any(), eq("GOOGLE"), eq(hash), eq(null),
+                eq(null), eq(null), any(Instant.class)
         )).thenReturn(0);
 
-        var result = service.resolveOrCreate(address.value());
+        UserId result = service.resolveOrCreateGoogle("google-subject", null, null);
 
-        assertThat(result.value()).isEqualTo(winningId);
-        verify(appUserRepository).insertIfAbsent(
-                any(UUID.class), eq(hash), eq(ciphertext), eq("es"), eq("en"), any(Instant.class)
-        );
+        assertThat(result.value()).isEqualTo(winnerId);
+        verify(appUserRepository).deleteById(any());
+        verify(appUserRepository).flush();
+        verify(defaultDeckService, never()).resolveOrCreate(any(), any());
+    }
+
+    private UserIdentityEntity identity(
+            UUID userId,
+            UserIdentityEntity.Provider provider,
+            byte[] hash
+    ) {
+        UserIdentityEntity identity = new UserIdentityEntity();
+        identity.setId(UUID.randomUUID());
+        identity.setUserId(userId);
+        identity.setProvider(provider);
+        identity.setProviderSubjectHash(hash);
+        return identity;
     }
 }

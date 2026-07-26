@@ -28,7 +28,6 @@ import com.example.whatsanki.service.util.SourceReferenceCodec;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.UUID;
@@ -175,8 +174,6 @@ class CorpusAndSourceManagementIntegrationTest extends PostgreSqlIntegrationTest
     private UserId user(String label, String sourceLanguage) {
         String identity = label + "-" + UUID.randomUUID();
         AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(identity.getBytes(StandardCharsets.UTF_8));
-        user.setWhatsappAddressCiphertext(("encrypted-" + identity).getBytes(StandardCharsets.UTF_8));
         user.setSourceLanguage(sourceLanguage);
         user.setDefinitionLanguage("en");
         user.setStatus(AppUserEntity.Status.ACTIVE);

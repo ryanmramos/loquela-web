@@ -20,7 +20,6 @@ import com.example.whatsanki.service.youtube.YouTubePassageBuilder;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -92,8 +91,6 @@ class YouTubeCorpusIntegrationTest extends PostgreSqlIntegrationTest {
     private UserId user() {
         String identity = "youtube-owner-" + UUID.randomUUID();
         AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(identity.getBytes(StandardCharsets.UTF_8));
-        user.setWhatsappAddressCiphertext(("encrypted-" + identity).getBytes(StandardCharsets.UTF_8));
         user.setSourceLanguage("es");
         user.setDefinitionLanguage("en");
         user.setStatus(AppUserEntity.Status.ACTIVE);

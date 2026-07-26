@@ -1,6 +1,5 @@
 package com.example.whatsanki.service.export;
 
-import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.BackgroundJobEntity;
 import com.example.whatsanki.domain.CardEntity;
 import com.example.whatsanki.domain.DeckEntity;
@@ -14,11 +13,10 @@ import com.example.whatsanki.dto.AnkiCardFieldsDto;
 import com.example.whatsanki.dto.DeckExportPreparationDto;
 import com.example.whatsanki.dto.ExportedDeckDto;
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
-import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.CardRepository;
 import com.example.whatsanki.repository.DeckRepository;
 import com.example.whatsanki.repository.ExportRequestRepository;
-import com.example.whatsanki.service.IdentityProtectionService;
+import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.job.BackgroundJobService;
 import com.example.whatsanki.service.storage.ObjectStore;
 import com.example.whatsanki.service.twilio.OutboundMessenger;
@@ -55,12 +53,11 @@ class DeckExportServiceImplTest {
     @Mock private DeckRepository deckRepository;
     @Mock private CardRepository cardRepository;
     @Mock private ExportRequestRepository exportRequestRepository;
-    @Mock private AppUserRepository appUserRepository;
     @Mock private BackgroundJobService backgroundJobService;
     @Mock private DeckExportLifecycleService lifecycleService;
     @Mock private DeckExporter deckExporter;
     @Mock private ObjectStore objectStore;
-    @Mock private IdentityProtectionService identityProtectionService;
+    @Mock private UserIdentityService userIdentityService;
     @Mock private OutboundMessenger outboundMessenger;
     @TempDir Path temporaryDirectory;
 
@@ -70,9 +67,9 @@ class DeckExportServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new DeckExportServiceImpl(
-                deckRepository, cardRepository, exportRequestRepository, appUserRepository,
-                backgroundJobService, lifecycleService, deckExporter, objectStore,
-                new ObjectKeyFactory(), identityProtectionService, outboundMessenger, objectMapper
+                deckRepository, cardRepository, exportRequestRepository, backgroundJobService,
+                lifecycleService, deckExporter, objectStore, new ObjectKeyFactory(),
+                userIdentityService, outboundMessenger, objectMapper
         );
     }
 
@@ -124,10 +121,6 @@ class DeckExportServiceImplTest {
         byte[] artifactHash = sha256(Files.readAllBytes(artifactPath));
         Instant expiresAt = Instant.now().plusSeconds(3600);
         String objectKey = "users/" + userId.value() + "/exports/" + exportId.value() + "/deck.apkg";
-        AppUserEntity user = new AppUserEntity();
-        user.setId(userId.value());
-        user.setStatus(AppUserEntity.Status.ACTIVE);
-        user.setWhatsappAddressCiphertext(new byte[]{1});
         WhatsAppAddress address = new WhatsAppAddress("whatsapp:+15551234567");
         when(lifecycleService.prepare(userId, exportId)).thenReturn(new DeckExportPreparationDto(
                 exportId, "Default", snapshot, snapshotHash, false, null, null
@@ -139,9 +132,7 @@ class DeckExportServiceImplTest {
                 .thenReturn(expiresAt);
         when(objectStore.createPresignedGetUrl(eq(objectKey), any()))
                 .thenReturn(URI.create("https://store.example/private-token"));
-        when(appUserRepository.findByIdAndStatus(userId.value(), AppUserEntity.Status.ACTIVE))
-                .thenReturn(Optional.of(user));
-        when(identityProtectionService.decrypt(user.getWhatsappAddressCiphertext())).thenReturn(address);
+        when(userIdentityService.requireWhatsAppAddress(userId)).thenReturn(address);
         when(outboundMessenger.send(eq(address), any())).thenReturn(new ProviderMessageId("SM123"));
 
         service.execute(userId, exportId);

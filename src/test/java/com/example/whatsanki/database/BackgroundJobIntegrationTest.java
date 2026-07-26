@@ -11,7 +11,6 @@ import com.example.whatsanki.service.job.BackgroundJobService;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -148,8 +147,6 @@ class BackgroundJobIntegrationTest extends PostgreSqlIntegrationTest {
     private UserId user(String label) {
         String uniqueIdentity = label + "-" + UUID.randomUUID();
         AppUserEntity user = new AppUserEntity();
-        user.setWhatsappAddressHash(uniqueIdentity.getBytes(StandardCharsets.UTF_8));
-        user.setWhatsappAddressCiphertext(("encrypted-" + uniqueIdentity).getBytes(StandardCharsets.UTF_8));
         user.setSourceLanguage("es");
         user.setDefinitionLanguage("en");
         user.setStatus(AppUserEntity.Status.ACTIVE);

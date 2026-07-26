@@ -39,6 +39,10 @@ public class WhatsAnkiConfigurationDto {
 
     @Valid
     @NotNull
+    private Security security = new Security();
+
+    @Valid
+    @NotNull
     private Ingestion ingestion = new Ingestion();
 
     @Valid
@@ -95,6 +99,29 @@ public class WhatsAnkiConfigurationDto {
         @NotEmpty
         private List<@NotBlank String> mediaRedirectAllowedHosts =
                 new ArrayList<>(List.of("mms.twiliocdn.com"));
+    }
+
+    @Getter
+    @Setter
+    public static class Security {
+        private boolean googleOauthEnabled;
+        private boolean secureCookies;
+
+        @NotNull
+        private Duration sessionTimeout = Duration.ofHours(8);
+
+        private List<@NotBlank String> allowedOrigins = new ArrayList<>();
+
+        @Positive
+        private int authRequestsPerMinute = 30;
+
+        @Positive
+        private int linkRequestsPerMinute = 20;
+
+        @AssertTrue(message = "whatsanki.security.session-timeout must be positive")
+        public boolean isSessionTimeoutPositive() {
+            return sessionTimeout != null && !sessionTimeout.isZero() && !sessionTimeout.isNegative();
+        }
     }
 
     @Getter

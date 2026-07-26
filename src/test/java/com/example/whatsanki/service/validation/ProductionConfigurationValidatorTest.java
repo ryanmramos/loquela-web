@@ -28,6 +28,8 @@ class ProductionConfigurationValidatorTest {
                 .hasMessageContaining("WHATSANKI_DATA_ENCRYPTION_KEY is required")
                 .hasMessageContaining("TWILIO_AUTH_TOKEN is required")
                 .hasMessageContaining("OBJECT_STORE_ENDPOINT must be an HTTPS URL")
+                .hasMessageContaining("WHATSANKI_GOOGLE_OAUTH_ENABLED must be true")
+                .hasMessageContaining("WHATSANKI_SECURE_COOKIES must be true")
                 .hasMessageContaining("DICTIONARY_PROVIDER must not be fake");
     }
 
@@ -57,6 +59,8 @@ class ProductionConfigurationValidatorTest {
         configuration.getObjectStore().setAccessKey("access-key");
         configuration.getObjectStore().setSecretKey("secret-key");
         configuration.getDictionary().setProvider("wiktionary");
+        configuration.getSecurity().setGoogleOauthEnabled(true);
+        configuration.getSecurity().setSecureCookies(true);
         return configuration;
     }
 }

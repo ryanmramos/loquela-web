@@ -1,6 +1,5 @@
 package com.example.whatsanki.service.export;
 
-import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.BackgroundJobEntity;
 import com.example.whatsanki.domain.CardEntity;
 import com.example.whatsanki.domain.ExportRequestEntity;
@@ -14,11 +13,10 @@ import com.example.whatsanki.dto.ExportDeckJobPayloadDto;
 import com.example.whatsanki.dto.ExportedDeckDto;
 import com.example.whatsanki.dto.OutboundMessageDto;
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
-import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.CardRepository;
 import com.example.whatsanki.repository.DeckRepository;
 import com.example.whatsanki.repository.ExportRequestRepository;
-import com.example.whatsanki.service.IdentityProtectionService;
+import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.card.DefaultDeckService;
 import com.example.whatsanki.service.exception.DeckExportException;
 import com.example.whatsanki.service.exception.OutboundDeliveryException;
@@ -57,13 +55,12 @@ public class DeckExportServiceImpl implements DeckExportService {
     private final DeckRepository deckRepository;
     private final CardRepository cardRepository;
     private final ExportRequestRepository exportRequestRepository;
-    private final AppUserRepository appUserRepository;
     private final BackgroundJobService backgroundJobService;
     private final DeckExportLifecycleService lifecycleService;
     private final DeckExporter deckExporter;
     private final ObjectStore objectStore;
     private final ObjectKeyFactory objectKeyFactory;
-    private final IdentityProtectionService identityProtectionService;
+    private final UserIdentityService userIdentityService;
     private final OutboundMessenger outboundMessenger;
     private final ObjectMapper objectMapper;
 
@@ -228,10 +225,8 @@ public class DeckExportServiceImpl implements DeckExportService {
         }
         try {
             URI url = objectStore.createPresignedGetUrl(artifactKey, lifetime);
-            AppUserEntity user = appUserRepository.findByIdAndStatus(userId.value(), AppUserEntity.Status.ACTIVE)
-                    .orElseThrow(() -> DeckExportException.permanent("EXPORT_USER_INACTIVE"));
             outboundMessenger.send(
-                    identityProtectionService.decrypt(user.getWhatsappAddressCiphertext()),
+                    userIdentityService.requireWhatsAppAddress(userId),
                     new OutboundMessageDto("Your *" + deckName + "* deck is ready: " + url
                             + "\nThis private link expires at " + expiresAt + ".")
             );

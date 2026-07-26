@@ -25,12 +25,6 @@ public class AppUserEntity {
     @Id
     private UUID id;
 
-    @Column(name = "whatsapp_address_hash", nullable = false, unique = true)
-    private byte[] whatsappAddressHash;
-
-    @Column(name = "whatsapp_address_ciphertext", nullable = false)
-    private byte[] whatsappAddressCiphertext;
-
     @Column(name = "source_language", nullable = false, length = 35)
     private String sourceLanguage;
 

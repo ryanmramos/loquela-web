@@ -1,6 +1,5 @@
 package com.example.whatsanki.service.lookup;
 
-import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.BackgroundJobFailureKind;
 import com.example.whatsanki.domain.LookupSessionEntity;
 import com.example.whatsanki.domain.LookupSessionId;
@@ -11,10 +10,9 @@ import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.domain.WhatsAppAddress;
 import com.example.whatsanki.dto.LookupDeliveryPartDto;
 import com.example.whatsanki.dto.LookupDeliveryPreparationDto;
-import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.LookupSessionRepository;
 import com.example.whatsanki.repository.OutboundMessageRepository;
-import com.example.whatsanki.service.IdentityProtectionService;
+import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.exception.OutboundDeliveryException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,8 +33,7 @@ public class LookupResultDeliveryLifecycleServiceImpl implements LookupResultDel
 
     private final LookupSessionRepository lookupSessionRepository;
     private final OutboundMessageRepository outboundMessageRepository;
-    private final AppUserRepository appUserRepository;
-    private final IdentityProtectionService identityProtectionService;
+    private final UserIdentityService userIdentityService;
     private final LookupResultMessageFormatter messageFormatter;
     private final LookupFailureMessageFormatter failureMessageFormatter;
 
@@ -81,12 +78,9 @@ public class LookupResultDeliveryLifecycleServiceImpl implements LookupResultDel
             throw OutboundDeliveryException.permanent("OUTBOUND_NOT_DELIVERABLE");
         }
 
-        AppUserEntity user = appUserRepository
-                .findByIdAndStatus(userId.value(), AppUserEntity.Status.ACTIVE)
-                .orElseThrow(() -> OutboundDeliveryException.permanent("USER_NOT_ACTIVE"));
         WhatsAppAddress recipient;
         try {
-            recipient = identityProtectionService.decrypt(user.getWhatsappAddressCiphertext());
+            recipient = userIdentityService.requireWhatsAppAddress(userId);
         } catch (RuntimeException exception) {
             throw new OutboundDeliveryException(
                     BackgroundJobFailureKind.PERMANENT,

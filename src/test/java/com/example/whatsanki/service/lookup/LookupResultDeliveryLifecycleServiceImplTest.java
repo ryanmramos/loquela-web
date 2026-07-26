@@ -1,6 +1,5 @@
 package com.example.whatsanki.service.lookup;
 
-import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.LookupSessionEntity;
 import com.example.whatsanki.domain.LookupSessionId;
 import com.example.whatsanki.domain.OutboundMessageEntity;
@@ -8,10 +7,9 @@ import com.example.whatsanki.domain.OutboundMessageId;
 import com.example.whatsanki.domain.ProviderMessageId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.domain.WhatsAppAddress;
-import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.LookupSessionRepository;
 import com.example.whatsanki.repository.OutboundMessageRepository;
-import com.example.whatsanki.service.IdentityProtectionService;
+import com.example.whatsanki.service.UserIdentityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,8 +27,7 @@ import static org.mockito.Mockito.when;
 class LookupResultDeliveryLifecycleServiceImplTest {
     private final LookupSessionRepository lookupSessionRepository = mock(LookupSessionRepository.class);
     private final OutboundMessageRepository outboundMessageRepository = mock(OutboundMessageRepository.class);
-    private final AppUserRepository appUserRepository = mock(AppUserRepository.class);
-    private final IdentityProtectionService identityProtectionService = mock(IdentityProtectionService.class);
+    private final UserIdentityService userIdentityService = mock(UserIdentityService.class);
     private final LookupResultMessageFormatter formatter = mock(LookupResultMessageFormatter.class);
     private final LookupFailureMessageFormatter failureFormatter = mock(LookupFailureMessageFormatter.class);
     private LookupResultDeliveryLifecycleServiceImpl service;
@@ -40,8 +37,7 @@ class LookupResultDeliveryLifecycleServiceImplTest {
         service = new LookupResultDeliveryLifecycleServiceImpl(
                 lookupSessionRepository,
                 outboundMessageRepository,
-                appUserRepository,
-                identityProtectionService,
+                userIdentityService,
                 formatter,
                 failureFormatter
         );
@@ -53,7 +49,6 @@ class LookupResultDeliveryLifecycleServiceImplTest {
         LookupSessionId sessionId = LookupSessionId.random();
         Instant now = Instant.parse("2026-07-19T20:00:00Z");
         LookupSessionEntity session = readySession(userId, sessionId, now.plusSeconds(300));
-        AppUserEntity user = activeUser(userId);
         WhatsAppAddress recipient = new WhatsAppAddress("whatsapp:+15551234567");
         when(lookupSessionRepository.findByIdAndUserId(sessionId.value(), userId.value()))
                 .thenReturn(Optional.of(session));
@@ -62,9 +57,7 @@ class LookupResultDeliveryLifecycleServiceImplTest {
                 userId.value(), sessionId.value()
         )).thenReturn(List.of());
         when(outboundMessageRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(appUserRepository.findByIdAndStatus(userId.value(), AppUserEntity.Status.ACTIVE))
-                .thenReturn(Optional.of(user));
-        when(identityProtectionService.decrypt(user.getWhatsappAddressCiphertext())).thenReturn(recipient);
+        when(userIdentityService.requireWhatsAppAddress(userId)).thenReturn(recipient);
 
         var preparation = service.prepare(userId, sessionId, now);
 
@@ -112,7 +105,6 @@ class LookupResultDeliveryLifecycleServiceImplTest {
         LookupSessionEntity session = readySession(userId, sessionId, now.minusSeconds(1));
         session.setStatus(LookupSessionEntity.Status.FAILED);
         session.setErrorCode("DEFINITION_NOT_FOUND");
-        AppUserEntity user = activeUser(userId);
         WhatsAppAddress recipient = new WhatsAppAddress("whatsapp:+15551234567");
         when(lookupSessionRepository.findByIdAndUserId(sessionId.value(), userId.value()))
                 .thenReturn(Optional.of(session));
@@ -122,9 +114,7 @@ class LookupResultDeliveryLifecycleServiceImplTest {
                 userId.value(), sessionId.value()
         )).thenReturn(List.of());
         when(outboundMessageRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(appUserRepository.findByIdAndStatus(userId.value(), AppUserEntity.Status.ACTIVE))
-                .thenReturn(Optional.of(user));
-        when(identityProtectionService.decrypt(user.getWhatsappAddressCiphertext())).thenReturn(recipient);
+        when(userIdentityService.requireWhatsAppAddress(userId)).thenReturn(recipient);
 
         var preparation = service.prepare(userId, sessionId, now);
 
@@ -155,11 +145,4 @@ class LookupResultDeliveryLifecycleServiceImplTest {
         return session;
     }
 
-    private AppUserEntity activeUser(UserId userId) {
-        AppUserEntity user = new AppUserEntity();
-        user.setId(userId.value());
-        user.setStatus(AppUserEntity.Status.ACTIVE);
-        user.setWhatsappAddressCiphertext(new byte[]{1, 2, 3});
-        return user;
-    }
 }

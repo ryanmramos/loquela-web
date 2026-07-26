@@ -25,32 +25,38 @@ public class IdentityProtectionServiceImpl implements IdentityProtectionService 
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
-    public byte[] hash(WhatsAppAddress address) {
+    public byte[] hashSubject(String subject) {
+        if (subject == null || subject.isBlank()) {
+            throw new IllegalArgumentException("Identity subject must not be blank");
+        }
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(keyBytes(), "HmacSHA256"));
-            return mac.doFinal(address.value().getBytes(StandardCharsets.UTF_8));
+            return mac.doFinal(subject.getBytes(StandardCharsets.UTF_8));
         } catch (GeneralSecurityException exception) {
-            throw new IllegalStateException("Unable to hash WhatsApp identity", exception);
+            throw new IllegalStateException("Unable to hash identity", exception);
         }
     }
 
     @Override
-    public byte[] encrypt(WhatsAppAddress address) {
+    public byte[] encryptSubject(String subject) {
+        if (subject == null || subject.isBlank()) {
+            throw new IllegalArgumentException("Identity subject must not be blank");
+        }
         try {
             byte[] iv = new byte[IV_BYTES];
             secureRandom.nextBytes(iv);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(keyBytes(), "AES"), new GCMParameterSpec(GCM_TAG_BITS, iv));
-            byte[] encrypted = cipher.doFinal(address.value().getBytes(StandardCharsets.UTF_8));
+            byte[] encrypted = cipher.doFinal(subject.getBytes(StandardCharsets.UTF_8));
             return ByteBuffer.allocate(iv.length + encrypted.length).put(iv).put(encrypted).array();
         } catch (GeneralSecurityException exception) {
-            throw new IllegalStateException("Unable to encrypt WhatsApp identity", exception);
+            throw new IllegalStateException("Unable to encrypt identity", exception);
         }
     }
 
     @Override
-    public WhatsAppAddress decrypt(byte[] ciphertext) {
+    public String decryptSubject(byte[] ciphertext) {
         if (ciphertext == null || ciphertext.length <= IV_BYTES) {
             throw new IllegalArgumentException("Invalid identity ciphertext");
         }
@@ -62,10 +68,25 @@ public class IdentityProtectionServiceImpl implements IdentityProtectionService 
             buffer.get(encrypted);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(keyBytes(), "AES"), new GCMParameterSpec(GCM_TAG_BITS, iv));
-            return new WhatsAppAddress(new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8));
+            return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
         } catch (GeneralSecurityException exception) {
-            throw new IllegalStateException("Unable to decrypt WhatsApp identity", exception);
+            throw new IllegalStateException("Unable to decrypt identity", exception);
         }
+    }
+
+    @Override
+    public byte[] hash(WhatsAppAddress address) {
+        return hashSubject(address.value());
+    }
+
+    @Override
+    public byte[] encrypt(WhatsAppAddress address) {
+        return encryptSubject(address.value());
+    }
+
+    @Override
+    public WhatsAppAddress decrypt(byte[] ciphertext) {
+        return new WhatsAppAddress(decryptSubject(ciphertext));
     }
 
     private byte[] keyBytes() {
