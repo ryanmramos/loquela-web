@@ -1,59 +1,56 @@
-# LoquelaWeb
+# Loquela web
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.8.
+Angular 22 client for Loquela. The frontend is kept in this repository but has an independent
+Node/npm build lifecycle from the Spring Boot backend.
 
-## Development server
+## Prerequisites
 
-To start a local development server, run:
+- Node `24.18.0` (pinned in `.nvmrc`)
+- npm `11.16.x`
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+With nvm:
 
 ```bash
-ng generate component component-name
+nvm install
+nvm use
+npm ci
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Commands
 
 ```bash
-ng generate --help
+npm start                 # local Angular development server
+npm run build             # production build
+npm test -- --watch=false # Vitest unit/component tests
+npm run lint
+npm run format:check
+npm run e2e               # Playwright; installs no browser automatically
+npm run audit:dependencies
+npm run licenses:check
 ```
 
-## Building
-
-To build the project run:
+Install the Playwright Chromium runtime once before local end-to-end tests:
 
 ```bash
-ng build
+npx playwright install chromium
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## OpenAPI client
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+The Angular client generator is pinned and configured in `ng-openapi-gen.json`. Once the backend
+contract export is added in Step 6:
 
 ```bash
-ng test
+npm run api:generate
 ```
 
-## Running end-to-end tests
+Generated code belongs under `src/app/api/generated` and must never be edited manually. The
+generator decision is recorded in
+[`../docs/frontend/ADR-001-OPENAPI_CLIENT_GENERATOR.md`](../docs/frontend/ADR-001-OPENAPI_CLIENT_GENERATOR.md).
 
-For end-to-end (e2e) testing, run:
+## Build cache
 
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The Angular CLI persistent disk cache is disabled in `angular.json`. With the pinned Node 24
+runtime on macOS, the cache's native LMDB binding can abort during optimized builds. Disabling
+that optional cache keeps local and CI production builds deterministic; it does not change build
+output.

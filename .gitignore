@@ -43,3 +43,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+### Documentation ###
+/docs/
+/AGENTS.md
