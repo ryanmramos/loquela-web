@@ -1,0 +1,21 @@
+<nav class="pagination" aria-label="Pagination">
+  <button
+    appButton
+    variant="secondary"
+    type="button"
+    [disabled]="!canGoBack()"
+    (click)="goTo(currentPage() - 1)"
+  >
+    Previous
+  </button>
+  <p aria-live="polite">Page {{ currentPage() }} of {{ totalPages() }}</p>
+  <button
+    appButton
+    variant="secondary"
+    type="button"
+    [disabled]="!canGoForward()"
+    (click)="goTo(currentPage() + 1)"
+  >
+    Next
+  </button>
+</nav>

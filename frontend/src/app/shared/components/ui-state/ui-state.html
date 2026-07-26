@@ -1,0 +1,22 @@
+<section
+  class="state"
+  [attr.aria-live]="kind() === 'loading' ? 'polite' : null"
+  [attr.aria-busy]="kind() === 'loading' ? 'true' : null"
+>
+  <div class="state__mark" [class.state__mark--error]="kind() === 'error'" aria-hidden="true">
+    @switch (kind()) {
+      @case ('loading') {
+        <span class="state__spinner"></span>
+      }
+      @case ('empty') {
+        <span> Aa </span>
+      }
+      @case ('error') {
+        <span>!</span>
+      }
+    }
+  </div>
+  <h2>{{ title() }}</h2>
+  <p>{{ description() }}</p>
+  <div class="state__actions"><ng-content /></div>
+</section>

@@ -1,0 +1,9 @@
+<section class="responsive-data" [attr.aria-label]="label()">
+  <p class="responsive-data__hint">The table can be scrolled horizontally when space is limited.</p>
+  <div class="responsive-data__table" tabindex="0">
+    <ng-content select="[table]" />
+  </div>
+  <div class="responsive-data__cards">
+    <ng-content select="[cards]" />
+  </div>
+</section>

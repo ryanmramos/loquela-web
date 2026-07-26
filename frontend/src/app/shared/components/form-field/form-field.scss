@@ -1,0 +1,45 @@
+.loquela-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+label {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 750;
+}
+
+.loquela-field :where(input, select, textarea) {
+  width: 100%;
+  min-height: var(--control-min-size);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.loquela-field textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.loquela-field__hint,
+.loquela-field__error {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-body);
+}
+
+.loquela-field__hint {
+  color: var(--color-text-muted);
+}
+
+.loquela-field__error {
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.loquela-field--error :where(input, select, textarea) {
+  border-color: var(--color-danger);
+}

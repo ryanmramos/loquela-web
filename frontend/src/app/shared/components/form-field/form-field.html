@@ -1,0 +1,16 @@
+<div class="loquela-field" [class.loquela-field--error]="error()">
+  <label [for]="inputId()">
+    {{ label() }}
+    @if (required()) {
+      <span aria-hidden="true">*</span>
+      <span class="visually-hidden">(required)</span>
+    }
+  </label>
+  <ng-content />
+  @if (hint()) {
+    <p class="loquela-field__hint" [id]="hintId()">{{ hint() }}</p>
+  }
+  @if (error()) {
+    <p class="loquela-field__error" [id]="errorId()">{{ error() }}</p>
+  }
+</div>

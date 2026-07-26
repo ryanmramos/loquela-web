@@ -1,0 +1,26 @@
+.dialog {
+  width: min(calc(100vw - 2rem), 30rem);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-md);
+}
+
+h2 {
+  margin: var(--space-2) 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+}
+
+p {
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}

@@ -1,0 +1,77 @@
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Loquela home">
+      <span class="brand__mark" aria-hidden="true">LQ</span>
+      <span class="brand__name">Loquela</span>
+    </a>
+
+    <nav class="navigation" aria-label="Primary navigation">
+      @for (item of navigation; track item.label; let first = $first) {
+        <a
+          [href]="item.target"
+          [class.navigation__link--active]="first"
+          [attr.aria-current]="first ? 'page' : null"
+        >
+          <span class="navigation__icon" aria-hidden="true">{{ item.symbol }}</span>
+          <span class="navigation__label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <section class="sidebar__callout" aria-labelledby="study-callout-title">
+      <strong id="study-callout-title">12 cards are ready</strong>
+      <p>Keep your Spanish Core deck moving with a short review.</p>
+      <a appButton variant="secondary" href="#states">Study now</a>
+    </section>
+
+    <div class="user">
+      <span class="user__avatar" aria-hidden="true">{{ initials() }}</span>
+      <div class="user__identity">
+        <strong>{{ userName() }}</strong>
+        <span>{{ userEmail() }}</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <form class="workspace-search" role="search" (submit)="submitSearch($event, searchInput)">
+        <label class="visually-hidden" for="workspace-search">Search your workspace</label>
+        <span aria-hidden="true">⌕</span>
+        <input
+          #searchInput
+          id="workspace-search"
+          name="query"
+          type="search"
+          placeholder="Search your workspace…"
+        />
+      </form>
+      <app-action-menu
+        label="Open user menu"
+        [items]="userActions"
+        (itemSelected)="userActionSelected.emit($event)"
+      />
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <ng-content />
+    </main>
+  </div>
+
+  <nav class="mobile-navigation" aria-label="Mobile primary navigation">
+    @for (item of navigation.slice(0, 4); track item.label; let first = $first) {
+      <a
+        [href]="item.target"
+        [class.mobile-navigation__link--active]="first"
+        [attr.aria-current]="first ? 'page' : null"
+      >
+        <span aria-hidden="true">{{ item.symbol }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+</div>
+
+<app-toast-region />

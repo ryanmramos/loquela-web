@@ -1,0 +1,30 @@
+@use '../../../../styles/tokens' as tokens;
+
+.responsive-data__hint {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.responsive-data__table {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+}
+
+.responsive-data__cards {
+  display: none;
+}
+
+@media (max-width: tokens.$breakpoint-mobile) {
+  .responsive-data__hint,
+  .responsive-data__table {
+    display: none;
+  }
+
+  .responsive-data__cards {
+    display: grid;
+    gap: var(--space-3);
+  }
+}

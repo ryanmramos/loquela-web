@@ -1,0 +1,19 @@
+<button appIconButton type="button" [attr.aria-label]="label()" [cdkMenuTriggerFor]="menu">
+  <span aria-hidden="true">•••</span>
+</button>
+
+<ng-template #menu>
+  <div class="menu" cdkMenu>
+    @for (item of items(); track item.id) {
+      <button
+        class="menu__item"
+        type="button"
+        cdkMenuItem
+        [class.menu__item--danger]="item.danger"
+        (cdkMenuItemTriggered)="itemSelected.emit(item.id)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </div>
+</ng-template>
