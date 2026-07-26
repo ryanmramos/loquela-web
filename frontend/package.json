@@ -14,11 +14,13 @@
     "lint": "ng lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "architecture:check": "node --test tools/architecture-rules.spec.mjs && node tools/check-architecture.mjs",
+    "proxy:check": "node tools/check-proxy.mjs",
     "e2e": "playwright test",
     "api:generate": "ng-openapi-gen",
     "audit:dependencies": "npm audit --audit-level=high",
     "licenses:check": "license-checker-rseidelsohn --production --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD'",
-    "verify": "npm run lint && npm run format:check && npm test -- --watch=false && npm run build"
+    "verify": "npm run lint && npm run format:check && npm run architecture:check && npm test -- --watch=false && npm run build && npm run proxy:check"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

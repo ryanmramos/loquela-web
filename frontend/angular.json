@@ -37,6 +37,7 @@
           },
           "configurations": {
             "production": {
+              "sourceMap": false,
               "budgets": [
                 {
                   "type": "initial",
@@ -61,6 +62,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.cjs"
+          },
           "configurations": {
             "production": {
               "buildTarget": "loquela-web:build:production"

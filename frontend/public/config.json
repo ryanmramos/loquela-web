@@ -1,0 +1,7 @@
+{
+  "apiBasePath": "/api/v1",
+  "googleLoginPath": "/oauth2/authorization/google",
+  "supportUrl": "/support",
+  "environmentName": "local",
+  "telemetryEnabled": false
+}

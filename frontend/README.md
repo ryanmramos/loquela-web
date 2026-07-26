@@ -24,6 +24,8 @@ npm run build             # production build
 npm test -- --watch=false # Vitest unit/component tests
 npm run lint
 npm run format:check
+npm run architecture:check # import, storage, and sanitizer boundaries
+npm run proxy:check        # live local proxy smoke test with an isolated backend
 npm run e2e               # Playwright; installs no browser automatically
 npm run audit:dependencies
 npm run licenses:check
@@ -47,6 +49,23 @@ npm run api:generate
 Generated code belongs under `src/app/api/generated` and must never be edited manually. The
 generator decision is recorded in
 [`../docs/frontend/ADR-001-OPENAPI_CLIENT_GENERATOR.md`](../docs/frontend/ADR-001-OPENAPI_CLIENT_GENERATOR.md).
+
+## Runtime configuration and local API
+
+Angular loads `public/config.json` before bootstrap. This file is public and must never contain
+credentials. Missing or invalid required values stop bootstrap and display a safe static error.
+
+The development server proxies `/api`, `/actuator/health`, `/oauth2`, and `/login/oauth2` to
+`http://127.0.0.1:8080`. Override that target temporarily with `LOQUELA_BACKEND_URL`. Application
+API requests use the same-origin `/api/v1` base path and include the server session and Spring's
+`XSRF-TOKEN`/`X-XSRF-TOKEN` convention.
+
+## Architecture controls
+
+`npm run architecture:check` prevents feature-to-feature deep imports, shared-to-feature imports,
+direct generated-client imports from components, browser storage outside the reviewed adapter,
+unsafe Angular sanitizer bypass calls, and generated API files without a generator marker.
+Type-aware ESLint rules additionally reject unsafe `any` flows and floating promises.
 
 ## Build cache
 
