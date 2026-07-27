@@ -1,50 +1,50 @@
-/* WhatsAnki Context v1 — conservative styling shared across Anki clients. */
-.card { margin:0; padding:16px; color:#172033; background:#f4f1e9; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Arial,sans-serif; font-size:18px; line-height:1.5; text-align:left; overflow-wrap:anywhere; -webkit-text-size-adjust:100%; }
+/* Loquela Forest + Cream Context v1 — shared across Anki clients. */
+.card { margin:0; padding:16px; color:#1c2b22; background:#fafaf5; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Arial,sans-serif; font-size:18px; line-height:1.5; text-align:left; overflow-wrap:anywhere; -webkit-text-size-adjust:100%; }
 * { box-sizing:border-box; }
 .wa-shell { width:100%; max-width:720px; margin:0 auto; }
-.wa-card { display:flex; flex-direction:column; min-height:520px; overflow:hidden; border:1px solid #dfe3e8; border-radius:24px; background:#fffdf9; box-shadow:0 10px 32px rgba(31,38,53,.12); }
+.wa-card { display:flex; flex-direction:column; min-height:520px; overflow:hidden; border:1px solid #dde7df; border-radius:24px; background:#fff; box-shadow:0 10px 32px rgba(28,43,34,.12); }
 .wa-header,.wa-footer,.wa-term-row,.wa-source,.wa-chips { display:flex; align-items:center; }
 .wa-header,.wa-footer,.wa-term-row { justify-content:space-between; }
 .wa-header { min-height:56px; padding:14px 20px; gap:12px; }
-.wa-footer { padding:14px 20px 18px; gap:16px; color:#657084; font-size:13px; }
-.wa-source { min-width:0; max-width:80%; gap:7px; padding:6px 10px; border-radius:999px; color:#657084; background:#f0f1f3; font-size:13px; font-weight:700; }
+.wa-footer { padding:14px 20px 18px; gap:16px; color:#64756a; font-size:13px; }
+.wa-source { min-width:0; max-width:80%; gap:7px; padding:6px 10px; border-radius:999px; color:#64756a; background:#f1f5ef; font-size:13px; font-weight:700; }
 .wa-source-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .wa-dot { flex:0 0 auto; width:7px; height:7px; border-radius:50%; background:#0f766e; }
 .wa-context { display:flex; flex:1; align-items:center; justify-content:center; padding:44px 30px 30px; text-align:center; }
 .wa-sentence { margin:0; font-family:Georgia,"Times New Roman","Noto Serif",serif; font-size:34px; line-height:1.35; letter-spacing:-.02em; }
-.wa-target { padding:0 .14em .06em; border-radius:.22em; color:#493800; background:#ffe18a; font-weight:700; }
-.wa-hint { margin:26px 0 0; color:#657084; font-size:15px; line-height:1.45; }
-.wa-answer-head { padding:24px; border-bottom:1px solid #dfe3e8; background:#ececff; }
+.wa-target { padding:0 .14em .06em; border-radius:.22em; color:#51440f; background:#facc15; font-weight:700; }
+.wa-hint { margin:26px 0 0; color:#64756a; font-size:15px; line-height:1.45; }
+.wa-answer-head { padding:24px; border-bottom:1px solid #dde7df; background:#e8f5ea; }
 .wa-term-row { align-items:flex-start; gap:18px; }
-.wa-kicker,.wa-label { margin:0; color:#5556cf; font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+.wa-kicker,.wa-label { margin:0; color:#166534; font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
 .wa-term { margin:3px 0; font-family:Georgia,"Times New Roman","Noto Serif",serif; font-size:43px; line-height:1.1; letter-spacing:-.03em; }
-.wa-pronunciation { margin:0; color:#657084; font-size:15px; }
+.wa-pronunciation { margin:0; color:#64756a; font-size:15px; }
 .wa-answer-body { display:flex; flex:1; flex-direction:column; gap:24px; padding:26px; }
 .wa-chips { flex-wrap:wrap; gap:8px; }
-.wa-chip { padding:5px 10px; border-radius:999px; color:#3f4770; background:#ececff; font-size:13px; font-weight:700; }
+.wa-chip { padding:5px 10px; border-radius:999px; color:#14532d; background:#e8f5ea; font-size:13px; font-weight:700; }
 .wa-definition { margin:7px 0 0; font-size:24px; line-height:1.35; }
-.wa-definition-detail { display:block; margin-top:7px; color:#657084; font-size:16px; font-weight:400; }
-.wa-example { padding:18px; border-left:4px solid #ffe18a; border-radius:0 14px 14px 0; background:#f8f6f1; }
+.wa-definition-detail { display:block; margin-top:7px; color:#64756a; font-size:16px; font-weight:400; }
+.wa-example { padding:18px; border-left:4px solid #ca8a04; border-radius:0 14px 14px 0; background:#fff7d6; }
 .wa-example .wa-sentence { font-size:23px; }
-.wa-translation { margin:10px 0 0; color:#657084; font-size:15px; }
-.wa-video { width:100%; background:#111827; text-align:center; }
-.wa-video video,.wa-video iframe { display:block; width:100%; max-height:340px; border:0; background:#111827; object-fit:contain; }
+.wa-translation { margin:10px 0 0; color:#64756a; font-size:15px; }
+.wa-video { width:100%; background:#17211b; text-align:center; }
+.wa-video video,.wa-video iframe { display:block; width:100%; max-height:340px; border:0; background:#17211b; object-fit:contain; }
 .wa-video iframe { aspect-ratio:16/9; }
-.wa-video-link { display:inline-block; padding:12px 16px; color:#dbeafe; font-size:13px; line-height:1.4; }
+.wa-video-link { display:inline-block; padding:12px 16px; color:#d1fae5; font-size:13px; line-height:1.4; }
 .wa-recall-prompt { display:flex; flex:1; flex-direction:column; justify-content:center; gap:25px; padding:34px 28px; }
 .wa-meaning { margin:0; font-family:Georgia,"Times New Roman","Noto Serif",serif; font-size:31px; line-height:1.3; }
-.wa-cloze { margin:0; color:#657084; font-size:21px; }
-.wa-blank { display:inline-block; min-width:110px; margin:0 4px; border-bottom:3px solid #5556cf; }
-.wa-type-answer input { width:100%; padding:12px; border:2px solid #dfe3e8; border-radius:10px; font:inherit; }
-.wa-answer-banner { padding:25px; color:#fff; background:#5556cf; }
-.wa-answer-banner .wa-kicker,.wa-answer-banner .wa-pronunciation { color:#ececff; }
-.wa-type-result { padding:12px; border-radius:10px; background:#f0f1f3; }
-.nightMode.card { color:#e8ebf2; background:#111827; }
-.nightMode .wa-card { border-color:#374151; background:#1f2937; box-shadow:none; }
-.nightMode .wa-source,.nightMode .wa-example,.nightMode .wa-type-result { background:#293445; color:#c4cad6; }
-.nightMode .wa-answer-head { border-color:#374151; background:#30305f; }
-.nightMode .wa-footer,.nightMode .wa-hint,.nightMode .wa-pronunciation,.nightMode .wa-translation,.nightMode .wa-cloze { color:#c4cad6; }
-.nightMode .wa-definition-detail { color:#c4cad6; }
+.wa-cloze { margin:0; color:#64756a; font-size:21px; }
+.wa-blank { display:inline-block; min-width:110px; margin:0 4px; border-bottom:3px solid #166534; }
+.wa-type-answer input { width:100%; padding:12px; border:2px solid #dde7df; border-radius:10px; font:inherit; }
+.wa-answer-banner { padding:25px; color:#fff; background:#166534; }
+.wa-answer-banner .wa-kicker,.wa-answer-banner .wa-pronunciation { color:#e8f5ea; }
+.wa-type-result { padding:12px; border-radius:10px; background:#f1f5ef; }
+.nightMode.card { color:#f0fdf4; background:#17211b; }
+.nightMode .wa-card { border-color:#3a5040; background:#24342a; box-shadow:none; }
+.nightMode .wa-source,.nightMode .wa-example,.nightMode .wa-type-result { background:#2b3d30; color:#a7c4af; }
+.nightMode .wa-answer-head { border-color:#3a5040; background:#214b30; }
+.nightMode .wa-footer,.nightMode .wa-hint,.nightMode .wa-pronunciation,.nightMode .wa-translation,.nightMode .wa-cloze { color:#a7c4af; }
+.nightMode .wa-definition-detail { color:#a7c4af; }
 .mobile .card,.iphone .card,.ipad .card,.android .card { padding:8px; }
 .mobile .wa-card,.iphone .wa-card,.ipad .wa-card,.android .wa-card { min-height:430px; border-radius:16px; }
 .mobile .wa-context,.iphone .wa-context,.ipad .wa-context,.android .wa-context { padding:28px 20px 22px; }

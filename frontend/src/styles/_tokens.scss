@@ -2,26 +2,27 @@
   color-scheme: light;
 
   // Color roles
-  --color-surface-page: #f7f7f2;
-  --color-surface-subtle: #f0f2ec;
+  --color-surface-page: #fafaf5;
+  --color-surface-page-rgb: 250 250 245;
+  --color-surface-subtle: #f1f5ef;
   --color-surface-panel: #ffffff;
-  --color-surface-raised: #fbfcfa;
-  --color-text: #17251f;
-  --color-text-muted: #5d6d65;
-  --color-border: #d6ded7;
-  --color-primary: #285943;
-  --color-primary-strong: #17432f;
-  --color-primary-soft: #e5f0e9;
-  --color-accent: #d77a2b;
-  --color-accent-soft: #fff0df;
-  --color-info: #3f678d;
-  --color-info-soft: #e9f0f7;
-  --color-warning: #8a520f;
-  --color-warning-soft: #fff0d2;
-  --color-danger: #a23f3b;
-  --color-danger-strong: #7f2e2b;
-  --color-danger-soft: #faece9;
-  --color-focus: #075fcc;
+  --color-surface-raised: #fbfcf8;
+  --color-text: #1c2b22;
+  --color-text-muted: #64756a;
+  --color-border: #dde7df;
+  --color-primary: #166534;
+  --color-primary-strong: #14532d;
+  --color-primary-soft: #e8f5ea;
+  --color-accent: #ca8a04;
+  --color-accent-soft: #fff7d6;
+  --color-info: #0f766e;
+  --color-info-soft: #e6f7f4;
+  --color-warning: #a16207;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #b42318;
+  --color-danger-strong: #8f1d14;
+  --color-danger-soft: #fcebea;
+  --color-focus: #0f766e;
   --color-on-primary: #ffffff;
 
   // Typography roles
@@ -74,6 +75,35 @@
   --content-max-width: 90rem;
   --control-min-size: 2.75rem;
   --focus-ring: 0 0 0 0.1875rem var(--color-surface-panel), 0 0 0 0.375rem var(--color-focus);
+}
+
+// Dark mode uses the same Forest + Cream hue relationships with softened
+// foreground colors and deeper green surfaces for comfortable study sessions.
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-surface-page: #17211b;
+  --color-surface-page-rgb: 23 33 27;
+  --color-surface-subtle: #1d2b21;
+  --color-surface-panel: #24342a;
+  --color-surface-raised: #2b3d30;
+  --color-text: #f0fdf4;
+  --color-text-muted: #a7c4af;
+  --color-border: #3a5040;
+  --color-primary: #4ade80;
+  --color-primary-strong: #86efac;
+  --color-primary-soft: #214b30;
+  --color-accent: #facc15;
+  --color-accent-soft: #51440f;
+  --color-info: #5eead4;
+  --color-info-soft: #164e48;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #51400f;
+  --color-danger: #f87171;
+  --color-danger-strong: #fca5a5;
+  --color-danger-soft: #542322;
+  --color-focus: #5eead4;
+  --color-on-primary: #17211b;
 }
 
 $breakpoint-mobile: 42rem;
