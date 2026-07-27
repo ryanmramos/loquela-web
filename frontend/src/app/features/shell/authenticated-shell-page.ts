@@ -1,0 +1,88 @@
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router, RouterOutlet } from '@angular/router';
+
+import { SessionFacade } from '@core/auth/session-facade';
+import { AppShell } from '@core/layout/app-shell';
+import { ShellDashboardStore } from '@core/layout/shell-dashboard-store';
+import { Alert } from '@app/shared/components/alert/alert';
+
+@Component({
+  selector: 'app-authenticated-shell-page',
+  imports: [Alert, AppShell, RouterOutlet],
+  template: `
+    @if (session().user; as user) {
+      <app-shell
+        [userName]="user.displayName || 'Loquela learner'"
+        [userEmail]="user.email || 'Google account'"
+        [activeJobCount]="shellDashboard.activeJobs()"
+        [cardsToStudy]="shellDashboard.cardsToStudy()"
+        (searchSubmitted)="openLookup($event)"
+        (userActionSelected)="handleUserAction($event)"
+      >
+        @if (logoutFailed) {
+          <div class="shell-alert">
+            <app-alert title="Sign out failed" tone="danger">
+              Your session is still active. Try signing out again.
+            </app-alert>
+          </div>
+        }
+        <router-outlet />
+      </app-shell>
+    }
+  `,
+  styles: `
+    .shell-alert {
+      padding: var(--space-4) var(--space-10) 0;
+    }
+
+    @media (max-width: 40rem) {
+      .shell-alert {
+        padding-inline: var(--space-4);
+      }
+    }
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class AuthenticatedShellPage {
+  private readonly facade = inject(SessionFacade);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly shellDashboard = inject(ShellDashboardStore);
+  readonly session = this.facade.view;
+  logoutFailed = false;
+
+  constructor() {
+    // Counts belong to the current authenticated user and must never survive a user change.
+    this.shellDashboard.reset();
+  }
+
+  openLookup(query: string): void {
+    void this.router.navigate(['/app/lookup'], { queryParams: { query } });
+  }
+
+  handleUserAction(action: string): void {
+    if (action === 'profile') {
+      void this.router.navigate(['/app/settings']);
+      return;
+    }
+    if (action !== 'sign-out') {
+      return;
+    }
+
+    this.logoutFailed = false;
+    this.facade
+      .logout()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.shellDashboard.reset();
+          void this.router.navigate(['/login'], { replaceUrl: true });
+        },
+        error: () => {
+          this.logoutFailed = true;
+        },
+      });
+  }
+}

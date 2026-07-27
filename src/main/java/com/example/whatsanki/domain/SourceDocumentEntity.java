@@ -34,6 +34,7 @@ public class SourceDocumentEntity {
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 24) private Status status;
     @Column(name = "detected_media_type", length = 128) private String detectedMediaType;
     @Column(name = "object_key", length = 1024) private String objectKey;
+    @Column(name = "staged_text_ciphertext") private byte[] stagedTextCiphertext;
     @Column(name = "original_stored_at") private Instant originalStoredAt;
     private byte[] sha256;
     @Column(length = 35) private String language;

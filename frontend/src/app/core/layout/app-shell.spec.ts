@@ -1,10 +1,14 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { AppShell } from './app-shell';
 
 describe('AppShell', () => {
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [AppShell] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [AppShell],
+      providers: [provideRouter([])],
+    }).compileComponents();
   });
 
   it('provides landmarks, a skip link, and labelled navigation', () => {

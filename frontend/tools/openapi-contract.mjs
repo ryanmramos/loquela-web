@@ -57,6 +57,37 @@ export function validateBrowserOpenApi(contract) {
     errors.push('GET /api/v1/auth/google must declare its 302 redirect.');
   }
 
+  const dashboardGet = contract.paths?.['/api/v1/dashboard']?.get;
+  if (!isRecord(dashboardGet) || dashboardGet.operationId !== 'getDashboard') {
+    errors.push('GET /api/v1/dashboard must keep operationId "getDashboard".');
+  } else {
+    requireSchemaReference(
+      dashboardGet,
+      '200',
+      'application/json',
+      '#/components/schemas/DashboardDto',
+      errors,
+    );
+  }
+
+  const pastedTextCreate = contract.paths?.['/api/v1/sources']?.post;
+  if (!isRecord(pastedTextCreate) || pastedTextCreate.operationId !== 'createPastedTextSource') {
+    errors.push('POST /api/v1/sources must keep operationId "createPastedTextSource".');
+  } else {
+    const requestReference =
+      pastedTextCreate.requestBody?.content?.['application/json']?.schema?.['$ref'];
+    if (requestReference !== '#/components/schemas/CreatePastedTextSourceRequestDto') {
+      errors.push('POST /api/v1/sources must accept CreatePastedTextSourceRequestDto.');
+    }
+    requireSchemaReference(
+      pastedTextCreate,
+      '202',
+      'application/json',
+      '#/components/schemas/PastedTextSourceDto',
+      errors,
+    );
+  }
+
   const schemas = contract.components?.schemas;
   requireFields(
     schemas?.BrowserSessionDto,
@@ -72,6 +103,44 @@ export function validateBrowserOpenApi(contract) {
     errors,
   );
   requireFields(schemas?.FieldErrorDto, ['field', 'code', 'message'], 'FieldErrorDto', errors);
+  requireFields(
+    schemas?.DashboardDto,
+    ['generatedAt', 'languagePair', 'cards', 'sources', 'jobs', 'activity'],
+    'DashboardDto',
+    errors,
+  );
+  requireFields(
+    schemas?.CardSummary,
+    ['status', 'cardsToStudy', 'totalCards', 'newCardsThisWeek'],
+    'CardSummary',
+    errors,
+  );
+  requireFields(
+    schemas?.SourceSummary,
+    ['status', 'totalSources', 'readySources', 'processingSources'],
+    'SourceSummary',
+    errors,
+  );
+  requireFields(schemas?.JobSummary, ['status', 'activeJobs'], 'JobSummary', errors);
+  requireFields(schemas?.ActivitySummary, ['status', 'items'], 'ActivitySummary', errors);
+  requireFields(
+    schemas?.ActivityItem,
+    ['kind', 'title', 'detail', 'status', 'occurredAt', 'target'],
+    'ActivityItem',
+    errors,
+  );
+  requireFields(
+    schemas?.CreatePastedTextSourceRequestDto,
+    ['text'],
+    'CreatePastedTextSourceRequestDto',
+    errors,
+  );
+  requireFields(
+    schemas?.PastedTextSourceDto,
+    ['sourceId', 'reference', 'status', 'characterCount'],
+    'PastedTextSourceDto',
+    errors,
+  );
 
   for (const schemaName of Object.keys(schemas ?? {})) {
     if (schemaName.endsWith('Entity')) {

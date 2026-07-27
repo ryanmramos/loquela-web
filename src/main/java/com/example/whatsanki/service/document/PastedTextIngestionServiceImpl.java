@@ -128,6 +128,42 @@ public class PastedTextIngestionServiceImpl implements PastedTextIngestionServic
 
     @Override
     @Transactional
+    public PastedTextAcceptanceDto acceptWebsite(UserId userId, String text) {
+        Objects.requireNonNull(userId, "userId must not be null");
+        int characterCount = validateText(text);
+        AppUserEntity user = appUserRepository.findByIdAndStatus(userId.value(), AppUserEntity.Status.ACTIVE)
+                .orElseThrow(() -> new IllegalStateException("Active user was not found for pasted text"));
+
+        SourceId sourceId = SourceId.random();
+        SourceDocumentEntity source = new SourceDocumentEntity();
+        source.setId(sourceId.value());
+        source.setUserId(userId.value());
+        source.setKind(SourceDocumentEntity.Kind.PASTED_TEXT);
+        source.setDisplayName(PASTED_TEXT_DISPLAY_NAME);
+        source.setStatus(SourceDocumentEntity.Status.RECEIVED);
+        source.setDetectedMediaType(PASTED_TEXT_MEDIA_TYPE);
+        source.setLanguage(user.getSourceLanguage());
+        source.setMetadata(new LinkedHashMap<>(Map.of("origin", "WEBSITE")));
+        source.setStagedTextCiphertext(encryptionService.encrypt(
+                text,
+                sourceTextEncryptionPurpose(userId, sourceId)
+        ));
+        sourceDocumentRepository.save(source);
+
+        JobId jobId = backgroundJobService.enqueue(
+                userId,
+                BackgroundJobEntity.Type.INGEST_TEXT,
+                IngestTextJobPayloadDto.create(sourceId).toMap()
+        );
+        log.info(
+                "Accepted website pasted text userId={} sourceId={} jobId={} characterCount={}",
+                userId.value(), sourceId.value(), jobId.value(), characterCount
+        );
+        return new PastedTextAcceptanceDto(sourceId, characterCount);
+    }
+
+    @Override
+    @Transactional
     public void ingest(UserId userId, SourceId sourceId) {
         Objects.requireNonNull(userId, "userId must not be null");
         Objects.requireNonNull(sourceId, "sourceId must not be null");
@@ -141,22 +177,22 @@ public class PastedTextIngestionServiceImpl implements PastedTextIngestionServic
         }
         validateIngestibleSource(source);
 
-        InboundMessageId inboundMessageId = new InboundMessageId(source.getInboundMessageId());
-        InboundMessageEntity inboundMessage = inboundMessageRepository
-                .findByIdAndUserId(inboundMessageId.value(), userId.value())
-                .orElseThrow(() -> new PastedTextIngestionException("STAGED_TEXT_NOT_FOUND"));
-        if (inboundMessage.getBodyCiphertext() == null) {
-            throw new PastedTextIngestionException("STAGED_TEXT_NOT_FOUND");
-        }
-
+        InboundMessageEntity inboundMessage = null;
         String stagedText;
-        try {
-            stagedText = encryptionService.decrypt(
+        if (source.getInboundMessageId() != null) {
+            InboundMessageId inboundMessageId = new InboundMessageId(source.getInboundMessageId());
+            inboundMessage = inboundMessageRepository
+                    .findByIdAndUserId(inboundMessageId.value(), userId.value())
+                    .orElseThrow(() -> new PastedTextIngestionException("STAGED_TEXT_NOT_FOUND"));
+            stagedText = decryptStagedText(
                     inboundMessage.getBodyCiphertext(),
                     bodyEncryptionPurpose(userId, inboundMessageId)
             );
-        } catch (RuntimeException exception) {
-            throw new PastedTextIngestionException("STAGED_TEXT_UNREADABLE", exception);
+        } else {
+            stagedText = decryptStagedText(
+                    source.getStagedTextCiphertext(),
+                    sourceTextEncryptionPurpose(userId, sourceId)
+            );
         }
 
         source.setStatus(SourceDocumentEntity.Status.EXTRACTING);
@@ -197,12 +233,15 @@ public class PastedTextIngestionServiceImpl implements PastedTextIngestionServic
         source.setErrorCode(null);
         source.setErrorDetailSafe(null);
         source.setStatus(SourceDocumentEntity.Status.READY);
+        source.setStagedTextCiphertext(null);
         sourceDocumentRepository.save(source);
 
         // READY passages are the durable copy. Clearing staging immediately reduces
         // sensitive retention without waiting for the later scheduled purge feature.
-        inboundMessage.setBodyCiphertext(null);
-        inboundMessageRepository.save(inboundMessage);
+        if (inboundMessage != null) {
+            inboundMessage.setBodyCiphertext(null);
+            inboundMessageRepository.save(inboundMessage);
+        }
         log.info(
                 "Completed pasted-text ingestion userId={} sourceId={} passageCount={} characterCount={}",
                 userId.value(), sourceId.value(), passages.size(), source.getCharacterCount()
@@ -245,12 +284,39 @@ public class PastedTextIngestionServiceImpl implements PastedTextIngestionServic
         if (source.getStatus() != SourceDocumentEntity.Status.RECEIVED) {
             throw new PastedTextIngestionException("INVALID_SOURCE_STATE");
         }
-        if (source.getInboundMessageId() == null) {
+        if (source.getInboundMessageId() == null && source.getStagedTextCiphertext() == null) {
             throw new PastedTextIngestionException("STAGED_TEXT_NOT_FOUND");
+        }
+    }
+
+    private int validateText(String text) {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("Pasted text must not be blank");
+        }
+        int characterCount = text.codePointCount(0, text.length());
+        long maximumCharacters = configuration.getIngestion().getMaxExtractedCharacters();
+        if (characterCount > maximumCharacters) {
+            throw new PastedTextLimitExceededException(maximumCharacters);
+        }
+        return characterCount;
+    }
+
+    private String decryptStagedText(byte[] ciphertext, String purpose) {
+        if (ciphertext == null) {
+            throw new PastedTextIngestionException("STAGED_TEXT_NOT_FOUND");
+        }
+        try {
+            return encryptionService.decrypt(ciphertext, purpose);
+        } catch (RuntimeException exception) {
+            throw new PastedTextIngestionException("STAGED_TEXT_UNREADABLE", exception);
         }
     }
 
     private String bodyEncryptionPurpose(UserId userId, InboundMessageId inboundMessageId) {
         return "inbound-message-body:" + userId.value() + ":" + inboundMessageId.value();
+    }
+
+    private String sourceTextEncryptionPurpose(UserId userId, SourceId sourceId) {
+        return "source-staged-text:" + userId.value() + ":" + sourceId.value();
     }
 }

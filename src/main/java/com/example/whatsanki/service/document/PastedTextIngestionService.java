@@ -8,6 +8,8 @@ import com.example.whatsanki.dto.PastedTextAcceptanceDto;
 public interface PastedTextIngestionService {
     PastedTextAcceptanceDto accept(UserId userId, InboundMessageId inboundMessageId, String text);
 
+    PastedTextAcceptanceDto acceptWebsite(UserId userId, String text);
+
     void ingest(UserId userId, SourceId sourceId);
 
     void markFailed(UserId userId, SourceId sourceId, String errorCode);

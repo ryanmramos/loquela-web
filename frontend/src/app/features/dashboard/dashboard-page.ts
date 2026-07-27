@@ -1,39 +1,66 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
 import { SessionFacade } from '@core/auth/session-facade';
-import { AppShell } from '@core/layout/app-shell';
 import { Alert } from '@app/shared/components/alert/alert';
+import { ButtonDirective } from '@app/shared/components/button/button.directive';
+import { Skeleton } from '@app/shared/components/skeleton/skeleton';
+import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/status-badge';
+import { UiState } from '@app/shared/components/ui-state/ui-state';
+
+import { DashboardState } from './dashboard-state';
 
 @Component({
   selector: 'app-dashboard-page',
-  imports: [Alert, AppShell],
+  imports: [
+    Alert,
+    ButtonDirective,
+    DatePipe,
+    DecimalPipe,
+    RouterLink,
+    Skeleton,
+    StatusBadge,
+    UiState,
+  ],
+  providers: [DashboardState],
   templateUrl: './dashboard-page.html',
   styleUrl: './dashboard-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardPage {
-  private readonly facade = inject(SessionFacade);
-  private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly sessionFacade = inject(SessionFacade);
 
-  readonly session = this.facade.view;
-  readonly logoutFailed = signal(false);
+  readonly state = inject(DashboardState);
+  readonly session = this.sessionFacade.view;
 
-  handleUserAction(action: string): void {
-    if (action !== 'sign-out') {
-      return;
+  constructor() {
+    this.state.load();
+  }
+
+  submitCapture(event: SubmitEvent, input: HTMLTextAreaElement): void {
+    event.preventDefault();
+    this.state.capture(input.value);
+  }
+
+  languageName(tag: string): string {
+    try {
+      return new Intl.DisplayNames(['en'], { type: 'language' }).of(tag) ?? tag;
+    } catch {
+      return tag;
     }
-    this.logoutFailed.set(false);
-    this.facade
-      .logout()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          void this.router.navigate(['/login'], { replaceUrl: true });
-        },
-        error: () => this.logoutFailed.set(true),
-      });
+  }
+
+  statusTone(status: string): StatusTone {
+    if (status === 'READY' || status === 'SUCCEEDED') {
+      return 'success';
+    }
+    if (status === 'FAILED' || status === 'DEAD') {
+      return 'danger';
+    }
+    if (status === 'RETRY_WAIT') {
+      return 'warning';
+    }
+    return 'info';
   }
 }

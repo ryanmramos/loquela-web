@@ -39,6 +39,7 @@ public class CardEntity {
     @Column(name = "saved_from_lookup_session_id") private UUID savedFromLookupSessionId;
     @Column(name = "saved_from_context_number") private Integer savedFromContextNumber;
     @Column(name = "anki_template_version", length = 64) private String ankiTemplateVersion;
+    @Column(name = "last_practiced_at") private Instant lastPracticedAt;
     @JdbcTypeCode(SqlTypes.JSON) @Column(name = "source_location", columnDefinition = "jsonb")
     private Map<String, Object> sourceLocation;
     @JdbcTypeCode(SqlTypes.JSON) @Column(nullable = false, columnDefinition = "jsonb")

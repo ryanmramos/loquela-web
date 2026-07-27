@@ -124,6 +124,58 @@ class PastedTextIngestionServiceImplTest {
     }
 
     @Test
+    void websiteCaptureUsesTheSameEncryptedIngestionPipelineWithoutAnInboundMessage() {
+        UserId userId = UserId.random();
+        AppUserEntity user = activeUser(userId, "es");
+        byte[] encrypted = "website-encrypted".getBytes(StandardCharsets.UTF_8);
+        when(appUserRepository.findByIdAndStatus(userId.value(), AppUserEntity.Status.ACTIVE))
+                .thenReturn(Optional.of(user));
+        when(encryptionService.encrypt(eq("Texto desde la web."), any(String.class)))
+                .thenReturn(encrypted);
+        when(backgroundJobService.enqueue(eq(userId), eq(BackgroundJobEntity.Type.INGEST_TEXT), any()))
+                .thenReturn(JobId.random());
+
+        var accepted = service.acceptWebsite(userId, "Texto desde la web.");
+
+        ArgumentCaptor<SourceDocumentEntity> sourceCaptor = ArgumentCaptor.forClass(SourceDocumentEntity.class);
+        verify(sourceDocumentRepository).save(sourceCaptor.capture());
+        SourceDocumentEntity source = sourceCaptor.getValue();
+        assertThat(source.getInboundMessageId()).isNull();
+        assertThat(source.getStagedTextCiphertext()).isSameAs(encrypted);
+        assertThat(source.getMetadata()).containsEntry("origin", "WEBSITE");
+        assertThat(source.getLanguage()).isEqualTo("es");
+        assertThat(accepted.characterCount()).isEqualTo(19);
+        verifyNoInteractions(inboundMessageRepository);
+    }
+
+    @Test
+    void ingestsWebsiteStagingAndClearsItsCiphertext() {
+        UserId userId = UserId.random();
+        SourceId sourceId = SourceId.random();
+        SourceDocumentEntity source = sourceIdOnly(sourceId, userId);
+        source.setStagedTextCiphertext(new byte[]{4, 5, 6});
+        when(sourceDocumentRepository.findByIdAndUserId(sourceId.value(), userId.value()))
+                .thenReturn(Optional.of(source));
+        when(encryptionService.decrypt(eq(source.getStagedTextCiphertext()), any(String.class)))
+                .thenReturn("Una frase.");
+        when(textNormalizer.normalizeDisplay("Una frase.")).thenReturn("Una frase.");
+        when(passageSegmenter.segment(eq("Una frase."), any()))
+                .thenReturn(List.of(new PassageDraftDto(
+                        "Una frase.",
+                        Map.of("paragraphIndex", 0, "startCharacter", 0, "endCharacter", 10),
+                        2
+                )));
+        when(textNormalizer.normalizeForSearch("Una frase.")).thenReturn("una frase.");
+
+        service.ingest(userId, sourceId);
+
+        assertThat(source.getStatus()).isEqualTo(SourceDocumentEntity.Status.READY);
+        assertThat(source.getStagedTextCiphertext()).isNull();
+        verifyNoInteractions(inboundMessageRepository);
+        verify(sourceDocumentRepository).save(source);
+    }
+
+    @Test
     void rejectsOversizedTextBeforeWritingAnything() {
         configuration.getIngestion().setMaxExtractedCharacters(5);
 
@@ -245,10 +297,15 @@ class PastedTextIngestionServiceImplTest {
     }
 
     private SourceDocumentEntity source(SourceId sourceId, UserId userId, InboundMessageId inboundMessageId) {
+        SourceDocumentEntity source = sourceIdOnly(sourceId, userId);
+        source.setInboundMessageId(inboundMessageId.value());
+        return source;
+    }
+
+    private SourceDocumentEntity sourceIdOnly(SourceId sourceId, UserId userId) {
         SourceDocumentEntity source = new SourceDocumentEntity();
         source.setId(sourceId.value());
         source.setUserId(userId.value());
-        source.setInboundMessageId(inboundMessageId.value());
         source.setKind(SourceDocumentEntity.Kind.PASTED_TEXT);
         source.setStatus(SourceDocumentEntity.Status.RECEIVED);
         source.setLanguage("es");

@@ -4,6 +4,7 @@ import com.example.whatsanki.controller.RequestCorrelationFilter;
 import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.repository.AppUserRepository;
+import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.security.BrowserReturnPath;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
@@ -37,6 +38,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
     private final RequestCorrelationFilter requestCorrelationFilter;
     private final SessionRepository<?> sessionRepository;
     private final AppUserRepository appUserRepository;
+    private final SourceDocumentRepository sourceDocumentRepository;
     private final Environment environment;
     private MockMvc mockMvc;
 
@@ -46,6 +48,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
             RequestCorrelationFilter requestCorrelationFilter,
             SessionRepository<?> sessionRepository,
             AppUserRepository appUserRepository,
+            SourceDocumentRepository sourceDocumentRepository,
             Environment environment
     ) {
         this.applicationContext = applicationContext;
@@ -53,6 +56,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
         this.requestCorrelationFilter = requestCorrelationFilter;
         this.sessionRepository = sessionRepository;
         this.appUserRepository = appUserRepository;
+        this.sourceDocumentRepository = sourceDocumentRepository;
         this.environment = environment;
     }
 
@@ -119,6 +123,65 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                         .with(oidcLogin())
                         .with(csrf()))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void dashboardAndQuickCaptureUseAuthenticatedUserAndOneAggregateContract() throws Exception {
+        String subject = "dashboard-subject";
+        UserId userId = userIdentityService.resolveOrCreateGoogle(
+                subject,
+                "dashboard@example.com",
+                "Dashboard User"
+        );
+
+        mockMvc.perform(get("/api/v1/dashboard")
+                        .with(oidcLogin().idToken(token -> token.subject(subject))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cards.status").value("AVAILABLE"))
+                .andExpect(jsonPath("$.cards.totalCards").value(0))
+                .andExpect(jsonPath("$.sources.totalSources").value(0))
+                .andExpect(jsonPath("$.jobs.activeJobs").value(0))
+                .andExpect(jsonPath("$.languagePair.sourceLanguage").isNotEmpty())
+                .andExpect(jsonPath("$.generatedAt").isNotEmpty());
+
+        mockMvc.perform(post("/api/v1/sources")
+                        .with(oidcLogin().idToken(token -> token.subject(subject)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"No CSRF"}
+                                """))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/v1/sources")
+                        .with(oidcLogin().idToken(token -> token.subject(subject)))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"   "}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("text"));
+
+        mockMvc.perform(post("/api/v1/sources")
+                        .with(oidcLogin().idToken(token -> token.subject(subject)))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"text":"Una captura rápida desde la web."}
+                                """))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.status").value("RECEIVED"))
+                .andExpect(jsonPath("$.sourceId").isNotEmpty())
+                .andExpect(jsonPath("$.characterCount").value(32));
+
+        assertThat(sourceDocumentRepository.findAllByUserIdOrderByCreatedAtDesc(userId.value()))
+                .singleElement()
+                .satisfies(source -> {
+                    assertThat(source.getMetadata()).containsEntry("origin", "WEBSITE");
+                    assertThat(source.getStagedTextCiphertext()).isNotEmpty();
+                    assertThat(source.getInboundMessageId()).isNull();
+                });
     }
 
     @Test
@@ -213,10 +276,14 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
         mockMvc.perform(get("/v3/api-docs/browser-v1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paths['/api/v1/session']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/dashboard']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/sources'].post").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/auth/local-login']").doesNotExist())
                 .andExpect(jsonPath("$.paths['/webhooks/twilio/whatsapp']").doesNotExist())
                 .andExpect(jsonPath("$.components.securitySchemes.browserSession").exists())
                 .andExpect(jsonPath("$.components.schemas.ApiProblemDto").exists())
+                .andExpect(jsonPath("$.components.schemas.DashboardDto").exists())
+                .andExpect(jsonPath("$.components.schemas.PastedTextSourceDto").exists())
                 .andExpect(jsonPath("$.components.schemas.AppUserEntity").doesNotExist())
                 .andExpect(jsonPath("$.components.schemas.UserIdentityEntity").doesNotExist());
     }

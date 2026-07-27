@@ -5,6 +5,7 @@ import org.springframework.data.repository.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.Instant;
 import java.util.UUID;
 
 public interface CardRepository extends Repository<CardEntity, UUID> {
@@ -16,4 +17,7 @@ public interface CardRepository extends Repository<CardEntity, UUID> {
             int contextNumber
     );
     List<CardEntity> findAllByUserIdAndDeckIdOrderByCreatedAt(UUID userId, UUID deckId);
+    long countByUserId(UUID userId);
+    long countByUserIdAndLastPracticedAtIsNull(UUID userId);
+    long countByUserIdAndCreatedAtGreaterThanEqual(UUID userId, Instant createdAt);
 }

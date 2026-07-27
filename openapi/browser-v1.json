@@ -13,6 +13,35 @@
     "browserSession" : [ ]
   } ],
   "paths" : {
+    "/api/v1/sources" : {
+      "post" : {
+        "tags" : [ "browser-source-controller" ],
+        "summary" : "Create a pasted-text source",
+        "operationId" : "createPastedTextSource",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreatePastedTextSourceRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Source accepted for indexing",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PastedTextSourceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/session/logout" : {
       "post" : {
         "tags" : [ "browser-session-controller" ],
@@ -54,6 +83,25 @@
         }
       }
     },
+    "/api/v1/dashboard" : {
+      "get" : {
+        "tags" : [ "dashboard-controller" ],
+        "summary" : "Return the authenticated dashboard aggregate",
+        "operationId" : "getDashboard",
+        "responses" : {
+          "200" : {
+            "description" : "Dashboard aggregate",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DashboardDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/google" : {
       "get" : {
         "tags" : [ "browser-authentication-controller" ],
@@ -77,6 +125,38 @@
   },
   "components" : {
     "schemas" : {
+      "CreatePastedTextSourceRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "text" : {
+            "type" : "string",
+            "maxLength" : 2000000,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "text" ]
+      },
+      "PastedTextSourceDto" : {
+        "type" : "object",
+        "properties" : {
+          "sourceId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "reference" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "RECEIVED" ]
+          },
+          "characterCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "characterCount", "reference", "sourceId", "status" ]
+      },
       "BrowserSessionDto" : {
         "type" : "object",
         "properties" : {
@@ -167,6 +247,143 @@
           }
         },
         "required" : [ "code", "field", "message" ]
+      },
+      "ActivityItem" : {
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "SOURCE", "JOB" ]
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "occurredAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "target" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "detail", "kind", "occurredAt", "status", "target", "title" ]
+      },
+      "ActivitySummary" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "AVAILABLE", "UNAVAILABLE" ]
+          },
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ActivityItem"
+            }
+          }
+        },
+        "required" : [ "items", "status" ]
+      },
+      "CardSummary" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "AVAILABLE", "UNAVAILABLE" ]
+          },
+          "cardsToStudy" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "totalCards" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "newCardsThisWeek" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "cardsToStudy", "newCardsThisWeek", "status", "totalCards" ]
+      },
+      "DashboardDto" : {
+        "type" : "object",
+        "properties" : {
+          "generatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "languagePair" : {
+            "$ref" : "#/components/schemas/LanguagePair"
+          },
+          "cards" : {
+            "$ref" : "#/components/schemas/CardSummary"
+          },
+          "sources" : {
+            "$ref" : "#/components/schemas/SourceSummary"
+          },
+          "jobs" : {
+            "$ref" : "#/components/schemas/JobSummary"
+          },
+          "activity" : {
+            "$ref" : "#/components/schemas/ActivitySummary"
+          }
+        },
+        "required" : [ "activity", "cards", "generatedAt", "jobs", "languagePair", "sources" ]
+      },
+      "JobSummary" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "AVAILABLE", "UNAVAILABLE" ]
+          },
+          "activeJobs" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "activeJobs", "status" ]
+      },
+      "LanguagePair" : {
+        "type" : "object",
+        "properties" : {
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "definitionLanguage" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "definitionLanguage", "sourceLanguage" ]
+      },
+      "SourceSummary" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "AVAILABLE", "UNAVAILABLE" ]
+          },
+          "totalSources" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "readySources" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          },
+          "processingSources" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "processingSources", "readySources", "status", "totalSources" ]
       }
     },
     "securitySchemes" : {

@@ -9,10 +9,12 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface BackgroundJobRepository extends Repository<BackgroundJobEntity, UUID> {
     BackgroundJobEntity save(BackgroundJobEntity job);
+    long countByUserIdAndStateIn(UUID userId, Set<BackgroundJobEntity.State> states);
 
     Optional<BackgroundJobEntity> findByIdAndUserId(UUID id, UUID userId);
 

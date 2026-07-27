@@ -1,35 +1,204 @@
-@if (session().user; as user) {
-  <app-shell
-    [userName]="user.displayName || 'Loquela learner'"
-    [userEmail]="user.email || 'Google account'"
-    (userActionSelected)="handleUserAction($event)"
-  >
-    <div class="dashboard">
-      @if (logoutFailed()) {
-        <app-alert title="Sign out failed" tone="danger">
-          Your session is still active. Try signing out again.
-        </app-alert>
-      }
-      <p class="eyebrow">Overview</p>
-      <h1>Welcome back, {{ user.displayName || 'learner' }}.</h1>
-      <p>
-        Your authenticated workspace is ready. Sources, cards, decks, and study activity arrive in
-        the next implementation slices.
-      </p>
-      <dl>
-        <div>
-          <dt>Source language</dt>
-          <dd>{{ user.sourceLanguage }}</dd>
-        </div>
-        <div>
-          <dt>Definition language</dt>
-          <dd>{{ user.definitionLanguage }}</dd>
-        </div>
-        <div>
-          <dt>WhatsApp</dt>
-          <dd>{{ user.linkedAccounts.whatsapp ? 'Connected' : 'Not connected (optional)' }}</dd>
-        </div>
-      </dl>
+<div class="dashboard">
+  @if (state.loadStatus() === 'loading' && !state.snapshot()) {
+    <div class="dashboard__loading" aria-label="Loading dashboard">
+      <app-skeleton width="12rem" />
+      <app-skeleton width="24rem" />
+      <div class="stats-grid">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="stat-card stat-card--loading"><app-skeleton width="70%" /></div>
+        }
+      </div>
     </div>
-  </app-shell>
-}
+  } @else if (state.loadStatus() === 'error' && !state.snapshot()) {
+    <app-ui-state
+      kind="error"
+      title="Your overview is unavailable"
+      description="We could not load the dashboard. Your account and saved work are unaffected."
+    >
+      <button appButton type="button" (click)="state.load()">Try again</button>
+    </app-ui-state>
+  } @else if (state.snapshot(); as dashboard) {
+    @if (state.stale()) {
+      <app-alert title="Showing an older snapshot" tone="warning">
+        Some counts may have changed.
+        <button class="inline-action" type="button" (click)="state.load()">Refresh now</button>
+      </app-alert>
+    }
+
+    <header class="page-heading">
+      <div>
+        <p class="eyebrow">{{ dashboard.generatedAt | date: 'EEEE, MMMM d' }}</p>
+        <h1>
+          Welcome back,
+          {{ session().user?.displayName || 'learner' }}.
+        </h1>
+        <p>Here’s what’s ready to learn from your personal corpus.</p>
+      </div>
+      @if (dashboard.cards.status === 'AVAILABLE' && dashboard.cards.cardsToStudy; as count) {
+        @if (count > 0) {
+          <a appButton routerLink="/app/study">Practice {{ count | number }} cards</a>
+        }
+      }
+    </header>
+
+    <section class="stats-grid" aria-label="Workspace summary">
+      <a class="stat-card" routerLink="/app/cards" [queryParams]="{ practice: 'unpracticed' }">
+        <span class="stat-card__label">Cards to study</span>
+        @if (dashboard.cards.status === 'AVAILABLE') {
+          <strong>{{ dashboard.cards.cardsToStudy ?? 0 | number }}</strong>
+          <span>Saved in Loquela, not yet practiced</span>
+        } @else {
+          <strong aria-label="Unavailable">—</strong>
+          <span>Count temporarily unavailable</span>
+        }
+      </a>
+      <a class="stat-card" routerLink="/app/cards">
+        <span class="stat-card__label">Total cards</span>
+        @if (dashboard.cards.status === 'AVAILABLE') {
+          <strong>{{ dashboard.cards.totalCards ?? 0 | number }}</strong>
+          <span>{{ dashboard.cards.newCardsThisWeek ?? 0 | number }} added this week</span>
+        } @else {
+          <strong aria-label="Unavailable">—</strong>
+          <span>Count temporarily unavailable</span>
+        }
+      </a>
+      <a class="stat-card" routerLink="/app/sources" [queryParams]="{ status: 'READY' }">
+        <span class="stat-card__label">Ready sources</span>
+        @if (dashboard.sources.status === 'AVAILABLE') {
+          <strong>{{ dashboard.sources.readySources ?? 0 | number }}</strong>
+          <span>
+            {{ dashboard.sources.processingSources ?? 0 | number }}
+            processing now
+          </span>
+        } @else {
+          <strong aria-label="Unavailable">—</strong>
+          <span>Count temporarily unavailable</span>
+        }
+      </a>
+      <a class="stat-card" routerLink="/app/activity" [queryParams]="{ state: 'active' }">
+        <span class="stat-card__label">Active jobs</span>
+        @if (dashboard.jobs.status === 'AVAILABLE') {
+          <strong>{{ dashboard.jobs.activeJobs ?? 0 | number }}</strong>
+          <span>Imports, lookups, exports, and cleanup</span>
+        } @else {
+          <strong aria-label="Unavailable">—</strong>
+          <span>Count temporarily unavailable</span>
+        }
+      </a>
+    </section>
+
+    @if (
+      dashboard.cards.status === 'AVAILABLE' &&
+      dashboard.sources.status === 'AVAILABLE' &&
+      dashboard.cards.totalCards === 0 &&
+      dashboard.sources.totalSources === 0
+    ) {
+      <section class="empty-welcome" aria-labelledby="empty-welcome-title">
+        <span aria-hidden="true">Aa</span>
+        <div>
+          <h2 id="empty-welcome-title">Start with something worth remembering</h2>
+          <p>
+            Paste a short passage below. Loquela will turn it into a searchable personal source.
+          </p>
+        </div>
+      </section>
+    }
+
+    <div class="dashboard-grid">
+      <section class="panel learning-focus" aria-labelledby="learning-focus-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Learning focus</p>
+            <h2 id="learning-focus-title">Your language pair</h2>
+          </div>
+          <a routerLink="/app/settings">Settings</a>
+        </div>
+        <p class="language-pair">
+          {{ languageName(dashboard.languagePair.sourceLanguage) }}
+          <span aria-hidden="true">→</span>
+          {{ languageName(dashboard.languagePair.definitionLanguage) }}
+        </p>
+        <p class="muted">
+          Lookup and card creation use these defaults across the website. WhatsApp linking is coming
+          soon and is not required.
+        </p>
+      </section>
+
+      <section class="panel quick-capture" aria-labelledby="quick-capture-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Quick action</p>
+            <h2 id="quick-capture-title">Quick capture</h2>
+          </div>
+        </div>
+        <p class="muted">Paste text you want to search and learn from later.</p>
+        <form (submit)="submitCapture($event, captureText)">
+          <label for="capture-text">Source text</label>
+          <textarea
+            #captureText
+            id="capture-text"
+            rows="5"
+            maxlength="2000000"
+            placeholder="Paste text in your source language…"
+            [disabled]="state.captureStatus() === 'submitting'"
+            required
+          ></textarea>
+          <button appButton type="submit" [disabled]="state.captureStatus() === 'submitting'">
+            {{ state.captureStatus() === 'submitting' ? 'Adding source…' : 'Add to sources' }}
+          </button>
+        </form>
+        @if (state.captureStatus() === 'success' && state.acceptedSource(); as source) {
+          <app-alert title="Source accepted" tone="success">
+            Your text is being indexed.
+            <a [routerLink]="['/app/sources', source.reference]">View source activity</a>
+          </app-alert>
+        } @else if (state.captureStatus() === 'error') {
+          <app-alert title="Could not add source" tone="danger">
+            Your text remains in the field. Try again when you’re ready.
+          </app-alert>
+        }
+      </section>
+
+      <section class="panel recent-activity" aria-labelledby="recent-activity-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Workspace</p>
+            <h2 id="recent-activity-title">Recent activity</h2>
+          </div>
+          <a routerLink="/app/activity">View all</a>
+        </div>
+        @if (dashboard.activity.status === 'UNAVAILABLE') {
+          <div class="section-unavailable">
+            <strong>Activity is temporarily unavailable.</strong>
+            <span>Other dashboard information is still current.</span>
+          </div>
+        } @else if (dashboard.activity.items.length === 0) {
+          <div class="activity-empty">
+            <span aria-hidden="true">✦</span>
+            <div>
+              <strong>No activity yet</strong>
+              <p>Your sources and background work will appear here.</p>
+            </div>
+          </div>
+        } @else {
+          <ul class="activity-list">
+            @for (item of dashboard.activity.items; track item.occurredAt + item.title) {
+              <li>
+                <span class="activity-icon" aria-hidden="true">
+                  {{ item.kind === 'SOURCE' ? 'T' : '↻' }}
+                </span>
+                <div>
+                  <a [routerLink]="item.target">{{ item.title }}</a>
+                  <span>{{ item.detail }} · {{ item.occurredAt | date: 'medium' }}</span>
+                </div>
+                <app-status-badge [tone]="statusTone(item.status)">
+                  {{ item.status.replaceAll('_', ' ') }}
+                </app-status-badge>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </div>
+  }
+</div>

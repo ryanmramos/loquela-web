@@ -17,10 +17,138 @@ export const routes: Routes = [
   },
   {
     path: 'app',
-    title: 'Overview',
     canActivate: [authenticatedGuard],
     loadComponent: () =>
-      import('@app/features/dashboard/dashboard-page').then((module) => module.DashboardPage),
+      import('@app/features/shell/authenticated-shell-page').then(
+        (module) => module.AuthenticatedShellPage,
+      ),
+    children: [
+      {
+        path: '',
+        title: 'Overview',
+        loadComponent: () =>
+          import('@app/features/dashboard/dashboard-page').then((module) => module.DashboardPage),
+      },
+      {
+        path: 'sources',
+        title: 'Sources',
+        data: {
+          featureKey: 'sources',
+          eyebrow: 'Source library',
+          heading: 'Sources',
+          description:
+            'Source management arrives in Step 10. Dashboard filters are preserved in this route.',
+        },
+        loadComponent: () =>
+          import('@app/features/placeholder/feature-placeholder-page').then(
+            (module) => module.FeaturePlaceholderPage,
+          ),
+      },
+      {
+        path: 'sources/:sourceReference',
+        title: 'Source activity',
+        data: {
+          featureKey: 'source',
+          eyebrow: 'Source activity',
+          heading: 'Your source was accepted',
+          description:
+            'Indexing continues in the background. Full source details arrive in Step 10.',
+        },
+        loadComponent: () =>
+          import('@app/features/placeholder/feature-placeholder-page').then(
+            (module) => module.FeaturePlaceholderPage,
+          ),
+      },
+      {
+        path: 'cards',
+        title: 'Cards',
+        data: {
+          featureKey: 'cards',
+          eyebrow: 'Card library',
+          heading: 'Cards',
+          description:
+            'Card management arrives in Step 11. Dashboard filters are preserved in this route.',
+        },
+        loadComponent: () =>
+          import('@app/features/placeholder/feature-placeholder-page').then(
+            (module) => module.FeaturePlaceholderPage,
+          ),
+      },
+      {
+        path: 'decks',
+        title: 'Decks',
+        data: {
+          featureKey: 'decks',
+          eyebrow: 'Organization',
+          heading: 'Decks',
+          description: 'Deck management and exports arrive in Step 12.',
+        },
+        loadComponent: () =>
+          import('@app/features/placeholder/feature-placeholder-page').then(
+            (module) => module.FeaturePlaceholderPage,
+          ),
+      },
+      {
+        path: 'study',
+        title: 'Practice',
+        data: {
+          featureKey: 'study',
+          eyebrow: 'Loquela practice',
+          heading: 'Practice',
+          description:
+            'The Loquela-owned practice workflow arrives in Step 13. No Anki scheduling state is inferred here.',
+        },
+        loadComponent: () =>
+          import('@app/features/placeholder/feature-placeholder-page').then(
+            (module) => module.FeaturePlaceholderPage,
+          ),
+      },
+      {
+        path: 'activity',
+        title: 'Activity',
+        data: {
+          featureKey: 'activity',
+          eyebrow: 'Background work',
+          heading: 'Activity',
+          description:
+            'The full resumable activity center arrives in Step 14. Dashboard filters are preserved in this route.',
+        },
+        loadComponent: () =>
+          import('@app/features/placeholder/feature-placeholder-page').then(
+            (module) => module.FeaturePlaceholderPage,
+          ),
+      },
+      {
+        path: 'lookup',
+        title: 'Lookup',
+        data: {
+          featureKey: 'lookup',
+          eyebrow: 'Global lookup',
+          heading: 'Lookup',
+          description:
+            'Your search is preserved in the URL. Lookup results arrive with card management in Step 11.',
+        },
+        loadComponent: () =>
+          import('@app/features/placeholder/feature-placeholder-page').then(
+            (module) => module.FeaturePlaceholderPage,
+          ),
+      },
+      {
+        path: 'settings',
+        title: 'Settings',
+        data: {
+          featureKey: 'settings',
+          eyebrow: 'Account preferences',
+          heading: 'Settings',
+          description:
+            'Profile and language controls arrive in Step 15. Google remains the only required identity.',
+        },
+        loadComponent: () =>
+          import('@app/features/placeholder/feature-placeholder-page').then(
+            (module) => module.FeaturePlaceholderPage,
+          ),
+      },
+    ],
   },
   {
     path: 'account-deleting',

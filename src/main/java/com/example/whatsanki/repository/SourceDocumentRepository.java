@@ -19,6 +19,9 @@ public interface SourceDocumentRepository extends Repository<SourceDocumentEntit
     List<SourceDocumentEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     List<SourceDocumentEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
     List<SourceDocumentEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+    long countByUserIdAndStatusNot(UUID userId, SourceDocumentEntity.Status status);
+    long countByUserIdAndStatus(UUID userId, SourceDocumentEntity.Status status);
+    long countByUserIdAndStatusIn(UUID userId, Set<SourceDocumentEntity.Status> statuses);
     void delete(SourceDocumentEntity source);
     long deleteByIdAndUserId(UUID id, UUID userId);
 

@@ -4,17 +4,17 @@
 
 <div class="shell">
   <aside class="sidebar">
-    <a class="brand" href="/" aria-label="Loquela home">
+    <a class="brand" routerLink="/app" aria-label="Loquela home">
       <span class="brand__mark" aria-hidden="true">LQ</span>
       <span class="brand__name">Loquela</span>
     </a>
 
     <nav class="navigation" aria-label="Primary navigation">
-      @for (item of navigation; track item.label; let first = $first) {
+      @for (item of navigation; track item.label) {
         <a
-          [href]="item.target"
-          [class.navigation__link--active]="first"
-          [attr.aria-current]="first ? 'page' : null"
+          [routerLink]="item.target"
+          routerLinkActive="navigation__link--active"
+          [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
         >
           <span class="navigation__icon" aria-hidden="true">{{ item.symbol }}</span>
           <span class="navigation__label">{{ item.label }}</span>
@@ -23,9 +23,13 @@
     </nav>
 
     <section class="sidebar__callout" aria-labelledby="study-callout-title">
-      <strong id="study-callout-title">12 cards are ready</strong>
-      <p>Keep your Spanish Core deck moving with a short review.</p>
-      <a appButton variant="secondary" href="#states">Study now</a>
+      @if (cardsToStudy() !== null) {
+        <strong id="study-callout-title">{{ cardsToStudy() }} cards to study</strong>
+      } @else {
+        <strong id="study-callout-title">Practice in Loquela</strong>
+      }
+      <p>Practice cards saved from your personal corpus.</p>
+      <a appButton variant="secondary" routerLink="/app/study">Start practice</a>
     </section>
 
     <div class="user">
@@ -50,11 +54,29 @@
           placeholder="Search your workspace…"
         />
       </form>
-      <app-action-menu
-        label="Open user menu"
-        [items]="userActions"
-        (itemSelected)="userActionSelected.emit($event)"
-      />
+      <div class="topbar__actions">
+        <a
+          class="activity-link"
+          routerLink="/app/activity"
+          [attr.aria-label]="
+            activeJobCount() === null
+              ? 'Open activity'
+              : 'Open activity, ' + activeJobCount() + ' active jobs'
+          "
+        >
+          <span aria-hidden="true">↻</span>
+          <span class="activity-link__label">Activity</span>
+          @if ((activeJobCount() ?? 0) > 0) {
+            <span class="activity-link__count">{{ activeJobCount() }}</span>
+          }
+        </a>
+        <a appButton variant="secondary" routerLink="/app/sources">Add source</a>
+        <app-action-menu
+          label="Open user menu"
+          [items]="userActions"
+          (itemSelected)="userActionSelected.emit($event)"
+        />
+      </div>
     </header>
 
     <main #mainContent id="main-content" tabindex="-1">
@@ -63,11 +85,11 @@
   </div>
 
   <nav class="mobile-navigation" aria-label="Mobile primary navigation">
-    @for (item of navigation.slice(0, 4); track item.label; let first = $first) {
+    @for (item of navigation.slice(0, 4); track item.label) {
       <a
-        [href]="item.target"
-        [class.mobile-navigation__link--active]="first"
-        [attr.aria-current]="first ? 'page' : null"
+        [routerLink]="item.target"
+        routerLinkActive="mobile-navigation__link--active"
+        [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
       >
         <span aria-hidden="true">{{ item.symbol }}</span>
         <span>{{ item.label }}</span>
