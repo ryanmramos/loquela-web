@@ -14,8 +14,12 @@ public record BrowserSessionDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         String definitionLanguage,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        AccountState accountState,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         LinkedAccountsDto linkedAccounts
 ) {
+    public enum AccountState { ACTIVE, DELETING }
+
     public record LinkedAccountsDto(
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
             boolean google,

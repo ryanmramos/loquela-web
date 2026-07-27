@@ -10,10 +10,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -46,10 +46,21 @@ public class BrowserSessionController {
             )
     )
     public ResponseEntity<BrowserSessionDto> current(
-            @AuthenticationPrincipal OidcUser principal,
+            @Parameter(hidden = true) Authentication authentication,
             @Parameter(hidden = true) CsrfToken csrfToken
     ) {
         csrfToken.getToken();
-        return ResponseEntity.ok(browserSessionService.getByGoogleSubject(principal.getSubject()));
+        return ResponseEntity.ok(browserSessionService.getByGoogleSubject(authentication.getName()));
+    }
+
+    @PostMapping("/logout")
+    @Operation(
+            operationId = "logoutBrowserSession",
+            summary = "Invalidate the current browser session"
+    )
+    @ApiResponse(responseCode = "204", description = "Session invalidated")
+    public ResponseEntity<Void> logoutContract() {
+        // Spring Security handles this URL before controller dispatch; this method publishes the contract.
+        return ResponseEntity.noContent().build();
     }
 }

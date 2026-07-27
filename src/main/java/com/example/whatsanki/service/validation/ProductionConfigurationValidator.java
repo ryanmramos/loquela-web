@@ -26,6 +26,7 @@ public class ProductionConfigurationValidator implements ApplicationRunner {
     void validate() {
         List<String> errors = new ArrayList<>();
         requireHttps("WHATSANKI_PUBLIC_BASE_URL", configuration.getPublicBaseUrl(), errors);
+        requireHttps("WHATSANKI_FRONTEND_BASE_URL", configuration.getSecurity().getFrontendBaseUrl(), errors);
         requireText("WHATSANKI_DATA_ENCRYPTION_KEY", configuration.getDataEncryptionKey(), errors);
         requireText("TWILIO_ACCOUNT_SID", configuration.getTwilio().getAccountSid(), errors);
         requireText("TWILIO_AUTH_TOKEN", configuration.getTwilio().getAuthToken(), errors);
@@ -35,8 +36,17 @@ public class ProductionConfigurationValidator implements ApplicationRunner {
         if (!configuration.getSecurity().isGoogleOauthEnabled()) {
             errors.add("WHATSANKI_GOOGLE_OAUTH_ENABLED must be true in production");
         }
+        if (configuration.getSecurity().isLocalLoginEnabled()) {
+            errors.add("WHATSANKI_LOCAL_LOGIN_ENABLED must be false in production");
+        }
         if (!configuration.getSecurity().isSecureCookies()) {
             errors.add("WHATSANKI_SECURE_COOKIES must be true in production");
+        }
+        if (!sameOrigin(
+                configuration.getPublicBaseUrl(),
+                configuration.getSecurity().getFrontendBaseUrl()
+        )) {
+            errors.add("WHATSANKI_FRONTEND_BASE_URL must use the production public origin");
         }
 
         boolean hasAccessKey = hasText(configuration.getObjectStore().getAccessKey());
@@ -68,5 +78,13 @@ public class ProductionConfigurationValidator implements ApplicationRunner {
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private boolean sameOrigin(URI left, URI right) {
+        return left != null
+                && right != null
+                && left.getScheme() != null
+                && left.getScheme().equalsIgnoreCase(right.getScheme())
+                && java.util.Objects.equals(left.getAuthority(), right.getAuthority());
     }
 }

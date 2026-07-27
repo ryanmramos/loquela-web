@@ -11,7 +11,8 @@ import { SessionApi } from './session-api';
 
 const runtimeConfig: RuntimeConfig = {
   apiBasePath: '/api/v1',
-  googleLoginPath: '/oauth2/authorization/google',
+  googleLoginPath: '/api/v1/auth/google',
+  localLoginEnabled: true,
   supportUrl: '/support',
   environmentName: 'test',
   telemetryEnabled: false,
@@ -48,6 +49,7 @@ describe('SessionApi', () => {
       email: 'session@example.com',
       sourceLanguage: 'es',
       definitionLanguage: 'en',
+      accountState: 'ACTIVE',
       linkedAccounts: {
         google: true,
         whatsapp: false,
@@ -60,6 +62,7 @@ describe('SessionApi', () => {
       email: 'session@example.com',
       sourceLanguage: 'es',
       definitionLanguage: 'en',
+      accountState: 'ACTIVE',
       linkedAccounts: {
         google: true,
         whatsapp: false,
@@ -73,6 +76,7 @@ describe('SessionApi', () => {
       userId: '529b7902-040a-4a40-8905-aa4ee06d2413',
       sourceLanguage: 'es',
       definitionLanguage: 'en',
+      accountState: 'ACTIVE',
       linkedAccounts: {
         google: true,
         whatsapp: false,
@@ -83,5 +87,39 @@ describe('SessionApi', () => {
       displayName: null,
       email: null,
     });
+  });
+
+  it('uses the local-only login boundary through the same API security pipeline', async () => {
+    const response = firstValueFrom(api.localLogin('reviewer'));
+    const request = httpTesting.expectOne('/api/v1/auth/local-login');
+
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ accountId: 'reviewer' });
+    expect(request.request.withCredentials).toBe(true);
+    request.flush({
+      userId: '3fe1c40d-3505-4e29-98da-a97420d71166',
+      displayName: 'Local Reviewer',
+      email: 'reviewer@local.loquela.test',
+      sourceLanguage: 'es',
+      definitionLanguage: 'en',
+      accountState: 'ACTIVE',
+      linkedAccounts: { google: true, whatsapp: false },
+    });
+
+    await expect(response).resolves.toMatchObject({
+      displayName: 'Local Reviewer',
+      accountState: 'ACTIVE',
+    });
+  });
+
+  it('logs out through the generated CSRF-protected operation', async () => {
+    const response = firstValueFrom(api.logout());
+    const request = httpTesting.expectOne('/api/v1/session/logout');
+
+    expect(request.request.method).toBe('POST');
+    expect(request.request.withCredentials).toBe(true);
+    request.flush(null, { status: 204, statusText: 'No Content' });
+
+    await expect(response).resolves.toBeUndefined();
   });
 });

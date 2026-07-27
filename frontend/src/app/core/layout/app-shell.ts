@@ -44,6 +44,11 @@ export class AppShell {
     }
   }
 
+  focusMain(event: MouseEvent, main: HTMLElement): void {
+    event.preventDefault();
+    main.focus();
+  }
+
   initials(): string {
     return this.userName()
       .split(/\s+/u)

@@ -8,6 +8,7 @@ import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.UserIdentityRepository;
 import com.example.whatsanki.service.BrowserSessionService;
 import com.example.whatsanki.service.IdentityProtectionService;
+import com.example.whatsanki.service.exception.BrowserAccountUnavailableException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +28,11 @@ public class BrowserSessionServiceImpl implements BrowserSessionService {
         UserIdentityEntity googleIdentity = userIdentityRepository
                 .findByProviderAndProviderSubjectHash(UserIdentityEntity.Provider.GOOGLE, subjectHash)
                 .orElseThrow(() -> new IllegalStateException("Authenticated Google identity is not linked"));
-        AppUserEntity user = appUserRepository
-                .findByIdAndStatus(googleIdentity.getUserId(), AppUserEntity.Status.ACTIVE)
-                .orElseThrow(() -> new IllegalStateException("Authenticated user is not active"));
+        AppUserEntity user = appUserRepository.findById(googleIdentity.getUserId())
+                .orElseThrow(() -> new IllegalStateException("Authenticated user does not exist"));
+        if (user.getStatus() == AppUserEntity.Status.DISABLED) {
+            throw new BrowserAccountUnavailableException("ACCOUNT_DISABLED");
+        }
         UserId userId = new UserId(user.getId());
         return new BrowserSessionDto(
                 user.getId(),
@@ -37,6 +40,9 @@ public class BrowserSessionServiceImpl implements BrowserSessionService {
                 googleIdentity.getDisplayEmail(),
                 user.getSourceLanguage(),
                 user.getDefinitionLanguage(),
+                user.getStatus() == AppUserEntity.Status.DELETING
+                        ? BrowserSessionDto.AccountState.DELETING
+                        : BrowserSessionDto.AccountState.ACTIVE,
                 new BrowserSessionDto.LinkedAccountsDto(
                         true,
                         userIdentityRepository.existsByUserIdAndProvider(

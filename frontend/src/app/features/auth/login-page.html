@@ -1,0 +1,94 @@
+<main class="login-layout">
+  <section class="login-panel" aria-labelledby="login-title">
+    <div class="login-box">
+      <a class="brand" href="/login" aria-label="Loquela sign in">
+        <span class="brand__mark" aria-hidden="true">LQ</span>
+        <span>Loquela</span>
+      </a>
+
+      <p class="eyebrow">Your language workspace</p>
+      <h1 id="login-title">Turn what you read into what you remember.</h1>
+      <p class="intro">
+        Build sources, contextual cards, study sessions, and Anki decks in one focused web
+        workspace.
+      </p>
+
+      @if (reason === 'session-expired') {
+        <app-alert title="Your session expired" tone="warning">
+          Sign in again to continue where you left off.
+        </app-alert>
+      } @else if (reason === 'account-disabled') {
+        <app-alert title="Account unavailable" tone="danger">
+          This account cannot access Loquela. Contact support if you believe this is a mistake.
+        </app-alert>
+      } @else if (reason === 'oauth-error') {
+        <app-alert title="Google sign-in was not completed" tone="warning">
+          Try again. If the problem continues, contact support.
+        </app-alert>
+      }
+
+      @if (loginFailed()) {
+        <app-alert title="Local sign-in failed" tone="danger">
+          Confirm the local backend is running with local login enabled, then try again.
+        </app-alert>
+      }
+
+      <a class="google-button" [href]="googleLoginUrl">
+        <span class="google-button__mark" aria-hidden="true">G</span>
+        Continue with Google
+      </a>
+
+      <p class="legal">
+        By continuing, you agree to Loquela’s Terms of Service and Privacy Policy. Google is used
+        only to verify your identity.
+      </p>
+
+      @if (localLoginEnabled) {
+        <section class="local-login" aria-labelledby="local-login-title">
+          <div>
+            <p class="eyebrow">Local development</p>
+            <h2 id="local-login-title">Use a test account</h2>
+            <p>These accounts use the local database and never contact Google.</p>
+          </div>
+          <div class="local-login__actions">
+            <button
+              appButton
+              variant="secondary"
+              type="button"
+              [disabled]="pendingAccount() !== null"
+              (click)="loginLocally('learner')"
+            >
+              {{ pendingAccount() === 'learner' ? 'Signing in…' : 'Local Learner' }}
+            </button>
+            <button
+              appButton
+              variant="secondary"
+              type="button"
+              [disabled]="pendingAccount() !== null"
+              (click)="loginLocally('reviewer')"
+            >
+              {{ pendingAccount() === 'reviewer' ? 'Signing in…' : 'Local Reviewer' }}
+            </button>
+          </div>
+        </section>
+      }
+
+      <p class="phone-note">
+        No phone number is required. You can optionally connect WhatsApp later from Settings.
+      </p>
+    </div>
+  </section>
+
+  <aside class="login-art" aria-label="Loquela contextual learning example">
+    <div class="login-art__content">
+      <p class="eyebrow">From conversation to comprehension</p>
+      <h2>Your reading becomes a personal language corpus.</h2>
+      <div class="context-card">
+        <p class="context-card__label">From your source</p>
+        <strong>sobremesa</strong>
+        <span>noun · time spent talking together after a meal</span>
+        <blockquote>“La sobremesa se alargó hasta bien entrada la noche.”</blockquote>
+      </div>
+    </div>
+  </aside>
+</main>

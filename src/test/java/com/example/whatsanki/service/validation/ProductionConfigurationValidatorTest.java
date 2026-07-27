@@ -45,6 +45,18 @@ class ProductionConfigurationValidatorTest {
                 .hasMessageContaining("OBJECT_STORE_ACCESS_KEY and OBJECT_STORE_SECRET_KEY");
     }
 
+    @Test
+    void rejectsLocalLoginInProduction() {
+        WhatsAnkiConfigurationDto configuration = validConfiguration();
+        configuration.getSecurity().setLocalLoginEnabled(true);
+
+        ProductionConfigurationValidator validator = new ProductionConfigurationValidator(configuration);
+
+        assertThatThrownBy(validator::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("WHATSANKI_LOCAL_LOGIN_ENABLED must be false");
+    }
+
     private WhatsAnkiConfigurationDto validConfiguration() {
         WhatsAnkiConfigurationDto configuration = new WhatsAnkiConfigurationDto();
         configuration.setPublicBaseUrl(URI.create("https://whatsanki.example"));
@@ -61,6 +73,7 @@ class ProductionConfigurationValidatorTest {
         configuration.getDictionary().setProvider("wiktionary");
         configuration.getSecurity().setGoogleOauthEnabled(true);
         configuration.getSecurity().setSecureCookies(true);
+        configuration.getSecurity().setFrontendBaseUrl(URI.create("https://whatsanki.example"));
         return configuration;
     }
 }

@@ -11,6 +11,7 @@ import { correlationIdInterceptor } from '@core/http/correlation-id.interceptor'
 import { requestDeadlineInterceptor } from '@core/http/request-deadline.interceptor';
 import { apiProblemInterceptor } from '@core/http/api-problem.interceptor';
 import { provideApiConfiguration } from '@api/generated/api-configuration';
+import { sessionExpirationInterceptor } from '@core/auth/session-expiration.interceptor';
 
 export function createAppConfig(runtimeConfig: RuntimeConfig): ApplicationConfig {
   return {
@@ -35,6 +36,7 @@ export function createAppConfig(runtimeConfig: RuntimeConfig): ApplicationConfig
           apiCredentialsInterceptor,
           correlationIdInterceptor,
           requestDeadlineInterceptor,
+          sessionExpirationInterceptor,
           apiProblemInterceptor,
         ]),
       ),

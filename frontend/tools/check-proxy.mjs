@@ -18,6 +18,7 @@ const backend = createServer((request, response) => {
         userId: '529b7902-040a-4a40-8905-aa4ee06d2413',
         sourceLanguage: 'es',
         definitionLanguage: 'en',
+        accountState: 'ACTIVE',
         linkedAccounts: { google: true, whatsapp: false },
       }),
     );

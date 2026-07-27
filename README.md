@@ -26,19 +26,35 @@ docker compose up -d
 The checked-in defaults are intended only for local development. Keep `.env` out of Git and place
 real credentials only in that file or another secure secret store.
 
-To allow the Angular development server to call the backend, set this value in `.env`:
+The checked-in local configuration uses Angular's same-origin development proxy. Keep CORS blank
+for that workflow:
 
 ```dotenv
-WHATSANKI_ALLOWED_ORIGINS=http://localhost:4200
+WHATSANKI_ALLOWED_ORIGINS=
 ```
 
-Google OAuth is disabled by default. To exercise sign-in locally, create a Google OAuth web client,
-register `http://localhost:8080/login/oauth2/code/google` as an authorized redirect URI, and set:
+### Local test accounts
+
+The `.env.example` enables the `local` Spring profile and the local-only login boundary. Start both
+applications, open `http://localhost:4200/login`, and choose **Local Learner** or **Local
+Reviewer**. The first login creates a normal Google-only application user, default deck, and JDBC
+browser session in the local PostgreSQL database. No Google request or phone number is involved.
+
+The local endpoint is available only when both `SPRING_PROFILES_ACTIVE=local` and
+`WHATSANKI_LOCAL_LOGIN_ENABLED=true` are set. Production startup rejects local login.
+
+### Google OAuth
+
+Google OAuth is disabled in the local example. To exercise the real provider flow, create a Google
+OAuth web client, register `http://localhost:4200/login/oauth2/code/google` as an authorized
+redirect URI, and set:
 
 ```dotenv
 WHATSANKI_GOOGLE_OAUTH_ENABLED=true
+WHATSANKI_FRONTEND_BASE_URL=http://localhost:4200
 SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=your-client-id
 SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=your-client-secret
+SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=http://localhost:4200/login/oauth2/code/google
 ```
 
 The backend can start without Twilio credentials when WhatsApp integration is not being exercised.

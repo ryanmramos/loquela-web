@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 test('loads the Loquela design foundation', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/foundation');
 
   await expect(page).toHaveTitle('Design foundation · Loquela');
   await expect(page.getByRole('heading', { name: 'Your language workspace' })).toBeVisible();
@@ -12,7 +12,7 @@ test('loads the Loquela design foundation', async ({ page }) => {
 test('shell and component foundation have no detectable accessibility violations', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto('/foundation');
   await expect(page.getByRole('heading', { name: 'Your language workspace' })).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
@@ -21,7 +21,7 @@ test('shell and component foundation have no detectable accessibility violations
 });
 
 test('skip link moves keyboard focus to main content', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/foundation');
   await expect(page.getByRole('heading', { name: 'Your language workspace' })).toBeVisible();
 
   await page.keyboard.press('Tab');
@@ -33,7 +33,7 @@ test('skip link moves keyboard focus to main content', async ({ page }) => {
 });
 
 test('dialog traps focus, closes with Escape, and restores the trigger', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/foundation');
 
   const trigger = page.getByRole('button', { name: 'Add a source' });
   await trigger.click();
@@ -47,7 +47,7 @@ test('dialog traps focus, closes with Escape, and restores the trigger', async (
 });
 
 test('search and user menu are fully keyboard operable with visible focus', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/foundation');
   await expect(page.getByRole('heading', { name: 'Your language workspace' })).toBeVisible();
 
   const search = page.getByRole('searchbox', { name: 'Search your workspace' });
@@ -76,7 +76,7 @@ for (const viewport of [
 ] as const) {
   test(`renders without horizontal overflow at ${viewport.label} width`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await page.goto('/');
+    await page.goto('/foundation');
 
     const layout = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
@@ -104,7 +104,7 @@ for (const viewport of [
 
 test('reduced motion removes nonessential animation', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/');
+  await page.goto('/foundation');
 
   await expect(page.locator('app-skeleton .skeleton').first()).toHaveCSS('animation-name', 'none');
   await expect(page.locator('.state__spinner')).toHaveCSS('animation-name', 'none');
@@ -119,7 +119,7 @@ test('fails safely when runtime configuration is unavailable', async ({ page }) 
     }),
   );
 
-  await page.goto('/');
+  await page.goto('/foundation');
 
   await expect(page).toHaveTitle('Loquela configuration error');
   await expect(page.getByRole('heading', { name: 'Loquela could not start' })).toBeVisible();

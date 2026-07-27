@@ -1,12 +1,17 @@
 package com.example.whatsanki.browser;
 
 import com.example.whatsanki.controller.RequestCorrelationFilter;
+import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.UserId;
+import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.service.UserIdentityService;
+import com.example.whatsanki.service.security.BrowserReturnPath;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.core.env.Environment;
 import org.springframework.session.SessionRepository;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,18 +36,24 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
     private final UserIdentityService userIdentityService;
     private final RequestCorrelationFilter requestCorrelationFilter;
     private final SessionRepository<?> sessionRepository;
+    private final AppUserRepository appUserRepository;
+    private final Environment environment;
     private MockMvc mockMvc;
 
     BrowserSecurityIntegrationTest(
             WebApplicationContext applicationContext,
             UserIdentityService userIdentityService,
             RequestCorrelationFilter requestCorrelationFilter,
-            SessionRepository<?> sessionRepository
+            SessionRepository<?> sessionRepository,
+            AppUserRepository appUserRepository,
+            Environment environment
     ) {
         this.applicationContext = applicationContext;
         this.userIdentityService = userIdentityService;
         this.requestCorrelationFilter = requestCorrelationFilter;
         this.sessionRepository = sessionRepository;
+        this.appUserRepository = appUserRepository;
+        this.environment = environment;
     }
 
     @BeforeEach
@@ -80,6 +91,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(userId.value().toString()))
                 .andExpect(jsonPath("$.email").value("session@example.com"))
+                .andExpect(jsonPath("$.accountState").value("ACTIVE"))
                 .andExpect(jsonPath("$.linkedAccounts.google").value(true))
                 .andExpect(jsonPath("$.linkedAccounts.whatsapp").value(false))
                 .andExpect(header().string("X-Correlation-ID", not(blankOrNullString())));
@@ -89,6 +101,10 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
     void browserSessionsUseJdbcRepository() {
         assertThat(sessionRepository.getClass().getSimpleName())
                 .isEqualTo("JdbcIndexedSessionRepository");
+        assertThat(environment.getProperty("server.servlet.session.cookie.http-only"))
+                .isEqualTo("true");
+        assertThat(environment.getProperty("server.servlet.session.cookie.same-site"))
+                .isEqualTo("lax");
     }
 
     @Test
@@ -106,10 +122,98 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
     }
 
     @Test
+    void googleEntryStoresOnlyValidatedApplicationReturnPaths() throws Exception {
+        MockHttpSession validSession = new MockHttpSession();
+        mockMvc.perform(get("/api/v1/auth/google")
+                        .param("returnTo", "/app/decks?sort=recent")
+                        .session(validSession))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "/oauth2/authorization/google"));
+        assertThat(validSession.getAttribute(BrowserReturnPath.SESSION_ATTRIBUTE))
+                .isEqualTo("/app/decks?sort=recent");
+
+        MockHttpSession unsafeSession = new MockHttpSession();
+        mockMvc.perform(get("/api/v1/auth/google")
+                        .param("returnTo", "https://evil.example/steal")
+                        .session(unsafeSession))
+                .andExpect(status().isFound());
+        assertThat(unsafeSession.getAttribute(BrowserReturnPath.SESSION_ATTRIBUTE))
+                .isEqualTo("/app");
+    }
+
+    @Test
+    void localTestLoginCreatesReusableServerSessionAndLogoutInvalidatesIt() throws Exception {
+        MockHttpSession session = (MockHttpSession) mockMvc.perform(post("/api/v1/auth/local-login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"accountId":"learner"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("learner@local.loquela.test"))
+                .andExpect(jsonPath("$.accountState").value("ACTIVE"))
+                .andExpect(jsonPath("$.linkedAccounts.whatsapp").value(false))
+                .andExpect(jsonPath("$.accessToken").doesNotExist())
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andReturn()
+                .getRequest()
+                .getSession(false);
+
+        mockMvc.perform(get("/api/v1/session").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("Local Learner"));
+
+        mockMvc.perform(post("/api/v1/session/logout").session(session).with(csrf()))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/v1/session"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void localTestLoginRejectsUnknownAccountsWithTypedValidationProblem() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/local-login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"accountId":"administrator"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("accountId"));
+    }
+
+    @Test
+    void deletingAndDisabledAccountsReceiveExplicitSessionOutcomes() throws Exception {
+        String deletingSubject = "deleting-browser-subject";
+        UserId deletingId = userIdentityService.resolveOrCreateGoogle(deletingSubject, null, "Deleting User");
+        AppUserEntity deleting = appUserRepository.findById(deletingId.value()).orElseThrow();
+        deleting.setStatus(AppUserEntity.Status.DELETING);
+        appUserRepository.saveAndFlush(deleting);
+
+        mockMvc.perform(get("/api/v1/session")
+                        .with(oidcLogin().idToken(token -> token.subject(deletingSubject))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountState").value("DELETING"));
+
+        String disabledSubject = "disabled-browser-subject";
+        UserId disabledId = userIdentityService.resolveOrCreateGoogle(disabledSubject, null, "Disabled User");
+        AppUserEntity disabled = appUserRepository.findById(disabledId.value()).orElseThrow();
+        disabled.setStatus(AppUserEntity.Status.DISABLED);
+        appUserRepository.saveAndFlush(disabled);
+
+        mockMvc.perform(get("/api/v1/session")
+                        .with(oidcLogin().idToken(token -> token.subject(disabledSubject))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("ACCOUNT_DISABLED"));
+    }
+
+    @Test
     void browserOpenApiContainsOnlyDtoBackedBrowserContracts() throws Exception {
         mockMvc.perform(get("/v3/api-docs/browser-v1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.paths['/api/v1/session']").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/auth/local-login']").doesNotExist())
                 .andExpect(jsonPath("$.paths['/webhooks/twilio/whatsapp']").doesNotExist())
                 .andExpect(jsonPath("$.components.securitySchemes.browserSession").exists())
                 .andExpect(jsonPath("$.components.schemas.ApiProblemDto").exists())

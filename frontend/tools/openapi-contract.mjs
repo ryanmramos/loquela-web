@@ -43,10 +43,24 @@ export function validateBrowserOpenApi(contract) {
     );
   }
 
+  const sessionLogout = contract.paths?.['/api/v1/session/logout']?.post;
+  if (!isRecord(sessionLogout) || sessionLogout.operationId !== 'logoutBrowserSession') {
+    errors.push('POST /api/v1/session/logout must keep operationId "logoutBrowserSession".');
+  } else if (!isRecord(sessionLogout.responses?.['204'])) {
+    errors.push('POST /api/v1/session/logout must declare a 204 response.');
+  }
+
+  const googleLogin = contract.paths?.['/api/v1/auth/google']?.get;
+  if (!isRecord(googleLogin) || googleLogin.operationId !== 'startGoogleLogin') {
+    errors.push('GET /api/v1/auth/google must keep operationId "startGoogleLogin".');
+  } else if (!isRecord(googleLogin.responses?.['302'])) {
+    errors.push('GET /api/v1/auth/google must declare its 302 redirect.');
+  }
+
   const schemas = contract.components?.schemas;
   requireFields(
     schemas?.BrowserSessionDto,
-    ['userId', 'sourceLanguage', 'definitionLanguage', 'linkedAccounts'],
+    ['userId', 'sourceLanguage', 'definitionLanguage', 'accountState', 'linkedAccounts'],
     'BrowserSessionDto',
     errors,
   );

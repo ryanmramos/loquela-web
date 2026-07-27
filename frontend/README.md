@@ -73,6 +73,19 @@ The development server proxies `/api`, `/actuator/health`, `/oauth2`, and `/logi
 API requests use the same-origin `/api/v1` base path and include the server session and Spring's
 `XSRF-TOKEN`/`X-XSRF-TOKEN` convention.
 
+## Sign-in and local accounts
+
+The `/login` page redirects Google sign-in to `/api/v1/auth/google`; Spring Security owns the OIDC
+exchange and only the safe session DTO returns to Angular. `SessionFacade` shares one session load,
+guards authenticated/deleting/anonymous routes, handles expiration, and clears memory after the
+CSRF-protected logout operation.
+
+For local development, `public/config.json` displays **Local Learner** and **Local Reviewer**.
+These buttons call the backend's profile- and property-gated local login boundary and create normal
+users and JDBC sessions in the local database. Copy the repository `.env.example` and run the
+backend with its `local` profile. Production runtime configuration rejects this UI capability, and
+the backend production validator rejects the corresponding server flag.
+
 ## Architecture controls
 
 `npm run architecture:check` prevents feature-to-feature deep imports, shared-to-feature imports,

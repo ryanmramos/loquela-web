@@ -1,4 +1,6 @@
-<a class="skip-link" href="#main-content">Skip to main content</a>
+<a class="skip-link" href="#main-content" (click)="focusMain($event, mainContent)">
+  Skip to main content
+</a>
 
 <div class="shell">
   <aside class="sidebar">
@@ -55,7 +57,7 @@
       />
     </header>
 
-    <main id="main-content" tabindex="-1">
+    <main #mainContent id="main-content" tabindex="-1">
       <ng-content />
     </main>
   </div>

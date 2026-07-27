@@ -45,6 +45,7 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
 
   const apiBasePath = requiredString(value, 'apiBasePath');
   const googleLoginPath = requiredString(value, 'googleLoginPath');
+  const localLoginEnabled = value['localLoginEnabled'];
   const supportUrl = requiredString(value, 'supportUrl');
   const environmentName = requiredEnvironment(value['environmentName']);
   const telemetryEnabled = value['telemetryEnabled'];
@@ -52,8 +53,8 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
   if (!isSameOriginPath(apiBasePath, '/api/')) {
     throw new RuntimeConfigError('apiBasePath must be a same-origin /api path.');
   }
-  if (!isSameOriginPath(googleLoginPath, '/oauth2/')) {
-    throw new RuntimeConfigError('googleLoginPath must be a same-origin OAuth path.');
+  if (!isSameOriginPath(googleLoginPath, '/api/')) {
+    throw new RuntimeConfigError('googleLoginPath must be a same-origin /api path.');
   }
   if (!isSafeSupportUrl(supportUrl)) {
     throw new RuntimeConfigError('supportUrl must be a relative path or an HTTPS URL.');
@@ -61,10 +62,17 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
   if (typeof telemetryEnabled !== 'boolean') {
     throw new RuntimeConfigError('telemetryEnabled must be a boolean.');
   }
+  if (typeof localLoginEnabled !== 'boolean') {
+    throw new RuntimeConfigError('localLoginEnabled must be a boolean.');
+  }
+  if (localLoginEnabled && environmentName !== 'local' && environmentName !== 'test') {
+    throw new RuntimeConfigError('localLoginEnabled is restricted to local and test environments.');
+  }
 
   return {
     apiBasePath: trimTrailingSlash(apiBasePath),
     googleLoginPath,
+    localLoginEnabled,
     supportUrl,
     environmentName,
     telemetryEnabled,

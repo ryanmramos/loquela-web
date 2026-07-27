@@ -1,0 +1,35 @@
+@if (session().user; as user) {
+  <app-shell
+    [userName]="user.displayName || 'Loquela learner'"
+    [userEmail]="user.email || 'Google account'"
+    (userActionSelected)="handleUserAction($event)"
+  >
+    <div class="dashboard">
+      @if (logoutFailed()) {
+        <app-alert title="Sign out failed" tone="danger">
+          Your session is still active. Try signing out again.
+        </app-alert>
+      }
+      <p class="eyebrow">Overview</p>
+      <h1>Welcome back, {{ user.displayName || 'learner' }}.</h1>
+      <p>
+        Your authenticated workspace is ready. Sources, cards, decks, and study activity arrive in
+        the next implementation slices.
+      </p>
+      <dl>
+        <div>
+          <dt>Source language</dt>
+          <dd>{{ user.sourceLanguage }}</dd>
+        </div>
+        <div>
+          <dt>Definition language</dt>
+          <dd>{{ user.definitionLanguage }}</dd>
+        </div>
+        <div>
+          <dt>WhatsApp</dt>
+          <dd>{{ user.linkedAccounts.whatsapp ? 'Connected' : 'Not connected (optional)' }}</dd>
+        </div>
+      </dl>
+    </div>
+  </app-shell>
+}

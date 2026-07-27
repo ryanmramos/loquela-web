@@ -1,0 +1,15 @@
+<main class="account-state">
+  <section aria-labelledby="deleting-title">
+    <a class="brand" href="/login">Loquela</a>
+    <p class="eyebrow">Account status</p>
+    <h1 id="deleting-title">Your account is being deleted.</h1>
+    <p>
+      Product activity is unavailable while deletion is in progress. Your session will stop working
+      when cleanup completes.
+    </p>
+    @if (failed()) {
+      <app-alert title="Sign out failed" tone="danger">Try again in a moment.</app-alert>
+    }
+    <button appButton type="button" (click)="signOut()">Sign out</button>
+  </section>
+</main>

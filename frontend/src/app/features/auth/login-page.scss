@@ -1,0 +1,231 @@
+@use '../../../styles/tokens' as tokens;
+
+.login-layout {
+  display: grid;
+  min-height: 100dvh;
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.85fr);
+}
+
+.login-panel {
+  display: grid;
+  place-items: center;
+  padding: var(--space-10);
+  background: var(--color-surface-page);
+}
+
+.login-box {
+  width: min(100%, 35rem);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-12);
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.brand__mark {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 0.8rem 0.8rem 0.8rem 0.3rem;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-xs);
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-tight);
+}
+
+.intro {
+  max-width: 34rem;
+  margin: var(--space-5) 0 var(--space-8);
+  color: var(--color-text-muted);
+}
+
+app-alert {
+  display: block;
+  margin-bottom: var(--space-5);
+}
+
+.google-button {
+  display: flex;
+  width: 100%;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.google-button:hover {
+  border-color: var(--color-primary);
+}
+
+.google-button:focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+
+.google-button__mark {
+  color: var(--color-info);
+  font-size: var(--font-size-lg);
+  font-weight: 900;
+}
+
+.legal,
+.phone-note,
+.local-login p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.legal {
+  margin: var(--space-4) 0 0;
+  text-align: center;
+}
+
+.local-login {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  padding: var(--space-5);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+}
+
+.local-login h2 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+}
+
+.local-login p {
+  margin: var(--space-1) 0 0;
+}
+
+.local-login__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.phone-note {
+  margin-top: var(--space-10);
+}
+
+.login-art {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: var(--space-12);
+  background:
+    radial-gradient(circle at 80% 15%, rgb(215 122 43 / 24%), transparent 22rem),
+    var(--color-primary-strong);
+  color: var(--color-on-primary);
+}
+
+.login-art__content {
+  width: min(100%, 31rem);
+}
+
+.login-art .eyebrow {
+  color: #bcd7c9;
+}
+
+.login-art h2 {
+  margin: 0 0 var(--space-8);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+}
+
+.context-card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 10%);
+  box-shadow: var(--shadow-md);
+}
+
+.context-card__label {
+  width: fit-content;
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.context-card strong {
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+}
+
+.context-card span {
+  color: var(--color-primary-soft);
+}
+
+.context-card blockquote {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-4);
+  border-left: 0.2rem solid var(--color-accent);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+}
+
+@media (max-width: tokens.$breakpoint-tablet) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-art {
+    display: none;
+  }
+}
+
+@media (max-width: tokens.$breakpoint-mobile) {
+  .login-panel {
+    align-items: start;
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .brand {
+    margin-bottom: var(--space-8);
+  }
+
+  .local-login__actions {
+    display: grid;
+  }
+}

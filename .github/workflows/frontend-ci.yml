@@ -39,7 +39,10 @@ jobs:
           distribution: temurin
           java-version: "17"
       - run: npm ci
-      - run: ./mvnw -Dtest=BrowserOpenApiContractIntegrationTest test
+      - run: >-
+          ./mvnw
+          -Dtest=BrowserOpenApiContractIntegrationTest,BrowserSecurityIntegrationTest,BrowserGoogleOAuthConfigurationIntegrationTest
+          test
         working-directory: ${{ github.workspace }}
       - run: npm run lint
       - run: npm run format:check

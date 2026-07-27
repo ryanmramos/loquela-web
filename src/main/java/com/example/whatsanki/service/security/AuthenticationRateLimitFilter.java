@@ -43,6 +43,7 @@ public final class AuthenticationRateLimitFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         return !path.startsWith("/oauth2/authorization/")
                 && !path.startsWith("/login/oauth2/code/")
+                && !path.startsWith("/api/v1/auth/")
                 && !path.startsWith("/api/v1/whatsapp-link-challenges");
     }
 

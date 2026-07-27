@@ -36,7 +36,8 @@ function configure(environmentName: RuntimeConfig['environmentName']): void {
         provide: RUNTIME_CONFIG,
         useValue: {
           apiBasePath: '/api/v1',
-          googleLoginPath: '/oauth2/authorization/google',
+          googleLoginPath: '/api/v1/auth/google',
+          localLoginEnabled: environmentName === 'local' || environmentName === 'test',
           supportUrl: '/support',
           environmentName,
           telemetryEnabled: false,

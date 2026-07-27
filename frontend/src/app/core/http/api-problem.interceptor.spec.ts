@@ -9,7 +9,8 @@ import { apiProblemInterceptor } from './api-problem.interceptor';
 
 const runtimeConfig: RuntimeConfig = {
   apiBasePath: '/api/v1',
-  googleLoginPath: '/oauth2/authorization/google',
+  googleLoginPath: '/api/v1/auth/google',
+  localLoginEnabled: true,
   supportUrl: '/support',
   environmentName: 'test',
   telemetryEnabled: false,

@@ -11,6 +11,7 @@ export type EnvironmentName = (typeof ENVIRONMENT_NAMES)[number];
 export interface RuntimeConfig {
   readonly apiBasePath: string;
   readonly googleLoginPath: string;
+  readonly localLoginEnabled: boolean;
   readonly supportUrl: string;
   readonly environmentName: EnvironmentName;
   readonly telemetryEnabled: boolean;

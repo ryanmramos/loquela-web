@@ -3,6 +3,7 @@
 
 import { LinkedAccountsDto } from '../models/linked-accounts-dto';
 export interface BrowserSessionDto {
+  accountState: 'ACTIVE' | 'DELETING';
   definitionLanguage: string;
   displayName?: string;
   email?: string;

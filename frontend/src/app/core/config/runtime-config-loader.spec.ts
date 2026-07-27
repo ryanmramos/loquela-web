@@ -9,7 +9,8 @@ import {
 
 const validConfig = {
   apiBasePath: '/api/v1',
-  googleLoginPath: '/oauth2/authorization/google',
+  googleLoginPath: '/api/v1/auth/google',
+  localLoginEnabled: true,
   supportUrl: '/support',
   environmentName: 'local',
   telemetryEnabled: false,
@@ -44,6 +45,15 @@ describe('runtime configuration', () => {
         apiBasePath: 'https://api.example.com/api/v1',
       }),
     ).toThrow('apiBasePath must be a same-origin /api path.');
+  });
+
+  it('rejects local login outside local and test environments', () => {
+    expect(() =>
+      parseRuntimeConfig({
+        ...validConfig,
+        environmentName: 'production',
+      }),
+    ).toThrow('localLoginEnabled is restricted to local and test environments.');
   });
 
   it('renders a safe bootstrap error without inserting configuration details', () => {

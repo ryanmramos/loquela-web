@@ -4,6 +4,7 @@ import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.security.AuthenticationRateLimitFilter;
+import com.example.whatsanki.service.security.BrowserAuthenticationSuccessHandler;
 import com.example.whatsanki.service.security.CsrfCookieFilter;
 import com.example.whatsanki.service.security.SpaCsrfTokenRequestHandler;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,6 +52,7 @@ public class BrowserSecurityConfiguration {
         http.authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/webhooks/**", "/actuator/health/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/index.html", "/favicon.ico", "/assets/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
@@ -96,8 +98,13 @@ public class BrowserSecurityConfiguration {
         if (configuration.getSecurity().isGoogleOauthEnabled()) {
             http.oauth2Login(oauth -> oauth
                     .userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService()))
-                    .defaultSuccessUrl("/app", true)
-                    .failureUrl("/login?oauthError=true"));
+                    .successHandler(new BrowserAuthenticationSuccessHandler(
+                            configuration.getSecurity().getFrontendBaseUrl()
+                    ))
+                    .failureUrl(BrowserAuthenticationSuccessHandler.frontendUrl(
+                            configuration.getSecurity().getFrontendBaseUrl(),
+                            "/login?reason=oauth-error"
+                    )));
         }
         return http.build();
     }

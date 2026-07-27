@@ -105,7 +105,10 @@ public class WhatsAnkiConfigurationDto {
     @Setter
     public static class Security {
         private boolean googleOauthEnabled;
+        private boolean localLoginEnabled;
         private boolean secureCookies;
+        @NotNull
+        private URI frontendBaseUrl = URI.create("http://localhost:4200");
 
         @NotNull
         private Duration sessionTimeout = Duration.ofHours(8);

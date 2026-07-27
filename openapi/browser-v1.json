@@ -13,6 +13,18 @@
     "browserSession" : [ ]
   } ],
   "paths" : {
+    "/api/v1/session/logout" : {
+      "post" : {
+        "tags" : [ "browser-session-controller" ],
+        "summary" : "Invalidate the current browser session",
+        "operationId" : "logoutBrowserSession",
+        "responses" : {
+          "204" : {
+            "description" : "Session invalidated"
+          }
+        }
+      }
+    },
     "/api/v1/session" : {
       "get" : {
         "tags" : [ "browser-session-controller" ],
@@ -41,6 +53,26 @@
           }
         }
       }
+    },
+    "/api/v1/auth/google" : {
+      "get" : {
+        "tags" : [ "browser-authentication-controller" ],
+        "summary" : "Start Google sign-in with a validated frontend return path",
+        "operationId" : "startGoogleLogin",
+        "parameters" : [ {
+          "name" : "returnTo",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "302" : {
+            "description" : "Redirect to Spring Security's Google authorization endpoint"
+          }
+        }
+      }
     }
   },
   "components" : {
@@ -64,11 +96,15 @@
           "definitionLanguage" : {
             "type" : "string"
           },
+          "accountState" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "DELETING" ]
+          },
           "linkedAccounts" : {
             "$ref" : "#/components/schemas/LinkedAccountsDto"
           }
         },
-        "required" : [ "definitionLanguage", "linkedAccounts", "sourceLanguage", "userId" ]
+        "required" : [ "accountState", "definitionLanguage", "linkedAccounts", "sourceLanguage", "userId" ]
       },
       "LinkedAccountsDto" : {
         "type" : "object",

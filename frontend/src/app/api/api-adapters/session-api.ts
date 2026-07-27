@@ -1,8 +1,10 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { Api } from '@api/generated/api';
 import { getBrowserSession } from '@api/generated/fn/browser-session-controller/get-browser-session';
+import { logoutBrowserSession } from '@api/generated/fn/browser-session-controller/logout-browser-session';
 import { BrowserSessionDto } from '@api/generated/models/browser-session-dto';
 
 export interface BrowserSession {
@@ -11,6 +13,7 @@ export interface BrowserSession {
   readonly email: string | null;
   readonly sourceLanguage: string;
   readonly definitionLanguage: string;
+  readonly accountState: 'ACTIVE' | 'DELETING';
   readonly linkedAccounts: {
     readonly google: boolean;
     readonly whatsapp: boolean;
@@ -24,11 +27,25 @@ export interface BrowserSession {
 @Injectable({ providedIn: 'root' })
 export class SessionApi {
   private readonly api = inject(Api);
+  private readonly http = inject(HttpClient);
 
   getCurrent(): Observable<BrowserSession> {
     return this.api.invoke(getBrowserSession).pipe(map(toBrowserSession));
   }
+
+  logout(): Observable<void> {
+    return this.api.invoke(logoutBrowserSession).pipe(map(() => undefined));
+  }
+
+  localLogin(accountId: LocalAccountId): Observable<BrowserSession> {
+    // This endpoint is deliberately excluded from the production OpenAPI contract.
+    return this.http
+      .post<BrowserSessionDto>('/api/v1/auth/local-login', { accountId })
+      .pipe(map(toBrowserSession));
+  }
 }
+
+export type LocalAccountId = 'learner' | 'reviewer';
 
 function toBrowserSession(response: BrowserSessionDto): BrowserSession {
   return {
@@ -37,6 +54,7 @@ function toBrowserSession(response: BrowserSessionDto): BrowserSession {
     email: response.email ?? null,
     sourceLanguage: response.sourceLanguage,
     definitionLanguage: response.definitionLanguage,
+    accountState: response.accountState,
     linkedAccounts: {
       google: response.linkedAccounts.google,
       whatsapp: response.linkedAccounts.whatsapp,
