@@ -1,0 +1,156 @@
+:host {
+  display: block;
+}
+
+.source-page {
+  width: min(100%, 76rem);
+  margin: 0 auto;
+  padding: var(--space-8);
+}
+
+.source-header,
+.filters,
+.filter-actions,
+.source-cards li > div {
+  display: flex;
+  align-items: center;
+}
+
+.source-header {
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.source-header h1 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+}
+
+.source-header p:not(.eyebrow),
+.result-count,
+.source-cards p {
+  color: var(--color-text-muted);
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.filters {
+  align-items: end;
+  gap: var(--space-3);
+  margin: var(--space-7) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+}
+
+.filters app-form-field:first-child {
+  flex: 1 1 15rem;
+}
+
+.filter-actions {
+  gap: var(--space-2);
+  padding-bottom: 0.1rem;
+}
+
+.source-table {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+th {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
+td a,
+.source-cards a {
+  color: var(--color-text);
+  font-weight: 750;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.source-cards {
+  display: none;
+  padding: 0;
+  list-style: none;
+}
+
+.source-cards li {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+}
+
+.source-cards li > div {
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.source-cards p {
+  margin-bottom: 0;
+}
+
+.empty-action {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 62rem) {
+  .filters {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 42rem) {
+  .source-page {
+    padding: var(--space-5) var(--space-4) var(--space-10);
+  }
+
+  .source-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .source-table {
+    display: none;
+  }
+
+  .source-cards {
+    display: grid;
+    gap: var(--space-3);
+  }
+}

@@ -8,7 +8,8 @@
   --color-surface-panel: #ffffff;
   --color-surface-raised: #fbfcf8;
   --color-text: #1c2b22;
-  --color-text-muted: #64756a;
+  // Retains AA contrast on every light semantic surface, including success alerts.
+  --color-text-muted: #607066;
   --color-border: #dde7df;
   --color-primary: #166534;
   --color-primary-strong: #14532d;
@@ -17,7 +18,7 @@
   --color-accent-soft: #fff7d6;
   --color-info: #0f766e;
   --color-info-soft: #e6f7f4;
-  --color-warning: #a16207;
+  --color-warning: #975c06;
   --color-warning-soft: #fef3c7;
   --color-danger: #b42318;
   --color-danger-strong: #8f1d14;

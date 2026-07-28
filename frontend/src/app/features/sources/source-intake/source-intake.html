@@ -1,0 +1,101 @@
+<section class="intake-page">
+  <header>
+    <p class="eyebrow">Source intake</p>
+    <h1>Add a source</h1>
+    <p>Add text, captions, or a document. Processing continues if you leave this page.</p>
+  </header>
+
+  @if (errorMessage(); as message) {
+    <app-alert title="Source not accepted" tone="danger">{{ message }}</app-alert>
+  }
+
+  <div class="intake-grid">
+    <section class="intake-card" aria-labelledby="paste-heading">
+      <div class="card-mark" aria-hidden="true">Aa</div>
+      <h2 id="paste-heading">Paste text</h2>
+      <p>Turn an article excerpt, notes, or a transcript into searchable contexts.</p>
+      <form [formGroup]="pastedText" (ngSubmit)="submitPastedText()">
+        <app-form-field
+          inputId="pasted-text"
+          label="Source text"
+          hint="Up to 2 million characters."
+          [required]="true"
+          [error]="
+            pastedText.controls.text.touched && pastedText.controls.text.invalid
+              ? 'Enter some text.'
+              : undefined
+          "
+        >
+          <textarea id="pasted-text" rows="8" formControlName="text"></textarea>
+        </app-form-field>
+        <button appButton type="submit" [disabled]="status() === 'submitting'">
+          {{ status() === 'submitting' ? 'Adding…' : 'Add pasted text' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="intake-card" aria-labelledby="youtube-heading">
+      <div class="card-mark" aria-hidden="true">▶</div>
+      <h2 id="youtube-heading">YouTube captions</h2>
+      <p>Use one public video URL. Playlists and videos without usable captions are unsupported.</p>
+      <form [formGroup]="youtube" (ngSubmit)="submitYouTube()">
+        <app-form-field
+          inputId="youtube-url"
+          label="YouTube URL"
+          hint="HTTPS youtube.com or youtu.be links only."
+          [required]="true"
+          [error]="
+            youtube.controls.url.touched && youtube.controls.url.invalid
+              ? 'Enter a YouTube URL.'
+              : undefined
+          "
+        >
+          <input
+            id="youtube-url"
+            type="url"
+            formControlName="url"
+            placeholder="https://www.youtube.com/watch?v=…"
+          />
+        </app-form-field>
+        <button appButton type="submit" [disabled]="status() === 'submitting'">
+          {{ status() === 'submitting' ? 'Adding…' : 'Add captions' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="intake-card intake-card--wide" aria-labelledby="upload-heading">
+      <div class="card-mark" aria-hidden="true">↑</div>
+      <h2 id="upload-heading">Upload a document</h2>
+      <p>
+        PDF files need a readable text layer. TXT files must be UTF-8. EPUB files are inspected and
+        processed in reading order.
+      </p>
+      <app-form-field
+        inputId="source-file"
+        label="Document"
+        hint="PDF, TXT, or EPUB · maximum 15 MB"
+        [required]="true"
+      >
+        <input
+          id="source-file"
+          type="file"
+          accept=".pdf,.txt,.epub,application/pdf,text/plain,application/epub+zip"
+          (change)="selectFile($event)"
+        />
+      </app-form-field>
+      @if (selectedFile(); as file) {
+        <p class="selected-file" aria-live="polite">{{ file.name }} · {{ file.size }} bytes</p>
+      }
+      <button
+        appButton
+        type="button"
+        [disabled]="!selectedFile() || status() === 'submitting'"
+        (click)="submitFile()"
+      >
+        {{ status() === 'submitting' ? 'Validating and uploading…' : 'Upload document' }}
+      </button>
+    </section>
+  </div>
+
+  <a class="back-link" routerLink="/app/sources">← Back to sources</a>
+</section>

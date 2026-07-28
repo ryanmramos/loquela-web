@@ -26,7 +26,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(20);
+        assertThat(flyway.info().applied()).hasSize(21);
     }
 
     @Test
@@ -42,7 +42,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                 "app_user", "inbound_message", "source_document", "passage",
                 "background_job", "lookup_session", "deck", "card", "export_request",
                 "outbound_message", "account_deletion_request", "video_source",
-                "user_identity", "spring_session", "spring_session_attributes",
+                "user_identity", "source_upload", "spring_session", "spring_session_attributes",
                 "flyway_schema_history"
         );
 

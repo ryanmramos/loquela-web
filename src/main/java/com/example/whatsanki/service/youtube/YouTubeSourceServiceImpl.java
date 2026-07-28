@@ -25,6 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -55,9 +58,24 @@ public class YouTubeSourceServiceImpl implements YouTubeSourceService {
         if (inbound.getCommandType() != InboundMessageEntity.CommandType.YOUTUBE) {
             throw new IllegalStateException("Inbound message is not a YouTube command");
         }
+        return acceptNew(userId, inboundMessageId, reference, "WHATSAPP");
+    }
+
+    @Override
+    @Transactional
+    public YouTubeSourceAcceptanceDto acceptWebsite(UserId userId, String rawUrl) {
+        return acceptNew(userId, null, urlPolicy.parse(rawUrl), "WEBSITE");
+    }
+
+    private YouTubeSourceAcceptanceDto acceptNew(
+            UserId userId,
+            InboundMessageId inboundMessageId,
+            YouTubeVideoReferenceDto reference,
+            String origin
+    ) {
         AppUserEntity user = appUserRepository.findById(userId.value())
                 .filter(candidate -> candidate.getStatus() == AppUserEntity.Status.ACTIVE)
-                .orElseThrow(() -> new IllegalStateException("Active user was not found for YouTube command"));
+                .orElseThrow(() -> new IllegalStateException("Active user was not found for YouTube source"));
         String language = new LanguageTag(user.getSourceLanguage()).value();
 
         var existingVideo = videoSourceRepository.findByUserIdAndProviderAndProviderVideoIdAndCaptionLanguage(
@@ -72,11 +90,12 @@ public class YouTubeSourceServiceImpl implements YouTubeSourceService {
         SourceDocumentEntity source = new SourceDocumentEntity();
         source.setId(sourceId.value());
         source.setUserId(userId.value());
-        source.setInboundMessageId(inboundMessageId.value());
+        source.setInboundMessageId(inboundMessageId == null ? null : inboundMessageId.value());
         source.setKind(SourceDocumentEntity.Kind.YOUTUBE_VIDEO);
         source.setDisplayName("YouTube · " + reference.videoId());
         source.setStatus(SourceDocumentEntity.Status.RECEIVED);
         source.setLanguage(language);
+        source.setMetadata(new LinkedHashMap<>(Map.of("origin", origin)));
         sourceDocumentRepository.save(source);
 
         VideoSourceEntity video = new VideoSourceEntity();

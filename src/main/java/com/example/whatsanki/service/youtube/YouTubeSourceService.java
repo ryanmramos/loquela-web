@@ -6,4 +6,6 @@ import com.example.whatsanki.dto.YouTubeSourceAcceptanceDto;
 
 public interface YouTubeSourceService {
     YouTubeSourceAcceptanceDto accept(UserId userId, InboundMessageId inboundMessageId, String rawUrl);
+
+    YouTubeSourceAcceptanceDto acceptWebsite(UserId userId, String rawUrl);
 }

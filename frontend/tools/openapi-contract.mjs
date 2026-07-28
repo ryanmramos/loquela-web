@@ -88,6 +88,56 @@ export function validateBrowserOpenApi(contract) {
     );
   }
 
+  const sourceList = contract.paths?.['/api/v1/sources']?.get;
+  if (!isRecord(sourceList) || sourceList.operationId !== 'listSources') {
+    errors.push('GET /api/v1/sources must keep operationId "listSources".');
+  } else {
+    requireSchemaReference(
+      sourceList,
+      '200',
+      'application/json',
+      '#/components/schemas/SourceListDto',
+      errors,
+    );
+  }
+
+  const sourceDetails = contract.paths?.['/api/v1/sources/{sourceReference}'];
+  for (const [method, operationId] of [
+    ['get', 'getSource'],
+    ['patch', 'renameSource'],
+    ['delete', 'deleteSource'],
+  ]) {
+    if (!isRecord(sourceDetails?.[method]) || sourceDetails[method].operationId !== operationId) {
+      errors.push(
+        `${method.toUpperCase()} /api/v1/sources/{sourceReference} must keep operationId "${operationId}".`,
+      );
+    }
+  }
+
+  const retrySource = contract.paths?.['/api/v1/sources/{sourceReference}/retry']?.post;
+  if (!isRecord(retrySource) || retrySource.operationId !== 'retrySource') {
+    errors.push(
+      'POST /api/v1/sources/{sourceReference}/retry must keep operationId "retrySource".',
+    );
+  }
+
+  const youtubeCreate = contract.paths?.['/api/v1/sources/youtube']?.post;
+  if (!isRecord(youtubeCreate) || youtubeCreate.operationId !== 'createYouTubeSource') {
+    errors.push('POST /api/v1/sources/youtube must keep operationId "createYouTubeSource".');
+  }
+
+  const uploadCreate = contract.paths?.['/api/v1/source-uploads']?.post;
+  const uploadComplete =
+    contract.paths?.['/api/v1/source-uploads/{uploadReference}/complete']?.post;
+  if (!isRecord(uploadCreate) || uploadCreate.operationId !== 'createSourceUpload') {
+    errors.push('POST /api/v1/source-uploads must keep operationId "createSourceUpload".');
+  }
+  if (!isRecord(uploadComplete) || uploadComplete.operationId !== 'completeSourceUpload') {
+    errors.push(
+      'POST /api/v1/source-uploads/{uploadReference}/complete must keep operationId "completeSourceUpload".',
+    );
+  }
+
   const schemas = contract.components?.schemas;
   requireFields(
     schemas?.BrowserSessionDto,
@@ -139,6 +189,64 @@ export function validateBrowserOpenApi(contract) {
     schemas?.PastedTextSourceDto,
     ['sourceId', 'reference', 'status', 'characterCount'],
     'PastedTextSourceDto',
+    errors,
+  );
+  requireFields(
+    schemas?.SourceListDto,
+    ['items', 'page', 'pageSize', 'totalItems', 'totalPages'],
+    'SourceListDto',
+    errors,
+  );
+  requireFields(
+    schemas?.BrowserSourceSummaryDto,
+    [
+      'reference',
+      'kind',
+      'status',
+      'displayName',
+      'language',
+      'retryable',
+      'createdAt',
+      'updatedAt',
+      'version',
+    ],
+    'BrowserSourceSummaryDto',
+    errors,
+  );
+  requireFields(
+    schemas?.BrowserSourceDetailsDto,
+    [
+      'reference',
+      'kind',
+      'status',
+      'displayName',
+      'language',
+      'origin',
+      'retryable',
+      'createdAt',
+      'updatedAt',
+      'version',
+    ],
+    'BrowserSourceDetailsDto',
+    errors,
+  );
+  requireFields(
+    schemas?.SourceUploadIntentDto,
+    [
+      'uploadReference',
+      'uploadMode',
+      'completionPath',
+      'maxBytes',
+      'acceptedMediaTypes',
+      'expiresAt',
+    ],
+    'SourceUploadIntentDto',
+    errors,
+  );
+  requireFields(
+    schemas?.AcceptedSourceDto,
+    ['reference', 'status', 'existing'],
+    'AcceptedSourceDto',
     errors,
   );
 

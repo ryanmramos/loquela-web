@@ -2,6 +2,7 @@ package com.example.whatsanki.repository;
 
 import com.example.whatsanki.domain.SourceDocumentEntity;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
@@ -14,11 +15,28 @@ import java.util.UUID;
 
 public interface SourceDocumentRepository extends Repository<SourceDocumentEntity, UUID> {
     SourceDocumentEntity save(SourceDocumentEntity source);
+    SourceDocumentEntity saveAndFlush(SourceDocumentEntity source);
     Optional<SourceDocumentEntity> findByIdAndUserId(UUID id, UUID userId);
     Optional<SourceDocumentEntity> findByUserIdAndInboundMessageId(UUID userId, UUID inboundMessageId);
     List<SourceDocumentEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     List<SourceDocumentEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
     List<SourceDocumentEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+    @Query("""
+            select source
+            from SourceDocumentEntity source
+            where source.userId = :userId
+              and source.status <> com.example.whatsanki.domain.SourceDocumentEntity.Status.DELETED
+              and lower(source.displayName) like lower(concat('%', :search, '%'))
+              and (:kind is null or source.kind = :kind)
+              and (:status is null or source.status = :status)
+            """)
+    Page<SourceDocumentEntity> findBrowserPage(
+            @Param("userId") UUID userId,
+            @Param("search") String search,
+            @Param("kind") SourceDocumentEntity.Kind kind,
+            @Param("status") SourceDocumentEntity.Status status,
+            Pageable pageable
+    );
     long countByUserIdAndStatusNot(UUID userId, SourceDocumentEntity.Status status);
     long countByUserIdAndStatus(UUID userId, SourceDocumentEntity.Status status);
     long countByUserIdAndStatusIn(UUID userId, Set<SourceDocumentEntity.Status> statuses);

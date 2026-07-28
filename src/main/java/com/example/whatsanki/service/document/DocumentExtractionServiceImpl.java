@@ -84,7 +84,11 @@ public class DocumentExtractionServiceImpl implements DocumentExtractionService 
                 .mapToLong(passage -> passage.displayText().codePointCount(0, passage.displayText().length()))
                 .sum();
         if (passages.isEmpty() || characterCount == 0) {
-            throw DocumentExtractionException.permanent("PDF_NEEDS_OCR");
+            throw DocumentExtractionException.permanent(
+                    preparation.kind() == SourceDocumentEntity.Kind.PDF
+                            ? "PDF_NEEDS_OCR"
+                            : "DOCUMENT_HAS_NO_TEXT"
+            );
         }
         lifecycleService.complete(userId, sourceId, passages, characterCount);
     }

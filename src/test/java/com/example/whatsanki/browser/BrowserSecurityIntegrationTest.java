@@ -2,11 +2,14 @@ package com.example.whatsanki.browser;
 
 import com.example.whatsanki.controller.RequestCorrelationFilter;
 import com.example.whatsanki.domain.AppUserEntity;
+import com.example.whatsanki.domain.SourceDocumentEntity;
+import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.security.BrowserReturnPath;
+import com.example.whatsanki.service.util.SourceReferenceCodec;
 import com.example.whatsanki.support.PostgreSqlIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -185,6 +190,75 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
     }
 
     @Test
+    void sourceManagementIsFilteredPaginatedCsrfProtectedAndOwnerScoped() throws Exception {
+        String ownerSubject = "source-owner-subject";
+        UserId owner = userIdentityService.resolveOrCreateGoogle(
+                ownerSubject, "source-owner@example.com", "Source Owner"
+        );
+        UserId other = userIdentityService.resolveOrCreateGoogle(
+                "other-source-subject", "other-source@example.com", "Other Owner"
+        );
+        SourceDocumentEntity matching = source(owner, "Spanish reader", SourceDocumentEntity.Kind.PDF);
+        SourceDocumentEntity hidden = source(other, "Other reader", SourceDocumentEntity.Kind.PDF);
+        sourceDocumentRepository.save(matching);
+        sourceDocumentRepository.save(hidden);
+        String matchingReference = SourceReferenceCodec.encode(new SourceId(matching.getId()));
+        String hiddenReference = SourceReferenceCodec.encode(new SourceId(hidden.getId()));
+
+        mockMvc.perform(get("/api/v1/sources")
+                        .with(oidcLogin().idToken(token -> token.subject(ownerSubject)))
+                        .param("search", "Spanish")
+                        .param("kind", "PDF")
+                        .param("status", "READY")
+                        .param("page", "0")
+                        .param("pageSize", "20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].reference").value(matchingReference))
+                .andExpect(jsonPath("$.items[0].displayName").value("Spanish reader"))
+                .andExpect(jsonPath("$.totalItems").value(1));
+
+        // Opening the Sources route sends no optional filters. This guards the PostgreSQL
+        // parameter typing used by the default list request.
+        mockMvc.perform(get("/api/v1/sources")
+                        .with(oidcLogin().idToken(token -> token.subject(ownerSubject))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].reference").value(matchingReference))
+                .andExpect(jsonPath("$.totalItems").value(1));
+
+        mockMvc.perform(get("/api/v1/sources/" + hiddenReference)
+                        .with(oidcLogin().idToken(token -> token.subject(ownerSubject))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("SOURCE_NOT_FOUND"));
+
+        mockMvc.perform(patch("/api/v1/sources/" + matchingReference)
+                        .with(oidcLogin().idToken(token -> token.subject(ownerSubject)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"displayName":"Renamed reader","version":0}
+                                """))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(patch("/api/v1/sources/" + matchingReference)
+                        .with(oidcLogin().idToken(token -> token.subject(ownerSubject)))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"displayName":"Renamed reader","version":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("Renamed reader"))
+                .andExpect(jsonPath("$.version").value(1));
+
+        mockMvc.perform(delete("/api/v1/sources/" + hiddenReference)
+                        .with(oidcLogin().idToken(token -> token.subject(ownerSubject)))
+                        .with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("SOURCE_NOT_FOUND"));
+    }
+
+    @Test
     void googleEntryStoresOnlyValidatedApplicationReturnPaths() throws Exception {
         MockHttpSession validSession = new MockHttpSession();
         mockMvc.perform(get("/api/v1/auth/google")
@@ -278,13 +352,32 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/v1/session']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/dashboard']").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/sources'].post").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/sources'].get").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/sources/{sourceReference}'].patch").exists())
+                .andExpect(jsonPath("$.paths['/api/v1/source-uploads'].post").exists())
                 .andExpect(jsonPath("$.paths['/api/v1/auth/local-login']").doesNotExist())
                 .andExpect(jsonPath("$.paths['/webhooks/twilio/whatsapp']").doesNotExist())
                 .andExpect(jsonPath("$.components.securitySchemes.browserSession").exists())
                 .andExpect(jsonPath("$.components.schemas.ApiProblemDto").exists())
                 .andExpect(jsonPath("$.components.schemas.DashboardDto").exists())
                 .andExpect(jsonPath("$.components.schemas.PastedTextSourceDto").exists())
+                .andExpect(jsonPath("$.components.schemas.SourceListDto").exists())
                 .andExpect(jsonPath("$.components.schemas.AppUserEntity").doesNotExist())
                 .andExpect(jsonPath("$.components.schemas.UserIdentityEntity").doesNotExist());
+    }
+
+    private SourceDocumentEntity source(
+            UserId userId,
+            String name,
+            SourceDocumentEntity.Kind kind
+    ) {
+        SourceDocumentEntity source = new SourceDocumentEntity();
+        source.setId(SourceId.random().value());
+        source.setUserId(userId.value());
+        source.setKind(kind);
+        source.setDisplayName(name);
+        source.setStatus(SourceDocumentEntity.Status.READY);
+        source.setLanguage("es");
+        return source;
     }
 }

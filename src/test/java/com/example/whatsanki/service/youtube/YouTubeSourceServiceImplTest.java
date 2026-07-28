@@ -97,4 +97,27 @@ class YouTubeSourceServiceImplTest {
         assertThat(payload.getValue()).containsOnlyKeys("schemaVersion", "sourceId");
         assertThat(payload.getValue()).containsEntry("sourceId", accepted.sourceId().value().toString());
     }
+
+    @Test
+    void websiteAcceptanceDoesNotInventAWhatsAppMessage() {
+        UserId userId = UserId.random();
+        AppUserEntity user = new AppUserEntity();
+        user.setId(userId.value());
+        user.setStatus(AppUserEntity.Status.ACTIVE);
+        user.setSourceLanguage("es");
+        when(appUserRepository.findById(userId.value())).thenReturn(Optional.of(user));
+        when(videoSourceRepository.findByUserIdAndProviderAndProviderVideoIdAndCaptionLanguage(
+                userId.value(), VideoSourceEntity.Provider.YOUTUBE, "dQw4w9WgXcQ", "es"
+        )).thenReturn(Optional.empty());
+        when(backgroundJobService.enqueue(
+                eq(userId), eq(BackgroundJobEntity.Type.FETCH_VIDEO_SUBTITLES), any(Map.class)
+        )).thenReturn(JobId.random());
+
+        service.acceptWebsite(userId, "https://youtu.be/dQw4w9WgXcQ");
+
+        ArgumentCaptor<SourceDocumentEntity> source = ArgumentCaptor.forClass(SourceDocumentEntity.class);
+        verify(sourceDocumentRepository).save(source.capture());
+        assertThat(source.getValue().getInboundMessageId()).isNull();
+        assertThat(source.getValue().getMetadata()).containsEntry("origin", "WEBSITE");
+    }
 }

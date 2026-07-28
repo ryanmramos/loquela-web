@@ -32,31 +32,25 @@ export const routes: Routes = [
       {
         path: 'sources',
         title: 'Sources',
-        data: {
-          featureKey: 'sources',
-          eyebrow: 'Source library',
-          heading: 'Sources',
-          description:
-            'Source management arrives in Step 10. Dashboard filters are preserved in this route.',
-        },
         loadComponent: () =>
-          import('@app/features/placeholder/feature-placeholder-page').then(
-            (module) => module.FeaturePlaceholderPage,
+          import('@app/features/sources/source-list/source-list').then(
+            (module) => module.SourceList,
+          ),
+      },
+      {
+        path: 'sources/new',
+        title: 'Add source',
+        loadComponent: () =>
+          import('@app/features/sources/source-intake/source-intake').then(
+            (module) => module.SourceIntake,
           ),
       },
       {
         path: 'sources/:sourceReference',
-        title: 'Source activity',
-        data: {
-          featureKey: 'source',
-          eyebrow: 'Source activity',
-          heading: 'Your source was accepted',
-          description:
-            'Indexing continues in the background. Full source details arrive in Step 10.',
-        },
+        title: 'Source details',
         loadComponent: () =>
-          import('@app/features/placeholder/feature-placeholder-page').then(
-            (module) => module.FeaturePlaceholderPage,
+          import('@app/features/sources/source-details/source-details').then(
+            (module) => module.SourceDetails,
           ),
       },
       {

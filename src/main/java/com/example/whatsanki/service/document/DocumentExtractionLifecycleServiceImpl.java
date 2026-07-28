@@ -38,7 +38,7 @@ public class DocumentExtractionLifecycleServiceImpl implements DocumentExtractio
         if (source.getStatus() == SourceDocumentEntity.Status.READY) {
             return DocumentExtractionPreparationDto.ready();
         }
-        if (source.getKind() != SourceDocumentEntity.Kind.PDF) {
+        if (!isDocument(source.getKind())) {
             throw DocumentExtractionException.permanent("INVALID_SOURCE_KIND");
         }
         if (source.getStatus() != SourceDocumentEntity.Status.STORED
@@ -77,10 +77,10 @@ public class DocumentExtractionLifecycleServiceImpl implements DocumentExtractio
 
         SourceDocumentEntity source = findSource(userId, sourceId);
         if (source.getStatus() == SourceDocumentEntity.Status.READY) {
-            log.info("Skipped already-ready PDF indexing userId={} sourceId={}", userId.value(), sourceId.value());
+            log.info("Skipped already-ready document indexing userId={} sourceId={}", userId.value(), sourceId.value());
             return;
         }
-        if (source.getKind() != SourceDocumentEntity.Kind.PDF
+        if (!isDocument(source.getKind())
                 || (source.getStatus() != SourceDocumentEntity.Status.EXTRACTING
                 && source.getStatus() != SourceDocumentEntity.Status.INDEXING)) {
             throw DocumentExtractionException.permanent("INVALID_SOURCE_STATE");
@@ -115,7 +115,7 @@ public class DocumentExtractionLifecycleServiceImpl implements DocumentExtractio
         source.setStatus(SourceDocumentEntity.Status.READY);
         sourceDocumentRepository.save(source);
         log.info(
-                "Completed PDF indexing userId={} sourceId={} passageCount={} characterCount={}",
+                "Completed document indexing userId={} sourceId={} passageCount={} characterCount={}",
                 userId.value(), sourceId.value(), passages.size(), characterCount
         );
     }
@@ -142,8 +142,14 @@ public class DocumentExtractionLifecycleServiceImpl implements DocumentExtractio
         source.setErrorCode(validated.errorCode());
         source.setErrorDetailSafe(null);
         sourceDocumentRepository.save(source);
-        log.warn("Marked PDF extraction failed userId={} sourceId={} errorCode={}",
+        log.warn("Marked document extraction failed userId={} sourceId={} errorCode={}",
                 userId.value(), sourceId.value(), errorCode);
+    }
+
+    private boolean isDocument(SourceDocumentEntity.Kind kind) {
+        return kind == SourceDocumentEntity.Kind.PDF
+                || kind == SourceDocumentEntity.Kind.TXT
+                || kind == SourceDocumentEntity.Kind.EPUB;
     }
 
     private SourceDocumentEntity findSource(UserId userId, SourceId sourceId) {

@@ -1,0 +1,153 @@
+<section class="details-page">
+  <a class="back-link" routerLink="/app/sources">← Sources</a>
+
+  @if (state.loadStatus() === 'loading') {
+    <app-ui-state
+      kind="loading"
+      title="Loading source"
+      description="Checking its latest processing state."
+    />
+  } @else if (state.loadStatus() === 'not-found') {
+    <app-ui-state
+      kind="empty"
+      title="Source unavailable"
+      description="It may have finished deleting or may not belong to this account."
+    />
+    <a appButton routerLink="/app/sources">Return to sources</a>
+  } @else if (state.loadStatus() === 'error') {
+    <app-ui-state
+      kind="error"
+      title="Source could not be loaded"
+      description="Check your connection and try again."
+    />
+    <button appButton type="button" (click)="state.refresh()">Try again</button>
+  } @else if (state.source(); as source) {
+    <header>
+      <div>
+        <p class="eyebrow">{{ kindLabel(source.kind) }}</p>
+        <h1>{{ source.displayName }}</h1>
+        <p>Added {{ source.createdAt | date: 'medium' }}</p>
+      </div>
+      <app-status-badge [tone]="statusTone(source.status)">
+        {{ statusLabel(source.status) }}
+      </app-status-badge>
+    </header>
+
+    @if (state.errorMessage(); as error) {
+      <app-alert title="Source not updated" tone="danger">{{ error }}</app-alert>
+    }
+
+    @if (source.status === 'FAILED') {
+      <app-alert title="Processing failed" tone="danger">
+        {{ failureGuidance(source.errorCode) }}
+      </app-alert>
+    } @else if (source.status === 'DELETING') {
+      <app-alert title="Deletion in progress" tone="warning">
+        The source stays visible until its contexts and stored document are removed.
+      </app-alert>
+    } @else if (source.status !== 'READY') {
+      <app-alert title="Processing continues" tone="info">
+        You can leave this page. Refreshing or returning later resumes status checks.
+      </app-alert>
+    }
+
+    <div class="details-grid">
+      <section class="panel" aria-labelledby="overview-heading">
+        <h2 id="overview-heading">Overview</h2>
+        <dl>
+          <div>
+            <dt>Type</dt>
+            <dd>{{ kindLabel(source.kind) }}</dd>
+          </div>
+          <div>
+            <dt>Language</dt>
+            <dd>{{ source.language }}</dd>
+          </div>
+          <div>
+            <dt>Origin</dt>
+            <dd>{{ source.origin.toLowerCase().replaceAll('_', ' ') }}</dd>
+          </div>
+          <div>
+            <dt>Contexts</dt>
+            <dd>{{ source.passageCount ?? 0 | number }}</dd>
+          </div>
+          <div>
+            <dt>Characters</dt>
+            <dd>{{ source.characterCount ?? 0 | number }}</dd>
+          </div>
+          <div>
+            <dt>Last updated</dt>
+            <dd>{{ source.updatedAt | date: 'medium' }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      @if (source.youtube; as youtube) {
+        <section class="panel" aria-labelledby="video-heading">
+          <h2 id="video-heading">Video provenance</h2>
+          <dl>
+            @if (youtube.title) {
+              <div>
+                <dt>Title</dt>
+                <dd>{{ youtube.title }}</dd>
+              </div>
+            }
+            @if (youtube.channelName) {
+              <div>
+                <dt>Channel</dt>
+                <dd>{{ youtube.channelName }}</dd>
+              </div>
+            }
+            <div>
+              <dt>Captions</dt>
+              <dd>{{ youtube.captionKind.toLowerCase() }}</dd>
+            </div>
+          </dl>
+          <a [href]="youtube.canonicalUrl" target="_blank" rel="noopener noreferrer"
+            >Open on YouTube</a
+          >
+        </section>
+      }
+
+      <section class="panel panel--wide" aria-labelledby="manage-heading">
+        <h2 id="manage-heading">Manage source</h2>
+        <div class="manage-row">
+          <app-form-field inputId="source-name" label="Display name">
+            <input id="source-name" #sourceName [value]="source.displayName" maxlength="512" />
+          </app-form-field>
+          <button
+            appButton
+            variant="secondary"
+            type="button"
+            [disabled]="state.mutationStatus() === 'submitting' || source.status === 'DELETING'"
+            (click)="rename(sourceName.value)"
+          >
+            Rename
+          </button>
+        </div>
+        <div class="danger-row">
+          @if (source.retryable) {
+            <button
+              appButton
+              variant="secondary"
+              type="button"
+              [disabled]="state.mutationStatus() === 'submitting'"
+              (click)="state.retry()"
+            >
+              Retry processing
+            </button>
+          }
+          <button
+            appButton
+            variant="danger"
+            type="button"
+            [disabled]="state.mutationStatus() === 'submitting' || source.status === 'DELETING'"
+            (click)="confirmDelete()"
+          >
+            Delete source
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</section>

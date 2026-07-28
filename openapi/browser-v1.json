@@ -14,6 +14,88 @@
   } ],
   "paths" : {
     "/api/v1/sources" : {
+      "get" : {
+        "tags" : [ "browser-source-controller" ],
+        "summary" : "List the authenticated user's sources",
+        "operationId" : "listSources",
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "name" : "pageSize",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20,
+            "maximum" : 50,
+            "minimum" : 1
+          }
+        }, {
+          "name" : "search",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 256,
+            "minLength" : 0
+          }
+        }, {
+          "name" : "kind",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO" ]
+          }
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+          }
+        }, {
+          "name" : "sort",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "CREATED_AT",
+            "enum" : [ "CREATED_AT", "UPDATED_AT", "DISPLAY_NAME" ]
+          }
+        }, {
+          "name" : "direction",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "DESC",
+            "enum" : [ "ASC", "DESC" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Source page",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SourceListDto"
+                }
+              }
+            }
+          }
+        }
+      },
       "post" : {
         "tags" : [ "browser-source-controller" ],
         "summary" : "Create a pasted-text source",
@@ -42,6 +124,134 @@
         }
       }
     },
+    "/api/v1/sources/{sourceReference}/retry" : {
+      "post" : {
+        "tags" : [ "browser-source-controller" ],
+        "summary" : "Retry a backend-declared retryable source",
+        "operationId" : "retrySource",
+        "parameters" : [ {
+          "name" : "sourceReference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "description" : "Retry accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SourceMutationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sources/youtube" : {
+      "post" : {
+        "tags" : [ "browser-source-controller" ],
+        "summary" : "Create a YouTube subtitle source",
+        "operationId" : "createYouTubeSource",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateYouTubeSourceRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Source accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcceptedSourceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/source-uploads" : {
+      "post" : {
+        "tags" : [ "browser-source-upload-controller" ],
+        "summary" : "Create a one-time document upload intent",
+        "operationId" : "createSourceUpload",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateSourceUploadRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Upload intent",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SourceUploadIntentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/source-uploads/{uploadReference}/complete" : {
+      "post" : {
+        "tags" : [ "browser-source-upload-controller" ],
+        "summary" : "Upload and finalize a document once",
+        "operationId" : "completeSourceUpload",
+        "parameters" : [ {
+          "name" : "uploadReference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "file" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Document accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcceptedSourceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/session/logout" : {
       "post" : {
         "tags" : [ "browser-session-controller" ],
@@ -50,6 +260,93 @@
         "responses" : {
           "204" : {
             "description" : "Session invalidated"
+          }
+        }
+      }
+    },
+    "/api/v1/sources/{sourceReference}" : {
+      "get" : {
+        "tags" : [ "browser-source-controller" ],
+        "summary" : "Get an owned source",
+        "operationId" : "getSource",
+        "parameters" : [ {
+          "name" : "sourceReference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Source details",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserSourceDetailsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "browser-source-controller" ],
+        "summary" : "Queue deletion of an owned source",
+        "operationId" : "deleteSource",
+        "parameters" : [ {
+          "name" : "sourceReference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "description" : "Deletion accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SourceMutationDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "browser-source-controller" ],
+        "summary" : "Rename an owned source",
+        "operationId" : "renameSource",
+        "parameters" : [ {
+          "name" : "sourceReference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RenameSourceRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Renamed source",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserSourceSummaryDto"
+                }
+              }
+            }
           }
         }
       }
@@ -156,6 +453,274 @@
           }
         },
         "required" : [ "characterCount", "reference", "sourceId", "status" ]
+      },
+      "SourceMutationDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+          },
+          "jobReference" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "reference", "status" ]
+      },
+      "CreateYouTubeSourceRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "url" : {
+            "type" : "string",
+            "maxLength" : 2048,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "url" ]
+      },
+      "AcceptedSourceDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+          },
+          "existing" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "existing", "reference", "status" ]
+      },
+      "CreateSourceUploadRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "fileName" : {
+            "type" : "string",
+            "maxLength" : 512,
+            "minLength" : 0
+          },
+          "mediaType" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "sha256" : {
+            "type" : "string",
+            "minLength" : 1,
+            "pattern" : "^[0-9a-fA-F]{64}$"
+          }
+        },
+        "required" : [ "fileName", "mediaType", "sha256" ]
+      },
+      "SourceUploadIntentDto" : {
+        "type" : "object",
+        "properties" : {
+          "uploadReference" : {
+            "type" : "string"
+          },
+          "uploadMode" : {
+            "type" : "string",
+            "enum" : [ "APPLICATION" ]
+          },
+          "completionPath" : {
+            "type" : "string"
+          },
+          "maxBytes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "acceptedMediaTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "acceptedMediaTypes", "completionPath", "expiresAt", "maxBytes", "uploadMode", "uploadReference" ]
+      },
+      "RenameSourceRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string",
+            "maxLength" : 512,
+            "minLength" : 0
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "displayName" ]
+      },
+      "BrowserSourceSummaryDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "language" : {
+            "type" : "string"
+          },
+          "characterCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "passageCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "errorCode" : {
+            "type" : "string"
+          },
+          "retryable" : {
+            "type" : "boolean"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "createdAt", "displayName", "kind", "language", "reference", "retryable", "status", "updatedAt", "version" ]
+      },
+      "SourceListDto" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BrowserSourceSummaryDto"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "items", "page", "pageSize", "totalItems", "totalPages" ]
+      },
+      "BrowserSourceDetailsDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "language" : {
+            "type" : "string"
+          },
+          "origin" : {
+            "type" : "string"
+          },
+          "characterCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "passageCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "errorCode" : {
+            "type" : "string"
+          },
+          "retryable" : {
+            "type" : "boolean"
+          },
+          "youtube" : {
+            "$ref" : "#/components/schemas/YouTubeDetailsDto"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "createdAt", "displayName", "kind", "language", "origin", "reference", "retryable", "status", "updatedAt", "version" ]
+      },
+      "YouTubeDetailsDto" : {
+        "type" : "object",
+        "properties" : {
+          "canonicalUrl" : {
+            "type" : "string"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "channelName" : {
+            "type" : "string"
+          },
+          "durationMs" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "captionKind" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "canonicalUrl", "captionKind" ]
       },
       "BrowserSessionDto" : {
         "type" : "object",

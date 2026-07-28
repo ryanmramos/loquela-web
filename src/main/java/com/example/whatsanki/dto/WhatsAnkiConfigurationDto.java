@@ -163,6 +163,9 @@ public class WhatsAnkiConfigurationDto {
         @Positive
         private int extractionThreads = 2;
 
+        @NotNull
+        private Duration uploadIntentLifetime = Duration.ofMinutes(15);
+
         @AssertTrue(message = "whatsanki.ingestion.extraction-timeout must be positive")
         public boolean isExtractionTimeoutPositive() {
             return extractionTimeout != null && !extractionTimeout.isZero() && !extractionTimeout.isNegative();
@@ -170,7 +173,9 @@ public class WhatsAnkiConfigurationDto {
 
         @AssertTrue(message = "whatsanki.ingestion media timeouts must be positive")
         public boolean areMediaTimeoutsPositive() {
-            return isPositive(mediaConnectTimeout) && isPositive(mediaReadTimeout);
+            return isPositive(mediaConnectTimeout)
+                    && isPositive(mediaReadTimeout)
+                    && isPositive(uploadIntentLifetime);
         }
 
         private boolean isPositive(Duration duration) {

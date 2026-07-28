@@ -1,0 +1,139 @@
+<section class="source-page">
+  <header class="source-header">
+    <div>
+      <p class="eyebrow">Source library</p>
+      <h1>Sources</h1>
+      <p>Search everything Loquela can use for examples and future cards.</p>
+    </div>
+    <a appButton routerLink="/app/sources/new">Add source</a>
+  </header>
+
+  <form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+    <app-form-field inputId="source-search" label="Search">
+      <input id="source-search" type="search" formControlName="search" placeholder="Source name" />
+    </app-form-field>
+    <app-form-field inputId="source-kind" label="Type">
+      <select id="source-kind" formControlName="kind">
+        <option value="">All types</option>
+        <option value="PASTED_TEXT">Pasted text</option>
+        <option value="YOUTUBE_VIDEO">YouTube</option>
+        <option value="PDF">PDF</option>
+        <option value="TXT">TXT</option>
+        <option value="EPUB">EPUB</option>
+      </select>
+    </app-form-field>
+    <app-form-field inputId="source-status" label="Status">
+      <select id="source-status" formControlName="status">
+        <option value="">All statuses</option>
+        <option value="READY">Ready</option>
+        <option value="RECEIVED">Received</option>
+        <option value="FETCHING">Fetching</option>
+        <option value="STORED">Stored</option>
+        <option value="EXTRACTING">Extracting</option>
+        <option value="INDEXING">Indexing</option>
+        <option value="FAILED">Failed</option>
+        <option value="DELETING">Deleting</option>
+      </select>
+    </app-form-field>
+    <app-form-field inputId="source-sort" label="Sort">
+      <select id="source-sort" formControlName="sort">
+        <option value="CREATED_AT">Created</option>
+        <option value="UPDATED_AT">Updated</option>
+        <option value="DISPLAY_NAME">Name</option>
+      </select>
+    </app-form-field>
+    <app-form-field inputId="source-direction" label="Direction">
+      <select id="source-direction" formControlName="direction">
+        <option value="DESC">Descending</option>
+        <option value="ASC">Ascending</option>
+      </select>
+    </app-form-field>
+    <div class="filter-actions">
+      <button appButton type="submit">Apply</button>
+      <button appButton variant="ghost" type="button" (click)="clearFilters()">Clear</button>
+    </div>
+  </form>
+
+  @if (state.loadStatus() === 'loading') {
+    <app-ui-state
+      kind="loading"
+      title="Loading sources"
+      description="Fetching this page from your source library."
+    />
+  } @else if (state.loadStatus() === 'error') {
+    <app-ui-state
+      kind="error"
+      title="Sources could not be loaded"
+      description="Check your connection and try this view again."
+    />
+  } @else if (state.page(); as page) {
+    @if (page.items.length === 0) {
+      <app-ui-state
+        kind="empty"
+        title="No sources match this view"
+        description="Clear the filters or add something new."
+      />
+      <div class="empty-action">
+        <a appButton routerLink="/app/sources/new">Add your first source</a>
+      </div>
+    } @else {
+      <p class="result-count">{{ page.totalItems | number }} sources</p>
+      <div class="source-table">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Source</th>
+              <th scope="col">Type</th>
+              <th scope="col">Status</th>
+              <th scope="col">Contexts</th>
+              <th scope="col">Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (source of page.items; track source.reference) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/app/sources', source.reference]">{{ source.displayName }}</a>
+                </td>
+                <td>{{ kindLabel(source.kind) }}</td>
+                <td>
+                  <app-status-badge [tone]="statusTone(source.status)">
+                    {{ statusLabel(source.status) }}
+                  </app-status-badge>
+                </td>
+                <td>{{ source.passageCount ?? '—' }}</td>
+                <td>{{ source.updatedAt | date: 'mediumDate' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="source-cards" aria-label="Sources">
+        @for (source of page.items; track source.reference) {
+          <li>
+            <div>
+              <span>{{ kindLabel(source.kind) }}</span>
+              <app-status-badge [tone]="statusTone(source.status)">
+                {{ statusLabel(source.status) }}
+              </app-status-badge>
+            </div>
+            <a [routerLink]="['/app/sources', source.reference]">{{ source.displayName }}</a>
+            <p>
+              {{ source.passageCount ?? 0 | number }} contexts · Updated
+              {{ source.updatedAt | date: 'mediumDate' }}
+            </p>
+          </li>
+        }
+      </ul>
+
+      @if (page.totalPages > 1) {
+        <app-pagination
+          [currentPage]="page.page + 1"
+          [totalPages]="page.totalPages"
+          (pageChange)="goToPage($event)"
+        />
+      }
+    }
+  }
+</section>

@@ -146,6 +146,35 @@ test('mobile dashboard navigation and global lookup are keyboard operable', asyn
   await expect(page.getByText('query: sobremesa')).toBeVisible();
 });
 
+test('source management keeps filters in the URL and resumes source details', async ({ page }) => {
+  await mockAuthentication(page, true);
+  await page.goto('/app/sources?status=READY&kind=YOUTUBE_VIDEO');
+
+  await expect(page.getByRole('heading', { name: 'Sources', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Status')).toHaveValue('READY');
+  await expect(page.getByLabel('Type')).toHaveValue('YOUTUBE_VIDEO');
+  await expect(page.getByRole('link', { name: 'Easy Spanish transcript' }).first()).toBeVisible();
+
+  await page.getByRole('link', { name: 'Easy Spanish transcript' }).first().click();
+  await expect(page).toHaveURL(/\/app\/sources\/src_spanish$/u);
+  await expect(page.getByRole('heading', { name: 'Easy Spanish transcript' })).toBeVisible();
+  await expect(page.getByText('ready', { exact: true })).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
+test('pasted-text intake navigates to the accepted durable source URL', async ({ page }) => {
+  await mockAuthentication(page, true);
+  await page.goto('/app/sources/new');
+
+  await page.getByLabel('Source text').fill('Texto añadido desde la biblioteca.');
+  await page.getByRole('button', { name: 'Add pasted text' }).click();
+
+  await expect(page).toHaveURL(/\/app\/sources\/src_playwright$/u);
+  await expect(page.getByRole('heading', { name: 'Browser text' })).toBeVisible();
+});
+
 async function mockAuthentication(
   page: Page,
   initiallyAuthenticated = false,
@@ -199,6 +228,14 @@ async function mockAuthentication(
   });
 
   await page.route('**/api/v1/sources', async (route: Route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(sourcePage),
+      });
+      return;
+    }
     await route.fulfill({
       status: 202,
       contentType: 'application/json',
@@ -207,6 +244,37 @@ async function mockAuthentication(
         reference: 'src_playwright',
         status: 'RECEIVED',
         characterCount: 27,
+      }),
+    });
+  });
+
+  await page.route('**/api/v1/sources?*', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(sourcePage),
+    });
+  });
+
+  await page.route('**/api/v1/sources/src_spanish', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(sourceDetails),
+    });
+  });
+
+  await page.route('**/api/v1/sources/src_playwright', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ...sourceDetails,
+        reference: 'src_playwright',
+        kind: 'PASTED_TEXT',
+        displayName: 'Browser text',
+        origin: 'WEBSITE',
+        youtube: null,
       }),
     });
   });
@@ -242,5 +310,39 @@ const dashboardSnapshot = {
         target: '/app/sources/src_spanish',
       },
     ],
+  },
+};
+
+const sourcePage = {
+  items: [
+    {
+      reference: 'src_spanish',
+      kind: 'YOUTUBE_VIDEO',
+      status: 'READY',
+      displayName: 'Easy Spanish transcript',
+      language: 'es',
+      characterCount: 12_345,
+      passageCount: 42,
+      retryable: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1,
+    },
+  ],
+  page: 0,
+  pageSize: 20,
+  totalItems: 1,
+  totalPages: 1,
+};
+
+const sourceDetails = {
+  ...sourcePage.items[0],
+  origin: 'WEBSITE',
+  youtube: {
+    canonicalUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    title: 'Easy Spanish',
+    channelName: 'Easy Languages',
+    durationMs: 120_000,
+    captionKind: 'MANUAL',
   },
 };
