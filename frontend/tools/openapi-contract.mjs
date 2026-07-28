@@ -221,7 +221,6 @@ export function validateBrowserOpenApi(contract) {
       'status',
       'displayName',
       'language',
-      'origin',
       'retryable',
       'createdAt',
       'updatedAt',

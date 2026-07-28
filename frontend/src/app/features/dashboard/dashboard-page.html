@@ -87,6 +87,18 @@
       </a>
     </section>
 
+    <section class="storage-balance" aria-labelledby="storage-balance-title">
+      <div>
+        <p class="eyebrow">Corpus storage</p>
+        <h2 id="storage-balance-title">Storage balance</h2>
+        <p>Storage limits are not active yet. Your corpus is currently unrestricted.</p>
+      </div>
+      <div class="storage-balance__status">
+        <strong>Unlimited for now</strong>
+        <span>Usage and limits will appear here when storage plans launch.</span>
+      </div>
+    </section>
+
     @if (
       dashboard.cards.status === 'AVAILABLE' &&
       dashboard.sources.status === 'AVAILABLE' &&
@@ -113,14 +125,20 @@
           </div>
           <a routerLink="/app/settings">Settings</a>
         </div>
-        <p class="language-pair">
-          {{ languageName(dashboard.languagePair.sourceLanguage) }}
-          <span aria-hidden="true">→</span>
-          {{ languageName(dashboard.languagePair.definitionLanguage) }}
-        </p>
+        <div class="language-pair" aria-label="Language pair">
+          <div>
+            <span class="language-pair__label">Source language</span>
+            <strong>{{ languageName(dashboard.languagePair.sourceLanguage) }}</strong>
+          </div>
+          <span class="language-pair__arrow" aria-hidden="true">→</span>
+          <div>
+            <span class="language-pair__label">Definition language</span>
+            <strong>{{ languageName(dashboard.languagePair.definitionLanguage) }}</strong>
+          </div>
+        </div>
         <p class="muted">
-          Lookup and card creation use these defaults across the website. WhatsApp linking is coming
-          soon and is not required.
+          Your source text is in the source language. Definitions, translations, and card help use
+          the definition language.
         </p>
       </section>
 

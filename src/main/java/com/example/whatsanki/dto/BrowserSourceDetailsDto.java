@@ -17,10 +17,8 @@ public record BrowserSourceDetailsDto(
         String displayName,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         String language,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-        String origin,
-        Long characterCount,
-        Integer passageCount,
+        Long totalWords,
+        Long databaseSizeBytes,
         String errorCode,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         boolean retryable,
@@ -38,7 +36,6 @@ public record BrowserSourceDetailsDto(
         Objects.requireNonNull(status, "status must not be null");
         Objects.requireNonNull(displayName, "displayName must not be null");
         Objects.requireNonNull(language, "language must not be null");
-        Objects.requireNonNull(origin, "origin must not be null");
         Objects.requireNonNull(createdAt, "createdAt must not be null");
         Objects.requireNonNull(updatedAt, "updatedAt must not be null");
     }

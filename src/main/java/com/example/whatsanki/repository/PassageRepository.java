@@ -17,6 +17,20 @@ public interface PassageRepository extends Repository<PassageEntity, UUID> {
     Optional<PassageEntity> findByIdAndUserId(UUID id, UUID userId);
     List<PassageEntity> findAllByUserIdAndSourceIdOrderByOrdinal(UUID userId, UUID sourceId);
 
+    @Query(value = """
+            select coalesce(sum(token_count), 0)
+            from passage
+            where user_id = :userId and source_id = :sourceId
+            """, nativeQuery = true)
+    long totalWordCountByUserIdAndSourceId(@Param("userId") UUID userId, @Param("sourceId") UUID sourceId);
+
+    @Query(value = """
+            select coalesce(sum(pg_column_size(p)), 0)
+            from passage p
+            where p.user_id = :userId and p.source_id = :sourceId
+            """, nativeQuery = true)
+    long totalStoredBytesByUserIdAndSourceId(@Param("userId") UUID userId, @Param("sourceId") UUID sourceId);
+
     /** Low-level ingestion verification query; user-facing lookup uses the language-scoped query below. */
     @Query(value = """
             select p.*

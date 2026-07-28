@@ -85,7 +85,7 @@
               <th scope="col">Source</th>
               <th scope="col">Type</th>
               <th scope="col">Status</th>
-              <th scope="col">Contexts</th>
+              <th scope="col">Passages</th>
               <th scope="col">Updated</th>
             </tr>
           </thead>
@@ -120,7 +120,7 @@
             </div>
             <a [routerLink]="['/app/sources', source.reference]">{{ source.displayName }}</a>
             <p>
-              {{ source.passageCount ?? 0 | number }} contexts · Updated
+              {{ source.passageCount ?? 0 | number }} passages · Updated
               {{ source.updatedAt | date: 'mediumDate' }}
             </p>
           </li>

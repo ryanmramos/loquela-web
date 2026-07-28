@@ -17,6 +17,12 @@ public interface SourceDocumentRepository extends Repository<SourceDocumentEntit
     SourceDocumentEntity save(SourceDocumentEntity source);
     SourceDocumentEntity saveAndFlush(SourceDocumentEntity source);
     Optional<SourceDocumentEntity> findByIdAndUserId(UUID id, UUID userId);
+    @Query(value = """
+            select pg_column_size(source_document)
+            from source_document
+            where id = :sourceId and user_id = :userId
+            """, nativeQuery = true)
+    long storedBytesByIdAndUserId(@Param("sourceId") UUID sourceId, @Param("userId") UUID userId);
     Optional<SourceDocumentEntity> findByUserIdAndInboundMessageId(UUID userId, UUID inboundMessageId);
     List<SourceDocumentEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     List<SourceDocumentEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);

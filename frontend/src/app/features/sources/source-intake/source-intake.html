@@ -57,6 +57,14 @@
             placeholder="https://www.youtube.com/watch?v=…"
           />
         </app-form-field>
+        <aside class="youtube-preview" aria-label="Planned YouTube video preview">
+          <span class="youtube-preview__badge">Coming soon</span>
+          <strong>Video preview</strong>
+          <p>
+            We’ll load the video title and thumbnail from the URL as you paste it, before you add
+            captions.
+          </p>
+        </aside>
         <button appButton type="submit" [disabled]="status() === 'submitting'">
           {{ status() === 'submitting' ? 'Adding…' : 'Add captions' }}
         </button>

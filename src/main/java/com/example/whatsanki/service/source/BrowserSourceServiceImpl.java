@@ -20,6 +20,7 @@ import com.example.whatsanki.dto.SourceListDto;
 import com.example.whatsanki.dto.SourceMutationDto;
 import com.example.whatsanki.dto.YouTubeSourceAcceptanceDto;
 import com.example.whatsanki.repository.SourceDocumentRepository;
+import com.example.whatsanki.repository.PassageRepository;
 import com.example.whatsanki.repository.VideoSourceRepository;
 import com.example.whatsanki.service.BrowserSourceService;
 import com.example.whatsanki.service.SourceManagementService;
@@ -49,6 +50,7 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
     private final PastedTextIngestionService pastedTextIngestionService;
     private final YouTubeSourceService youTubeSourceService;
     private final SourceDocumentRepository sourceDocumentRepository;
+    private final PassageRepository passageRepository;
     private final VideoSourceRepository videoSourceRepository;
     private final SourceManagementService sourceManagementService;
     private final BackgroundJobService backgroundJobService;
@@ -127,16 +129,17 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
         VideoSourceEntity video = source.getKind() == SourceDocumentEntity.Kind.YOUTUBE_VIDEO
                 ? videoSourceRepository.findBySourceIdAndUserId(source.getId(), userId.value()).orElse(null)
                 : null;
-        String origin = String.valueOf(source.getMetadata().getOrDefault("origin", "UNKNOWN"));
+        long totalWords = passageRepository.totalWordCountByUserIdAndSourceId(userId.value(), source.getId());
+        long databaseSizeBytes = sourceDocumentRepository.storedBytesByIdAndUserId(source.getId(), userId.value())
+                + passageRepository.totalStoredBytesByUserIdAndSourceId(userId.value(), source.getId());
         return new BrowserSourceDetailsDto(
                 SourceReferenceCodec.encode(new SourceId(source.getId())),
                 source.getKind(),
                 source.getStatus(),
                 source.getDisplayName(),
                 source.getLanguage(),
-                origin,
-                source.getCharacterCount(),
-                source.getPassageCount(),
+                totalWords,
+                databaseSizeBytes,
                 source.getErrorCode(),
                 isRetryable(source),
                 video == null ? null : new BrowserSourceDetailsDto.YouTubeDetailsDto(

@@ -99,4 +99,20 @@ export class SourceDetails {
       }[code ?? ''] ?? 'The source could not be processed. Review it and try a new source.'
     );
   }
+
+  languageName(tag: string): string {
+    try {
+      const name = new Intl.DisplayNames([tag], { type: 'language' }).of(tag) ?? tag;
+      return name.charAt(0).toLocaleUpperCase(tag) + name.slice(1);
+    } catch {
+      return tag;
+    }
+  }
+
+  formatBytes(bytes: number | undefined): string {
+    if (bytes === undefined) return '—';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  }
 }

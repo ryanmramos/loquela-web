@@ -3,17 +3,16 @@
 
 import { YouTubeDetailsDto } from '../models/you-tube-details-dto';
 export interface BrowserSourceDetailsDto {
-  characterCount?: number;
   createdAt: string;
+  databaseSizeBytes?: number;
   displayName: string;
   errorCode?: string;
   kind: 'PASTED_TEXT' | 'TXT' | 'PDF' | 'EPUB' | 'YOUTUBE_VIDEO';
   language: string;
-  origin: string;
-  passageCount?: number;
   reference: string;
   retryable: boolean;
   status: 'RECEIVED' | 'FETCHING' | 'STORED' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED';
+  totalWords?: number;
   updatedAt: string;
   version: number;
   youtube?: YouTubeDetailsDto;

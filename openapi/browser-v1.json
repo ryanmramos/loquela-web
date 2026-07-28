@@ -665,16 +665,13 @@
           "language" : {
             "type" : "string"
           },
-          "origin" : {
-            "type" : "string"
-          },
-          "characterCount" : {
+          "totalWords" : {
             "type" : "integer",
             "format" : "int64"
           },
-          "passageCount" : {
+          "databaseSizeBytes" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int64"
           },
           "errorCode" : {
             "type" : "string"
@@ -698,7 +695,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "createdAt", "displayName", "kind", "language", "origin", "reference", "retryable", "status", "updatedAt", "version" ]
+        "required" : [ "createdAt", "displayName", "kind", "language", "reference", "retryable", "status", "updatedAt", "version" ]
       },
       "YouTubeDetailsDto" : {
         "type" : "object",

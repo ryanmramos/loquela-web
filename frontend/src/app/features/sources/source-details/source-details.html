@@ -61,19 +61,15 @@
           </div>
           <div>
             <dt>Language</dt>
-            <dd>{{ source.language }}</dd>
+            <dd>{{ languageName(source.language) }}</dd>
           </div>
           <div>
-            <dt>Origin</dt>
-            <dd>{{ source.origin.toLowerCase().replaceAll('_', ' ') }}</dd>
+            <dt>Total words</dt>
+            <dd>{{ source.totalWords ?? 0 | number }}</dd>
           </div>
           <div>
-            <dt>Contexts</dt>
-            <dd>{{ source.passageCount ?? 0 | number }}</dd>
-          </div>
-          <div>
-            <dt>Characters</dt>
-            <dd>{{ source.characterCount ?? 0 | number }}</dd>
+            <dt>Database size</dt>
+            <dd>{{ formatBytes(source.databaseSizeBytes) }}</dd>
           </div>
           <div>
             <dt>Last updated</dt>

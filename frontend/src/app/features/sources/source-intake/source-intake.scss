@@ -83,6 +83,36 @@ header > p:last-child,
   justify-self: start;
 }
 
+.youtube-preview {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+}
+
+.youtube-preview strong {
+  color: var(--color-primary-strong);
+}
+
+.youtube-preview p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.youtube-preview__badge {
+  width: fit-content;
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-panel);
+  color: var(--color-primary-strong);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
 .back-link {
   display: inline-block;
   margin-top: var(--space-7);
