@@ -13,6 +13,7 @@ export interface BrowserSession {
   readonly email: string | null;
   readonly sourceLanguage: string;
   readonly definitionLanguage: string;
+  readonly interfaceLanguage: 'en' | 'es' | null;
   readonly accountState: 'ACTIVE' | 'DELETING';
   readonly linkedAccounts: {
     readonly google: boolean;
@@ -31,6 +32,12 @@ export class SessionApi {
 
   getCurrent(): Observable<BrowserSession> {
     return this.api.invoke(getBrowserSession).pipe(map(toBrowserSession));
+  }
+
+  updateInterfaceLanguage(interfaceLanguage: 'en' | 'es'): Observable<BrowserSession> {
+    return this.http
+      .patch<BrowserSessionDto>('/api/v1/session/interface-language', { interfaceLanguage })
+      .pipe(map(toBrowserSession));
   }
 
   logout(): Observable<void> {
@@ -54,6 +61,7 @@ function toBrowserSession(response: BrowserSessionDto): BrowserSession {
     email: response.email ?? null,
     sourceLanguage: response.sourceLanguage,
     definitionLanguage: response.definitionLanguage,
+    interfaceLanguage: response.interfaceLanguage ?? null,
     accountState: response.accountState,
     linkedAccounts: {
       google: response.linkedAccounts.google,

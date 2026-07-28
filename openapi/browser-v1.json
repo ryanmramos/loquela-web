@@ -738,6 +738,10 @@
           "definitionLanguage" : {
             "type" : "string"
           },
+          "interfaceLanguage" : {
+            "type" : "string",
+            "enum" : [ "en", "es" ]
+          },
           "accountState" : {
             "type" : "string",
             "enum" : [ "ACTIVE", "DELETING" ]

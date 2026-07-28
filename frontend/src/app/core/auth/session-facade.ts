@@ -5,11 +5,13 @@ import { LocalAccountId, SessionApi } from '@api/api-adapters/session-api';
 import { ApiProblemError } from '@core/errors/api-problem';
 
 import { SessionStore, SessionView } from './session-store';
+import { InterfaceLanguage, TranslationService } from '@core/i18n/translation.service';
 
 @Injectable({ providedIn: 'root' })
 export class SessionFacade {
   private readonly api = inject(SessionApi);
   private readonly store = inject(SessionStore);
+  private readonly translations = inject(TranslationService);
   private loadRequest?: Observable<SessionView>;
 
   readonly view = this.store.view;
@@ -20,7 +22,10 @@ export class SessionFacade {
     }
 
     this.loadRequest ??= this.api.getCurrent().pipe(
-      tap((session) => this.store.setAuthenticated(session)),
+      tap((session) => {
+        this.translations.setLanguage(session.interfaceLanguage ?? this.translations.language());
+        this.store.setAuthenticated(session);
+      }),
       map(() => this.view()),
       catchError((error: unknown) => {
         if (error instanceof ApiProblemError && error.problem.status === 401) {
@@ -51,5 +56,13 @@ export class SessionFacade {
 
   logout(): Observable<void> {
     return this.api.logout().pipe(tap(() => this.store.setAnonymous()));
+  }
+
+  updateInterfaceLanguage(language: InterfaceLanguage): Observable<void> {
+    this.translations.setLanguage(language);
+    return this.api.updateInterfaceLanguage(language).pipe(
+      tap((session) => this.store.setAuthenticated(session)),
+      map(() => undefined),
+    );
   }
 }

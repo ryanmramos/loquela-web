@@ -2,6 +2,8 @@ package com.example.whatsanki.controller;
 
 import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.dto.BrowserSessionDto;
+import com.example.whatsanki.dto.UpdateInterfaceLanguageRequestDto;
+import jakarta.validation.Valid;
 import com.example.whatsanki.service.BrowserSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,6 +55,17 @@ public class BrowserSessionController {
     ) {
         csrfToken.getToken();
         return ResponseEntity.ok(browserSessionService.getByGoogleSubject(authentication.getName()));
+    }
+
+    @PatchMapping("/interface-language")
+    @Operation(operationId = "updateInterfaceLanguage", summary = "Persist the browser interface language")
+    public ResponseEntity<BrowserSessionDto> updateInterfaceLanguage(
+            @Parameter(hidden = true) Authentication authentication,
+            @Valid @RequestBody UpdateInterfaceLanguageRequestDto request
+    ) {
+        return ResponseEntity.ok(browserSessionService.updateInterfaceLanguage(
+                authentication.getName(), request.interfaceLanguage()
+        ));
     }
 
     @PostMapping("/logout")

@@ -13,6 +13,7 @@ public record BrowserSessionDto(
         String sourceLanguage,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         String definitionLanguage,
+        String interfaceLanguage,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         AccountState accountState,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

@@ -31,6 +31,9 @@ public class AppUserEntity {
     @Column(name = "definition_language", nullable = false, length = 35)
     private String definitionLanguage;
 
+    @Column(name = "interface_language", length = 2)
+    private String interfaceLanguage;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 24)
     private Status status;

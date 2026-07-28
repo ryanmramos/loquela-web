@@ -4,4 +4,6 @@ import com.example.whatsanki.dto.BrowserSessionDto;
 
 public interface BrowserSessionService {
     BrowserSessionDto getByGoogleSubject(String googleSubject);
+
+    BrowserSessionDto updateInterfaceLanguage(String googleSubject, String interfaceLanguage);
 }

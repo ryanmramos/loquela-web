@@ -1,5 +1,5 @@
 <a class="skip-link" href="#main-content" (click)="focusMain($event, mainContent)">
-  Skip to main content
+  {{ 'shell.skipToContent' | translate }}
 </a>
 
 <div class="shell">
@@ -10,26 +10,30 @@
     </a>
 
     <nav class="navigation" aria-label="Primary navigation">
-      @for (item of navigation; track item.label) {
+      @for (item of navigation; track item.key) {
         <a
           [routerLink]="item.target"
           routerLinkActive="navigation__link--active"
           [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
         >
           <span class="navigation__icon" aria-hidden="true">{{ item.symbol }}</span>
-          <span class="navigation__label">{{ item.label }}</span>
+          <span class="navigation__label">{{ item.key | translate }}</span>
         </a>
       }
     </nav>
 
     <section class="sidebar__callout" aria-labelledby="study-callout-title">
       @if (cardsToStudy() !== null) {
-        <strong id="study-callout-title">{{ cardsToStudy() }} cards to study</strong>
+        <strong id="study-callout-title">{{
+          'shell.cardsToStudy' | translate: { count: cardsToStudy() ?? 0 }
+        }}</strong>
       } @else {
         <strong id="study-callout-title">Practice in Loquela</strong>
       }
-      <p>Practice cards saved from your personal corpus.</p>
-      <a appButton variant="secondary" routerLink="/app/study">Start practice</a>
+      <p>{{ 'shell.practiceDescription' | translate }}</p>
+      <a appButton variant="secondary" routerLink="/app/study">{{
+        'shell.practice' | translate
+      }}</a>
     </section>
 
     <div class="user">
@@ -44,14 +48,16 @@
   <div class="workspace">
     <header class="topbar">
       <form class="workspace-search" role="search" (submit)="submitSearch($event, searchInput)">
-        <label class="visually-hidden" for="workspace-search">Search your workspace</label>
+        <label class="visually-hidden" for="workspace-search">{{
+          'shell.search' | translate
+        }}</label>
         <span aria-hidden="true">⌕</span>
         <input
           #searchInput
           id="workspace-search"
           name="query"
           type="search"
-          placeholder="Search your workspace…"
+          [placeholder]="'shell.search' | translate"
         />
       </form>
       <div class="topbar__actions">
@@ -65,12 +71,14 @@
           "
         >
           <span aria-hidden="true">↻</span>
-          <span class="activity-link__label">Activity</span>
+          <span class="activity-link__label">{{ 'shell.activity' | translate }}</span>
           @if ((activeJobCount() ?? 0) > 0) {
             <span class="activity-link__count">{{ activeJobCount() }}</span>
           }
         </a>
-        <a appButton variant="secondary" routerLink="/app/sources">Add source</a>
+        <a appButton variant="secondary" routerLink="/app/sources">{{
+          'shell.addSource' | translate
+        }}</a>
         <app-action-menu
           label="Open user menu"
           [items]="userActions"
@@ -85,14 +93,14 @@
   </div>
 
   <nav class="mobile-navigation" aria-label="Mobile primary navigation">
-    @for (item of navigation.slice(0, 4); track item.label) {
+    @for (item of navigation.slice(0, 4); track item.key) {
       <a
         [routerLink]="item.target"
         routerLinkActive="mobile-navigation__link--active"
         [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
       >
         <span aria-hidden="true">{{ item.symbol }}</span>
-        <span>{{ item.label }}</span>
+        <span>{{ item.key | translate }}</span>
       </a>
     }
   </nav>

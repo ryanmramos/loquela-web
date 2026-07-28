@@ -130,17 +130,8 @@ export const routes: Routes = [
       {
         path: 'settings',
         title: 'Settings',
-        data: {
-          featureKey: 'settings',
-          eyebrow: 'Account preferences',
-          heading: 'Settings',
-          description:
-            'Profile and language controls arrive in Step 15. Google remains the only required identity.',
-        },
         loadComponent: () =>
-          import('@app/features/placeholder/feature-placeholder-page').then(
-            (module) => module.FeaturePlaceholderPage,
-          ),
+          import('@app/features/settings/settings-page').then((module) => module.SettingsPage),
       },
     ],
   },

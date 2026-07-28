@@ -4,16 +4,23 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/action-menu';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { ToastRegion } from '@app/shared/components/toast/toast-region';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
 
 interface ShellNavigationItem {
-  readonly label: string;
+  readonly key:
+    | 'navigation.overview'
+    | 'navigation.sources'
+    | 'navigation.cards'
+    | 'navigation.decks'
+    | 'navigation.study'
+    | 'navigation.settings';
   readonly symbol: string;
   readonly target: string;
 }
 
 @Component({
   selector: 'app-shell',
-  imports: [ActionMenu, ButtonDirective, RouterLink, RouterLinkActive, ToastRegion],
+  imports: [ActionMenu, ButtonDirective, RouterLink, RouterLinkActive, ToastRegion, TranslatePipe],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,12 +34,12 @@ export class AppShell {
   readonly userActionSelected = output<string>();
 
   protected readonly navigation: readonly ShellNavigationItem[] = [
-    { label: 'Overview', symbol: '⌂', target: '/app' },
-    { label: 'Sources', symbol: '▤', target: '/app/sources' },
-    { label: 'Cards', symbol: '▣', target: '/app/cards' },
-    { label: 'Decks', symbol: '▥', target: '/app/decks' },
-    { label: 'Study', symbol: '◉', target: '/app/study' },
-    { label: 'Settings', symbol: '⚙', target: '/app/settings' },
+    { key: 'navigation.overview', symbol: '⌂', target: '/app' },
+    { key: 'navigation.sources', symbol: '▤', target: '/app/sources' },
+    { key: 'navigation.cards', symbol: '▣', target: '/app/cards' },
+    { key: 'navigation.decks', symbol: '▥', target: '/app/decks' },
+    { key: 'navigation.study', symbol: '◉', target: '/app/study' },
+    { key: 'navigation.settings', symbol: '⚙', target: '/app/settings' },
   ];
 
   protected readonly userActions: readonly ActionMenuItem[] = [
