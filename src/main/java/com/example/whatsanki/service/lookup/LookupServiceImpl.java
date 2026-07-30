@@ -13,6 +13,7 @@ import com.example.whatsanki.dto.LanguagePairDto;
 import com.example.whatsanki.dto.LookupAcceptanceDto;
 import com.example.whatsanki.dto.LookupExecutionPreparationDto;
 import com.example.whatsanki.dto.LookupExecutionResultDto;
+import com.example.whatsanki.dto.LookupRequestFiltersDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.UserLanguageSettingsService;
 import com.example.whatsanki.service.dictionary.DictionaryProvider;
@@ -65,6 +66,16 @@ public class LookupServiceImpl implements LookupService {
                 languagePair,
                 Instant.now()
         );
+    }
+
+    @Override
+    public LookupAcceptanceDto acceptBrowser(UserId userId, String requestedTerm, LookupRequestFiltersDto filters) {
+        Objects.requireNonNull(userId, "userId must not be null");
+        String displayTerm = validateDisplayTerm(requestedTerm);
+        String normalizedTerm = textNormalizer.normalizeForSearch(displayTerm);
+        validateTermLength(normalizedTerm);
+        return lifecycleService.acceptBrowser(userId, displayTerm, normalizedTerm,
+                userLanguageSettingsService.getCurrent(userId), filters, Instant.now());
     }
 
     @Override
@@ -130,7 +141,8 @@ public class LookupServiceImpl implements LookupService {
                 new CorpusSearchOptionsDto(
                         new LanguageTag(preparation.languagePair().sourceLanguage()),
                         configuration.getSearch().getLookupResults(),
-                        configuration.getSearch().getLookupMaxResultsPerSource()
+                        configuration.getSearch().getLookupMaxResultsPerSource(),
+                        preparation.filters().sourceIds(), preparation.filters().sourceKinds()
                 )
         );
         if (contexts.isEmpty()) {

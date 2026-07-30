@@ -6,6 +6,7 @@ const translations = {
   en: {
     'navigation.overview': 'Overview',
     'navigation.sources': 'Sources',
+    'navigation.lookup': 'Lookup',
     'navigation.cards': 'Cards',
     'navigation.decks': 'Decks',
     'navigation.study': 'Study',
@@ -29,6 +30,7 @@ const translations = {
   es: {
     'navigation.overview': 'Resumen',
     'navigation.sources': 'Fuentes',
+    'navigation.lookup': 'Buscar',
     'navigation.cards': 'Tarjetas',
     'navigation.decks': 'Mazos',
     'navigation.study': 'Estudiar',

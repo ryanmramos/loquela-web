@@ -1,0 +1,58 @@
+<section class="cards-page">
+  <header>
+    <p class="eyebrow">Card library</p>
+    <h1>Cards</h1>
+    <p>
+      Create, edit, move, and permanently delete cards. Deck management arrives in the next step.
+    </p>
+  </header>
+  <div class="toolbar">
+    <label>Filter cards <input [formControl]="filter" (keyup.enter)="load()" /></label
+    ><button appButton variant="secondary" type="button" (click)="load()">Filter</button
+    ><button appButton type="button" (click)="newCard()">New card</button>
+  </div>
+  @if (error()) {
+    <app-ui-state kind="error" title="Cards need attention" [description]="error()" />
+  }
+  <div class="layout">
+    <section class="list" aria-label="Cards">
+      @if (loading()) {
+        <app-ui-state kind="loading" title="Loading cards" description="" />
+      }
+      @for (card of cards(); track card.reference) {
+        <article [class.active]="selected()?.reference === card.reference">
+          <button type="button" (click)="edit(card)">
+            <strong>{{ card.term }}</strong
+            ><span>{{ card.definition }}</span
+            ><small>{{ card.deckName }}</small></button
+          ><button appButton variant="danger" type="button" (click)="delete(card)">Delete</button>
+        </article>
+      }
+      @if (!loading() && !cards().length) {
+        <app-ui-state
+          kind="empty"
+          title="No cards yet"
+          description="Save a lookup context or create one here."
+        />
+      }
+    </section>
+    <section class="editor">
+      <h2>{{ selected() ? 'Edit card' : 'New card' }}</h2>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <label
+          >Deck<select formControlName="deckReference">
+            @for (deck of decks(); track deck.reference) {
+              <option [value]="deck.reference">{{ deck.name }}</option>
+            }
+          </select></label
+        ><label>Term<input formControlName="term" /></label
+        ><label>Definition<textarea formControlName="definition" rows="4"></textarea></label
+        ><label
+          >Example (optional)<textarea formControlName="exampleText" rows="3"></textarea></label
+        ><button appButton type="submit" [disabled]="form.invalid || !decks().length">
+          Save card
+        </button>
+      </form>
+    </section>
+  </div>
+</section>

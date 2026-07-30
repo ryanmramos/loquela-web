@@ -8,12 +8,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 public interface DeckRepository extends Repository<DeckEntity, UUID> {
     DeckEntity save(DeckEntity deck);
     Optional<DeckEntity> findByIdAndUserId(UUID id, UUID userId);
     Optional<DeckEntity> findByUserIdAndNormalizedName(UUID userId, String normalizedName);
+    List<DeckEntity> findAllByUserIdAndStatusOrderByName(UUID userId, DeckEntity.Status status);
 
     @Modifying
     @Query(value = """

@@ -137,6 +137,44 @@ public class CardSaveServiceImpl implements CardSaveService {
         return CardSaveResultDto.saved(new CardId(saved.getId()), deckId, contextNumber);
     }
 
+    @Override
+    @Transactional
+    public CardSaveResultDto saveFromLookup(
+            UserId userId, com.example.whatsanki.domain.LookupSessionId lookupSessionId,
+            int contextNumber, DeckId deckId, Instant now
+    ) {
+        if (contextNumber < 1) return CardSaveResultDto.unavailable(CardSaveResultDto.Outcome.INVALID_SELECTION, contextNumber);
+        LookupSessionEntity session = lookupSessionRepository.findByIdAndUserIdForUpdate(lookupSessionId.value(), userId.value())
+                .orElse(null);
+        if (session == null || session.getStatus() != LookupSessionEntity.Status.READY || !session.getExpiresAt().isAfter(now)) {
+            return CardSaveResultDto.unavailable(CardSaveResultDto.Outcome.LOOKUP_EXPIRED, contextNumber);
+        }
+        LookupResultPayloadDto snapshot;
+        try { snapshot = LookupResultPayloadDto.fromMap(session.getResultPayload()); }
+        catch (RuntimeException exception) { return CardSaveResultDto.unavailable(CardSaveResultDto.Outcome.INVALID_SNAPSHOT, contextNumber); }
+        NumberedContextExampleDto context = snapshot.contexts().stream().filter(item -> item.number() == contextNumber).findFirst().orElse(null);
+        if (context == null) return CardSaveResultDto.unavailable(CardSaveResultDto.Outcome.INVALID_SELECTION, contextNumber);
+        var existing = cardRepository.findByUserIdAndSavedFromLookupSessionIdAndSavedFromContextNumber(userId.value(), session.getId(), contextNumber);
+        if (existing.isPresent()) {
+            CardEntity card = existing.orElseThrow();
+            return CardSaveResultDto.alreadySaved(new CardId(card.getId()), new DeckId(card.getDeckId()), contextNumber);
+        }
+        AnkiCardFieldsDto ankiFields;
+        try { ankiFields = ankiCardFieldMapper.map(snapshot.dictionaryEntry(), context); }
+        catch (IllegalArgumentException exception) { return CardSaveResultDto.unavailable(CardSaveResultDto.Outcome.INVALID_SNAPSHOT, contextNumber); }
+        CardEntity card = new CardEntity();
+        card.setId(CardId.random().value()); card.setUserId(userId.value()); card.setDeckId(deckId.value());
+        card.setNoteType(CardEntity.NoteType.BASIC_CONTEXT); card.setSourceLanguage(session.getSourceLanguage());
+        card.setDefinitionLanguage(session.getDefinitionLanguage()); card.setTerm(snapshot.dictionaryEntry().requestedTerm());
+        card.setDefinition(formatDefinitions(snapshot.dictionaryEntry().senses())); card.setExampleText(context.displayText());
+        card.setSavedFromLookupSessionId(session.getId()); card.setSavedFromContextNumber(contextNumber);
+        card.setAnkiTemplateVersion(ankiFields.templateVersion()); card.setSourceLocation(context.location());
+        card.setPayload(cardPayload(session, snapshot, context, ankiFields)); card.setCreatedAt(now); card.setUpdatedAt(now);
+        sourceDocumentRepository.findByIdAndUserId(context.sourceId(), userId.value()).ifPresent(source -> card.setSourceId(source.getId()));
+        CardEntity saved = cardRepository.save(card);
+        return CardSaveResultDto.saved(new CardId(saved.getId()), deckId, contextNumber);
+    }
+
     private CardSaveResultDto unavailableResult(UserId userId, int contextNumber, Instant now) {
         var latest = lookupSessionRepository.findFirstByUserIdOrderByCreatedAtDesc(userId.value());
         CardSaveResultDto.Outcome outcome;

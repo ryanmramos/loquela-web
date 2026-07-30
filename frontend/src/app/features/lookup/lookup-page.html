@@ -1,0 +1,229 @@
+<section class="lookup-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Contextual dictionary</p>
+      <h1>Lookup</h1>
+      <p>Find a definition, see it in your own corpus, and save the clearest example as a card.</p>
+    </div>
+    <a appButton variant="secondary" routerLink="/app/sources">▤ Browse sources</a>
+  </header>
+
+  <div class="lookup-layout">
+    <section>
+      <article class="lookup-card">
+        <div class="section-head">
+          <h2>Look up a term</h2>
+          <span class="ready-pill">Ready sources only</span>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="lookup-form">
+          <label class="visually-hidden" for="lookup-term">Term to look up</label>
+          <input
+            id="lookup-term"
+            class="lookup-input"
+            formControlName="term"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Enter a word or phrase"
+          />
+          <button appButton type="submit" [disabled]="loading()">
+            @if (loading()) {
+              <span class="lookup-spinner" aria-hidden="true">Q</span>
+              Looking up…
+            } @else {
+              <span aria-hidden="true">⌕</span>
+              Look up
+            }
+          </button>
+        </form>
+        <div class="language-context">
+          <span>Current language pair</span>
+          @if (lookup()?.languagePair; as pair) {
+            <strong>{{ pair.sourceLanguage }} → {{ pair.definitionLanguage }}</strong>
+          } @else {
+            <strong>Your configured pair</strong>
+          }
+          <a routerLink="/app/settings">Change in settings</a>
+        </div>
+
+        <app-lookup-source-filters
+          [sources]="sources()"
+          [selectedKinds]="form.controls.sourceKinds.value"
+          [selectedSources]="form.controls.sourceReferences.value"
+          (kindToggled)="toggleKind($event.value, $event.checked)"
+          (sourceToggled)="toggleSource($event.value, $event.checked)"
+        />
+
+        <div class="state-panel" [class.state-panel--error]="error()">
+          <span class="state-icon" aria-hidden="true">{{ stateIcon() }}</span>
+          <div>
+            <strong>{{ stateTitle() }}</strong>
+            <p>{{ stateDescription() }}</p>
+          </div>
+        </div>
+      </article>
+
+      @if (lookup(); as result) {
+        @if (result.status === 'READY') {
+          <section class="results" aria-live="polite">
+            <div class="section-head">
+              <div>
+                <h2>Results for “{{ result.term }}”</h2>
+                <p>Dictionary attribution and context are stored in this lookup snapshot.</p>
+              </div>
+              <span class="result-count">{{ (result.contexts ?? []).length }} examples</span>
+            </div>
+            <div class="result-list">
+              @for (context of result.contexts ?? []; track context.number; let index = $index) {
+                <article class="lookup-result">
+                  <div class="result-main">
+                    @if (result.senses?.[index] ?? result.senses?.[0]; as sense) {
+                      <span class="sense-pill"
+                        >{{ context.number }} · {{ sense.partOfSpeech }}</span
+                      >
+                      <h3>{{ result.lemma ?? result.term }}</h3>
+                      <p class="definition">{{ sense.definition }}</p>
+                    } @else {
+                      <span class="sense-pill">{{ context.number }} · Context</span>
+                      <h3>{{ result.term }}</h3>
+                    }
+                    <span class="context-label">Context from your corpus</span>
+                    <p class="context-copy">
+                      @for (
+                        segment of highlightedContext(context.displayText ?? '', result.term ?? '');
+                        track $index
+                      ) {
+                        @if (segment.highlighted) {
+                          <mark>{{ segment.text }}</mark>
+                        } @else {
+                          <span>{{ segment.text }}</span>
+                        }
+                      }
+                    </p>
+                  </div>
+                  <footer class="result-meta">
+                    @if (context.youtubeUrl) {
+                      <a
+                        class="video-provenance"
+                        [href]="context.youtubeUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [attr.aria-label]="
+                          'Open ' +
+                          context.sourceDisplayName +
+                          ' at ' +
+                          sourceLocation(context) +
+                          ' on YouTube'
+                        "
+                      >
+                        @if (youtubeThumbnail(context); as thumbnail) {
+                          <img
+                            [src]="thumbnail"
+                            alt=""
+                            width="96"
+                            height="54"
+                            loading="lazy"
+                            referrerpolicy="no-referrer"
+                          />
+                        }
+                        <span class="video-provenance__copy">
+                          <strong>{{ context.sourceDisplayName }}</strong>
+                          <small>{{ sourceLocation(context) }} · Open video ↗</small>
+                        </span>
+                      </a>
+                    } @else {
+                      <div class="provenance">
+                        <span class="type-icon">{{ sourceIcon(context.sourceKind) }}</span>
+                        <div>
+                          <strong>{{ context.sourceDisplayName }}</strong>
+                          <span>{{ sourceLocation(context) }}</span>
+                        </div>
+                      </div>
+                    }
+                    <div class="result-actions">
+                      <button appButton type="button" (click)="chooseContext(context.number ?? 0)">
+                        ＋ Save card
+                      </button>
+                    </div>
+                  </footer>
+                </article>
+              }
+            </div>
+            @if (!(result.contexts ?? []).length) {
+              <app-ui-state
+                kind="empty"
+                title="No matching contexts"
+                description="Try another term or broaden the source scope."
+              />
+            }
+            <aside class="why-notice">
+              <strong>Why these examples?</strong> Loquela searches only your ready sources, then
+              diversifies examples across sources. Saving preserves the definition, attribution, and
+              captured source location.
+            </aside>
+          </section>
+        }
+      }
+    </section>
+
+    <aside class="lookup-aside">
+      <article class="side-card">
+        <h2>How saving works</h2>
+        <ol>
+          <li>
+            <span>1</span>Choose the example that best shows the meaning you want to remember.
+          </li>
+          <li>
+            <span>2</span>Select an active deck. <strong>Default</strong> stays a fast option.
+          </li>
+          <li>
+            <span>3</span>Loquela copies the definition, context, attribution, and source location
+            into a durable card.
+          </li>
+        </ol>
+      </article>
+      <article class="side-card">
+        <h2>Saved cards stay trustworthy</h2>
+        <p>
+          Changing a source title or deleting an old lookup does not erase provenance already copied
+          to a card.
+        </p>
+        <a appButton variant="secondary" routerLink="/app/cards">View cards</a>
+      </article>
+    </aside>
+  </div>
+
+  @if (selectedContext()) {
+    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="save-title">
+      <div class="save-modal">
+        <span class="ready-pill">Create card</span>
+        <h2 id="save-title">Save “{{ lookup()?.term }}”</h2>
+        <p>
+          Choose where this contextual card should live. Its definition and source provenance are
+          saved with it.
+        </p>
+        <form [formGroup]="saveForm" (ngSubmit)="save()">
+          <div class="deck-options">
+            @for (deck of decks(); track deck.reference) {
+              <button
+                type="button"
+                class="deck-option"
+                [class.deck-option--selected]="
+                  saveForm.controls.deckReference.value === deck.reference
+                "
+                (click)="chooseDeck(deck.reference ?? '')"
+              >
+                <span>▥</span><strong>{{ deck.name }}</strong>
+              </button>
+            }
+          </div>
+          <div class="modal-actions">
+            <button appButton variant="secondary" type="button" (click)="closeSave()">Cancel</button
+            ><button appButton type="submit" [disabled]="saving() || !decks().length">
+              {{ saving() ? 'Saving…' : 'Save card' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</section>

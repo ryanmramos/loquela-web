@@ -57,13 +57,13 @@ public class CorpusSearchImpl implements CorpusSearch {
                 configuration.getSearch().getMaxCandidates(),
                 Math.max((long) options.limit(), requestedCandidates)
         );
-        List<PassageEntity> rankedCandidates = passageRepository.searchRankedReadyPassages(
-                userId.value(),
-                options.sourceLanguage().value(),
-                searchQuery,
-                configuration.getSearch().getIdealPassageCharacters(),
-                PageRequest.of(0, candidateLimit)
-        );
+        List<PassageEntity> rankedCandidates = options.sourceIds().isEmpty() && options.sourceKinds().isEmpty()
+                ? passageRepository.searchRankedReadyPassages(userId.value(), options.sourceLanguage().value(), searchQuery,
+                        configuration.getSearch().getIdealPassageCharacters(), PageRequest.of(0, candidateLimit))
+                : passageRepository.searchRankedReadyPassages(userId.value(), options.sourceLanguage().value(), searchQuery,
+                        configuration.getSearch().getIdealPassageCharacters(),
+                        options.sourceIds().stream().map(UUID::toString).sorted().collect(Collectors.joining(",")),
+                        options.sourceKinds().stream().sorted().collect(Collectors.joining(",")), PageRequest.of(0, candidateLimit));
 
         if (rankedCandidates.isEmpty()) {
             log.info(

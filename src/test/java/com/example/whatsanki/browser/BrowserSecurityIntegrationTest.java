@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.blankOrNullString;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
@@ -103,6 +104,10 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(jsonPath("$.accountState").value("ACTIVE"))
                 .andExpect(jsonPath("$.linkedAccounts.google").value(true))
                 .andExpect(jsonPath("$.linkedAccounts.whatsapp").value(false))
+                .andExpect(header().string(
+                        "Content-Security-Policy",
+                        containsString("img-src 'self' data: https://i.ytimg.com")
+                ))
                 .andExpect(header().string("X-Correlation-ID", not(blankOrNullString())));
     }
 

@@ -264,6 +264,165 @@
         }
       }
     },
+    "/api/v1/lookups" : {
+      "post" : {
+        "tags" : [ "browser-lookup-controller" ],
+        "summary" : "Queue a contextual lookup",
+        "operationId" : "createBrowserLookup",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateBrowserLookupRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Lookup accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserLookupAcceptedDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lookups/{lookupReference}/contexts/{contextNumber}/save" : {
+      "post" : {
+        "tags" : [ "browser-lookup-controller" ],
+        "summary" : "Save one lookup context as a card",
+        "operationId" : "saveBrowserLookupContext",
+        "parameters" : [ {
+          "name" : "lookupReference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "contextNumber",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 1
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SaveLookupResultRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Saved card reference",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserLookupSaveDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cards" : {
+      "get" : {
+        "tags" : [ "browser-card-controller" ],
+        "summary" : "List owned cards",
+        "operationId" : "listBrowserCards",
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "name" : "pageSize",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20,
+            "maximum" : 50,
+            "minimum" : 1
+          }
+        }, {
+          "name" : "search",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 256,
+            "minLength" : 0
+          }
+        }, {
+          "name" : "deckReference",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Card page",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserCardListDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "browser-card-controller" ],
+        "summary" : "Create a card",
+        "operationId" : "createBrowserCard",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CardMutationRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created card",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserCardDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sources/{sourceReference}" : {
       "get" : {
         "tags" : [ "browser-source-controller" ],
@@ -351,6 +510,114 @@
         }
       }
     },
+    "/api/v1/session/interface-language" : {
+      "patch" : {
+        "tags" : [ "browser-session-controller" ],
+        "summary" : "Persist the browser interface language",
+        "operationId" : "updateInterfaceLanguage",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateInterfaceLanguageRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserSessionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cards/{reference}" : {
+      "get" : {
+        "tags" : [ "browser-card-controller" ],
+        "summary" : "Get an owned card",
+        "operationId" : "getBrowserCard",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Card",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserCardDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "browser-card-controller" ],
+        "operationId" : "delete",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "browser-card-controller" ],
+        "summary" : "Update an owned card",
+        "operationId" : "updateBrowserCard",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CardMutationRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Updated card",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserCardDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/session" : {
       "get" : {
         "tags" : [ "browser-session-controller" ],
@@ -373,6 +640,55 @@
               "application/problem+json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ApiProblemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lookups/{lookupReference}" : {
+      "get" : {
+        "tags" : [ "browser-lookup-controller" ],
+        "summary" : "Get an owned lookup snapshot",
+        "operationId" : "getBrowserLookup",
+        "parameters" : [ {
+          "name" : "lookupReference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Current lookup state",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/lookups/decks" : {
+      "get" : {
+        "tags" : [ "browser-lookup-controller" ],
+        "summary" : "List active decks available for lookup cards",
+        "operationId" : "listBrowserLookupDecks",
+        "responses" : {
+          "200" : {
+            "description" : "Active deck options",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/BrowserDeckOptionDto"
+                  }
                 }
               }
             }
@@ -552,6 +868,141 @@
         },
         "required" : [ "acceptedMediaTypes", "completionPath", "expiresAt", "maxBytes", "uploadMode", "uploadReference" ]
       },
+      "CreateBrowserLookupRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "term" : {
+            "type" : "string",
+            "maxLength" : 256,
+            "minLength" : 0
+          },
+          "sourceReferences" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "maxLength" : 22,
+              "minLength" : 22
+            },
+            "maxItems" : 50,
+            "minItems" : 0
+          },
+          "sourceKinds" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "maxLength" : 32,
+              "minLength" : 0
+            },
+            "maxItems" : 5,
+            "minItems" : 0,
+            "uniqueItems" : true
+          }
+        },
+        "required" : [ "term" ]
+      },
+      "BrowserLookupAcceptedDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "SaveLookupResultRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "deckReference" : {
+            "type" : "string",
+            "maxLength" : 22,
+            "minLength" : 22
+          }
+        },
+        "required" : [ "deckReference" ]
+      },
+      "BrowserLookupSaveDto" : {
+        "type" : "object",
+        "properties" : {
+          "outcome" : {
+            "type" : "string"
+          },
+          "cardReference" : {
+            "type" : "string"
+          },
+          "deckReference" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CardMutationRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "deckReference" : {
+            "type" : "string",
+            "maxLength" : 22,
+            "minLength" : 22
+          },
+          "term" : {
+            "type" : "string",
+            "maxLength" : 256,
+            "minLength" : 0
+          },
+          "definition" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "exampleText" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "deckReference", "definition", "term" ]
+      },
+      "BrowserCardDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "deckReference" : {
+            "type" : "string"
+          },
+          "deckName" : {
+            "type" : "string"
+          },
+          "noteType" : {
+            "type" : "string",
+            "enum" : [ "BASIC", "BASIC_CONTEXT" ]
+          },
+          "term" : {
+            "type" : "string"
+          },
+          "definition" : {
+            "type" : "string"
+          },
+          "exampleText" : {
+            "type" : "string"
+          },
+          "version" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
       "RenameSourceRequestDto" : {
         "type" : "object",
         "properties" : {
@@ -616,6 +1067,59 @@
           }
         },
         "required" : [ "createdAt", "displayName", "kind", "language", "reference", "retryable", "status", "updatedAt", "version" ]
+      },
+      "UpdateInterfaceLanguageRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "interfaceLanguage" : {
+            "type" : "string",
+            "pattern" : "en|es"
+          }
+        }
+      },
+      "BrowserSessionDto" : {
+        "type" : "object",
+        "properties" : {
+          "userId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "definitionLanguage" : {
+            "type" : "string"
+          },
+          "interfaceLanguage" : {
+            "type" : "string"
+          },
+          "accountState" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "DELETING" ]
+          },
+          "linkedAccounts" : {
+            "$ref" : "#/components/schemas/LinkedAccountsDto"
+          }
+        },
+        "required" : [ "accountState", "definitionLanguage", "linkedAccounts", "sourceLanguage", "userId" ]
+      },
+      "LinkedAccountsDto" : {
+        "type" : "object",
+        "properties" : {
+          "google" : {
+            "type" : "boolean"
+          },
+          "whatsapp" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "google", "whatsapp" ]
       },
       "SourceListDto" : {
         "type" : "object",
@@ -719,51 +1223,6 @@
         },
         "required" : [ "canonicalUrl", "captionKind" ]
       },
-      "BrowserSessionDto" : {
-        "type" : "object",
-        "properties" : {
-          "userId" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "displayName" : {
-            "type" : "string"
-          },
-          "email" : {
-            "type" : "string"
-          },
-          "sourceLanguage" : {
-            "type" : "string"
-          },
-          "definitionLanguage" : {
-            "type" : "string"
-          },
-          "interfaceLanguage" : {
-            "type" : "string",
-            "enum" : [ "en", "es" ]
-          },
-          "accountState" : {
-            "type" : "string",
-            "enum" : [ "ACTIVE", "DELETING" ]
-          },
-          "linkedAccounts" : {
-            "$ref" : "#/components/schemas/LinkedAccountsDto"
-          }
-        },
-        "required" : [ "accountState", "definitionLanguage", "linkedAccounts", "sourceLanguage", "userId" ]
-      },
-      "LinkedAccountsDto" : {
-        "type" : "object",
-        "properties" : {
-          "google" : {
-            "type" : "boolean"
-          },
-          "whatsapp" : {
-            "type" : "boolean"
-          }
-        },
-        "required" : [ "google", "whatsapp" ]
-      },
       "ApiProblemDto" : {
         "type" : "object",
         "properties" : {
@@ -813,6 +1272,115 @@
           }
         },
         "required" : [ "code", "field", "message" ]
+      },
+      "BrowserLookupDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "PENDING", "READY", "FAILED", "EXPIRED" ]
+          },
+          "term" : {
+            "type" : "string"
+          },
+          "languagePair" : {
+            "$ref" : "#/components/schemas/LanguagePairDto"
+          },
+          "errorCode" : {
+            "type" : "string"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "lemma" : {
+            "type" : "string"
+          },
+          "senses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SenseDto"
+            }
+          },
+          "contexts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ContextDto"
+            }
+          }
+        }
+      },
+      "ContextDto" : {
+        "type" : "object",
+        "properties" : {
+          "number" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "sourceReference" : {
+            "type" : "string"
+          },
+          "sourceKind" : {
+            "type" : "string"
+          },
+          "sourceDisplayName" : {
+            "type" : "string"
+          },
+          "ordinal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "displayText" : {
+            "type" : "string"
+          },
+          "pageNumber" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "startMs" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "youtubeUrl" : {
+            "type" : "string"
+          }
+        }
+      },
+      "LanguagePairDto" : {
+        "type" : "object",
+        "properties" : {
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "definitionLanguage" : {
+            "type" : "string"
+          }
+        }
+      },
+      "SenseDto" : {
+        "type" : "object",
+        "properties" : {
+          "partOfSpeech" : {
+            "type" : "string"
+          },
+          "definition" : {
+            "type" : "string"
+          }
+        }
+      },
+      "BrowserDeckOptionDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        }
       },
       "ActivityItem" : {
         "type" : "object",
@@ -950,6 +1518,33 @@
           }
         },
         "required" : [ "processingSources", "readySources", "status", "totalSources" ]
+      },
+      "BrowserCardListDto" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BrowserCardDto"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
       }
     },
     "securitySchemes" : {

@@ -128,6 +128,7 @@ class LookupSessionLifecycleServiceImplTest {
         UserId userId = UserId.random();
         LookupSessionId sessionId = LookupSessionId.random();
         LookupSessionEntity session = pending(userId, sessionId, Instant.now().plusSeconds(600));
+        session.setInboundMessageId(InboundMessageId.random().value());
         when(lookupSessionRepository.findByIdAndUserId(sessionId.value(), userId.value()))
                 .thenReturn(Optional.of(session));
         when(lookupSessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -157,6 +158,22 @@ class LookupSessionLifecycleServiceImplTest {
     }
 
     @Test
+    void completesBrowserLookupWithoutQueuingWhatsAppDelivery() {
+        UserId userId = UserId.random();
+        LookupSessionId sessionId = LookupSessionId.random();
+        LookupSessionEntity session = pending(userId, sessionId, Instant.now().plusSeconds(600));
+        when(lookupSessionRepository.findByIdAndUserId(sessionId.value(), userId.value())).thenReturn(Optional.of(session));
+        when(lookupSessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        boolean completed = service.complete(userId, sessionId, entry(), List.of(context(Map.of("pageNumber", 12))), Instant.now());
+
+        assertThat(completed).isTrue();
+        verify(backgroundJobService, never()).enqueue(
+                eq(userId), eq(BackgroundJobEntity.Type.DELIVER_LOOKUP_RESULT), any()
+        );
+    }
+
+    @Test
     void marksAnExpiredReadySnapshotUnavailableWithoutDeletingItsPayload() {
         UserId userId = UserId.random();
         LookupSessionId sessionId = LookupSessionId.random();
@@ -181,6 +198,7 @@ class LookupSessionLifecycleServiceImplTest {
         LookupSessionId sessionId = LookupSessionId.random();
         Instant now = Instant.parse("2026-07-19T18:00:00Z");
         LookupSessionEntity session = pending(userId, sessionId, now.plusSeconds(600));
+        session.setInboundMessageId(InboundMessageId.random().value());
         when(lookupSessionRepository.findByIdAndUserId(sessionId.value(), userId.value()))
                 .thenReturn(Optional.of(session));
         when(lookupSessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

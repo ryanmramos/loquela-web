@@ -7,7 +7,7 @@ export interface BrowserSessionDto {
   definitionLanguage: string;
   displayName?: string;
   email?: string;
-  interfaceLanguage?: 'en' | 'es';
+  interfaceLanguage?: string;
   linkedAccounts: LinkedAccountsDto;
   sourceLanguage: string;
   userId: string;

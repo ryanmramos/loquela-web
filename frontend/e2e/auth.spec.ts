@@ -143,7 +143,201 @@ test('mobile dashboard navigation and global lookup are keyboard operable', asyn
   await search.fill('sobremesa');
   await search.press('Enter');
   await expect(page).toHaveURL(/\/app\/lookup\?query=sobremesa$/u);
-  await expect(page.getByText('query: sobremesa')).toBeVisible();
+  await expect(page.getByLabel('Term to look up')).toHaveValue('sobremesa');
+});
+
+test('lookup polling reports success and terminal lookup failures', async ({ page }) => {
+  await mockAuthentication(page, true);
+  const polls = new Map<string, number>();
+
+  await page.route('**/api/v1/lookups', async (route: Route) => {
+    const request = route.request();
+    if (request.method() !== 'POST') {
+      await route.fallback();
+      return;
+    }
+    const term = (request.postDataJSON() as { term: string }).term;
+    await route.fulfill({
+      status: 202,
+      contentType: 'application/json',
+      body: JSON.stringify({ reference: `lookup-${term}`, expiresAt: new Date().toISOString() }),
+    });
+  });
+  await page.route('**/api/v1/lookups/*', async (route: Route) => {
+    const reference = route.request().url().split('/').at(-1) ?? '';
+    const count = (polls.get(reference) ?? 0) + 1;
+    polls.set(reference, count);
+    const common = {
+      reference,
+      term: reference.replace('lookup-', ''),
+      languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    };
+    if (reference === 'lookup-unknown') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ...common,
+          status: 'FAILED',
+          errorCode: 'DEFINITION_NOT_FOUND',
+          contexts: [],
+          senses: [],
+        }),
+      });
+      return;
+    }
+    if (reference === 'lookup-aislado') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ...common,
+          status: 'FAILED',
+          errorCode: 'CONTEXT_NOT_FOUND',
+          contexts: [],
+          senses: [],
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(
+        count === 1
+          ? { ...common, status: 'PENDING', contexts: [], senses: [] }
+          : {
+              ...common,
+              status: 'READY',
+              lemma: 'vivir',
+              senses: [{ partOfSpeech: 'verb', definition: 'to live' }],
+              contexts: [
+                {
+                  number: 1,
+                  sourceReference: 'src_spanish',
+                  sourceKind: 'YOUTUBE_VIDEO',
+                  sourceDisplayName: 'Easy Spanish transcript',
+                  ordinal: 1,
+                  displayText: 'Quiero vivir aquí.',
+                  startMs: 15_000,
+                  youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=15s',
+                },
+              ],
+            },
+      ),
+    });
+  });
+
+  await page.goto('/app/lookup');
+  const term = page.getByLabel('Term to look up');
+  const submitLookup = page.getByRole('button', { name: /Look up/u });
+
+  await term.fill('unknown');
+  await submitLookup.click();
+  await expect(page.getByText('No definition found')).toBeVisible();
+
+  await term.fill('aislado');
+  await submitLookup.click();
+  await expect(page.getByText('No matching contexts')).toBeVisible();
+
+  await term.fill('vivir');
+  await submitLookup.click();
+  await expect(page.locator('.lookup-spinner')).toHaveText('Q');
+  await expect(page.getByText('Lookup in progress')).toBeVisible();
+  await expect(page.getByText('Results for “vivir”')).toBeVisible();
+  await expect(page.getByText('Quiero vivir aquí.')).toBeVisible();
+  await expect(page.locator('.context-copy mark')).toHaveText('vivir');
+  const videoLink = page.getByRole('link', {
+    name: /Open Easy Spanish transcript at Video · 00:00:15 on YouTube/u,
+  });
+  await expect(videoLink).toHaveAttribute(
+    'href',
+    'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=15s',
+  );
+  await expect(videoLink.locator('img')).toHaveAttribute(
+    'src',
+    'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+  );
+  await expect(polls.get('lookup-vivir')).toBe(2);
+});
+
+test('card management preserves versioned edits and confirms permanent deletion', async ({
+  page,
+}) => {
+  await mockAuthentication(page, true);
+  const deckReference = 'AAAAAAAAAAAAAAAAAAAAAA';
+  let cards = [
+    {
+      reference: 'BBBBBBBBBBBBBBBBBBBBBB',
+      deckReference,
+      deckName: 'Vocabulary',
+      noteType: 'BASIC',
+      term: 'vivir',
+      definition: 'to live',
+      exampleText: 'Ella vive aquí.',
+      version: 3,
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  await page.route('**/api/v1/lookups/decks', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([{ reference: deckReference, name: 'Vocabulary' }]),
+    });
+  });
+  await page.route('**/api/v1/cards?*', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items: cards,
+        page: 0,
+        pageSize: 50,
+        totalItems: cards.length,
+        totalPages: cards.length ? 1 : 0,
+      }),
+    });
+  });
+  await page.route('**/api/v1/cards/BBBBBBBBBBBBBBBBBBBBBB', async (route: Route) => {
+    if (route.request().method() === 'PATCH') {
+      const body = route.request().postDataJSON() as {
+        term: string;
+        definition: string;
+        version: number;
+      };
+      expect(body).toMatchObject({
+        term: 'vivir bien',
+        definition: 'to live well',
+        version: 3,
+      });
+      cards = [{ ...cards[0], ...body, version: 4 }];
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(cards[0]),
+      });
+      return;
+    }
+    cards = [];
+    await route.fulfill({ status: 204 });
+  });
+
+  await page.goto('/app/cards');
+  await page.getByRole('button', { name: /vivir to live Vocabulary/u }).click();
+  await page.getByLabel('Term').fill('vivir bien');
+  await page.getByLabel('Definition').fill('to live well');
+  await page.getByRole('button', { name: 'Save card' }).click();
+  await expect(page.getByRole('button', { name: /vivir bien to live well/u })).toBeVisible();
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Delete' }).click();
+  await expect(page.getByText('No cards yet')).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
 });
 
 test('source management keeps filters in the URL and resumes source details', async ({ page }) => {

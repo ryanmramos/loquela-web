@@ -54,6 +54,8 @@ public interface PassageRepository extends Repository<PassageEntity, UUID> {
             where p.user_id = :userId
               and s.status = 'READY'
               and s.language = :sourceLanguage
+              and (coalesce(:sourceIdsCsv, '') = '' or s.id::text = any(string_to_array(:sourceIdsCsv, ',')))
+              and (coalesce(:sourceKindsCsv, '') = '' or s.kind = any(string_to_array(:sourceKindsCsv, ',')))
               and p.search_vector @@ websearch_to_tsquery('simple', :term)
             order by ts_rank_cd(p.search_vector, websearch_to_tsquery('simple', :term)) desc,
                      abs(char_length(p.display_text) - :idealPassageCharacters),
@@ -65,6 +67,15 @@ public interface PassageRepository extends Repository<PassageEntity, UUID> {
             @Param("sourceLanguage") String sourceLanguage,
             @Param("term") String term,
             @Param("idealPassageCharacters") int idealPassageCharacters,
+            @Param("sourceIdsCsv") String sourceIdsCsv,
+            @Param("sourceKindsCsv") String sourceKindsCsv,
             Pageable pageable
     );
+
+    /** Compatibility path used by unfiltered messaging lookups. */
+    default List<PassageEntity> searchRankedReadyPassages(
+            UUID userId, String sourceLanguage, String term, int idealPassageCharacters, Pageable pageable
+    ) {
+        return searchRankedReadyPassages(userId, sourceLanguage, term, idealPassageCharacters, "", "", pageable);
+    }
 }

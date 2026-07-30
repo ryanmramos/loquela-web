@@ -15,6 +15,7 @@ import com.example.whatsanki.dto.LookupAcceptanceDto;
 import com.example.whatsanki.dto.LookupExecutionPreparationDto;
 import com.example.whatsanki.dto.LookupJobPayloadDto;
 import com.example.whatsanki.dto.LookupResultPayloadDto;
+import com.example.whatsanki.dto.LookupRequestFiltersDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.LookupSessionRepository;
@@ -87,6 +88,7 @@ public class LookupSessionLifecycleServiceImpl implements LookupSessionLifecycle
         session.setSourceLanguage(languagePair.sourceLanguage());
         session.setDefinitionLanguage(languagePair.definitionLanguage());
         session.setResultPayload(Map.of("schemaVersion", LookupResultPayloadDto.CURRENT_SCHEMA_VERSION));
+        session.setRequestFilters(LookupRequestFiltersDto.none().toMap());
         session.setStatus(LookupSessionEntity.Status.PENDING);
         session.setCreatedAt(now);
         session.setUpdatedAt(now);
@@ -113,6 +115,33 @@ public class LookupSessionLifecycleServiceImpl implements LookupSessionLifecycle
     }
 
     @Override
+    @Transactional
+    public LookupAcceptanceDto acceptBrowser(
+            UserId userId, String requestedTerm, String normalizedTerm, LanguagePairDto languagePair,
+            LookupRequestFiltersDto filters, Instant now
+    ) {
+        Objects.requireNonNull(userId, "userId must not be null");
+        Objects.requireNonNull(languagePair, "languagePair must not be null");
+        Objects.requireNonNull(now, "now must not be null");
+        LookupSessionId lookupSessionId = LookupSessionId.random();
+        LookupSessionEntity session = new LookupSessionEntity();
+        session.setId(lookupSessionId.value());
+        session.setUserId(userId.value());
+        session.setRequestedTerm(required(requestedTerm, "requestedTerm"));
+        session.setNormalizedTerm(required(normalizedTerm, "normalizedTerm"));
+        session.setSourceLanguage(languagePair.sourceLanguage());
+        session.setDefinitionLanguage(languagePair.definitionLanguage());
+        session.setResultPayload(Map.of("schemaVersion", LookupResultPayloadDto.CURRENT_SCHEMA_VERSION));
+        session.setRequestFilters((filters == null ? LookupRequestFiltersDto.none() : filters).toMap());
+        session.setStatus(LookupSessionEntity.Status.PENDING);
+        session.setCreatedAt(now); session.setUpdatedAt(now);
+        session.setExpiresAt(now.plus(configuration.getRetention().getLookupSession()));
+        lookupSessionRepository.save(session);
+        backgroundJobService.enqueue(userId, BackgroundJobEntity.Type.LOOKUP, LookupJobPayloadDto.create(lookupSessionId).toMap());
+        return acceptance(session);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public LookupExecutionPreparationDto prepare(
             UserId userId,
@@ -133,6 +162,7 @@ public class LookupSessionLifecycleServiceImpl implements LookupSessionLifecycle
                 session.getRequestedTerm(),
                 session.getNormalizedTerm(),
                 new LanguagePairDto(session.getSourceLanguage(), session.getDefinitionLanguage()),
+                LookupRequestFiltersDto.fromMap(session.getRequestFilters()),
                 session.getExpiresAt(),
                 alreadyCompleted,
                 expired
@@ -185,15 +215,19 @@ public class LookupSessionLifecycleServiceImpl implements LookupSessionLifecycle
         session.setErrorCode(null);
         session.setUpdatedAt(now);
         lookupSessionRepository.save(session);
-        backgroundJobService.enqueue(
-                userId,
-                BackgroundJobEntity.Type.DELIVER_LOOKUP_RESULT,
-                DeliverLookupResultJobPayloadDto.create(lookupSessionId).toMap()
-        );
+        // Browser lookups are rendered by the website polling endpoint. They must not attempt
+        // WhatsApp delivery: a website-only account may intentionally have no decryptable number.
+        if (session.getInboundMessageId() != null) {
+            backgroundJobService.enqueue(
+                    userId,
+                    BackgroundJobEntity.Type.DELIVER_LOOKUP_RESULT,
+                    DeliverLookupResultJobPayloadDto.create(lookupSessionId).toMap()
+            );
+        }
         log.info(
-                "Completed lookup session and queued delivery userId={} lookupSessionId={} "
-                        + "providerId={} contextCount={}",
-                userId.value(), lookupSessionId.value(), entry.provenance().providerId(), contexts.size()
+                "Completed {} lookup session userId={} lookupSessionId={} providerId={} contextCount={}",
+                session.getInboundMessageId() == null ? "browser" : "WhatsApp", userId.value(),
+                lookupSessionId.value(), entry.provenance().providerId(), contexts.size()
         );
         return true;
     }
@@ -242,16 +276,18 @@ public class LookupSessionLifecycleServiceImpl implements LookupSessionLifecycle
         session.setErrorCode(errorCode);
         session.setUpdatedAt(now);
         lookupSessionRepository.save(session);
-        JobId deliveryJobId = backgroundJobService.enqueue(
-                userId,
-                BackgroundJobEntity.Type.DELIVER_LOOKUP_RESULT,
-                DeliverLookupResultJobPayloadDto.create(lookupSessionId).toMap()
-        );
-        log.warn(
-                "Marked lookup session failed and queued notification userId={} lookupSessionId={} "
-                        + "deliveryJobId={} errorCode={}",
-                userId.value(), lookupSessionId.value(), deliveryJobId.value(), errorCode
-        );
+        if (session.getInboundMessageId() != null) {
+            JobId deliveryJobId = backgroundJobService.enqueue(
+                    userId,
+                    BackgroundJobEntity.Type.DELIVER_LOOKUP_RESULT,
+                    DeliverLookupResultJobPayloadDto.create(lookupSessionId).toMap()
+            );
+            log.warn(
+                    "Marked WhatsApp lookup session failed and queued notification userId={} lookupSessionId={} "
+                            + "deliveryJobId={} errorCode={}",
+                    userId.value(), lookupSessionId.value(), deliveryJobId.value(), errorCode
+            );
+        }
     }
 
     private LookupSessionEntity ownedSession(UserId userId, LookupSessionId lookupSessionId) {

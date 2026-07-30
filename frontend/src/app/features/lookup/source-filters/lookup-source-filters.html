@@ -1,0 +1,54 @@
+<details class="source-filters">
+  <summary>
+    <span class="filter-summary-icon" aria-hidden="true">≡</span>
+    <span class="filter-summary-copy">
+      <strong>Source filters</strong>
+      <small>{{ activeCount() ? activeCount() + ' selected' : 'Search all ready sources' }}</small>
+    </span>
+    <span class="filter-chevron" aria-hidden="true">⌄</span>
+  </summary>
+  <div class="filter-panel">
+    <fieldset class="filter-group">
+      <legend>Source type</legend>
+      <div class="filter-chips">
+        @for (kind of kinds; track kind.value) {
+          <label class="filter-chip">
+            <input
+              type="checkbox"
+              [checked]="selectedKinds().includes(kind.value)"
+              (change)="toggleKind(kind.value, $any($event.target).checked)"
+            />
+            <span>{{ kind.label }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+    <fieldset class="filter-group">
+      <legend>Specific ready sources</legend>
+      <div class="source-options">
+        @for (source of sources(); track source.reference) {
+          <label class="source-option">
+            <input
+              type="checkbox"
+              [checked]="selectedSources().includes(source.reference ?? '')"
+              (change)="toggleSource(source.reference, $any($event.target).checked)"
+            />
+            <span class="source-option__icon" aria-hidden="true">{{
+              sourceIcon(source.kind)
+            }}</span>
+            <span>
+              <strong>{{ source.displayName }}</strong>
+              <small>{{ sourceKindLabel(source.kind) }}</small>
+            </span>
+          </label>
+        }
+        @if (!sources().length) {
+          <p class="filter-empty">No ready sources are available yet.</p>
+        }
+      </div>
+    </fieldset>
+    <p class="filter-help">
+      Type and source selections work together, so only relevant combinations are searched.
+    </p>
+  </div>
+</details>

@@ -49,6 +49,7 @@ describe('SessionApi', () => {
       email: 'session@example.com',
       sourceLanguage: 'es',
       definitionLanguage: 'en',
+      interfaceLanguage: null,
       accountState: 'ACTIVE',
       linkedAccounts: {
         google: true,
@@ -62,6 +63,7 @@ describe('SessionApi', () => {
       email: 'session@example.com',
       sourceLanguage: 'es',
       definitionLanguage: 'en',
+      interfaceLanguage: null,
       accountState: 'ACTIVE',
       linkedAccounts: {
         google: true,

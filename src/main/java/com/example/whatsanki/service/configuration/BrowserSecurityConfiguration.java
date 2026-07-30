@@ -83,7 +83,8 @@ public class BrowserSecurityConfiguration {
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.deny())
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "default-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+                                "default-src 'self'; img-src 'self' data: https://i.ytimg.com; "
+                                        + "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
                         )))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .addFilterBefore(

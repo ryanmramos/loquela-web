@@ -8,6 +8,7 @@ import com.example.whatsanki.dto.DictionaryEntryDto;
 import com.example.whatsanki.dto.LanguagePairDto;
 import com.example.whatsanki.dto.LookupAcceptanceDto;
 import com.example.whatsanki.dto.LookupExecutionPreparationDto;
+import com.example.whatsanki.dto.LookupRequestFiltersDto;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,6 +23,11 @@ public interface LookupSessionLifecycleService {
             String normalizedTerm,
             LanguagePairDto languagePair,
             Instant now
+    );
+
+    LookupAcceptanceDto acceptBrowser(
+            UserId userId, String requestedTerm, String normalizedTerm, LanguagePairDto languagePair,
+            LookupRequestFiltersDto filters, Instant now
     );
 
     LookupExecutionPreparationDto prepare(UserId userId, LookupSessionId lookupSessionId, Instant now);

@@ -33,6 +33,9 @@ public class LookupSessionEntity {
     @Column(name = "definition_language", nullable = false, length = 35) private String definitionLanguage;
     @JdbcTypeCode(SqlTypes.JSON) @Column(name = "result_payload", nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> resultPayload = new LinkedHashMap<>();
+    /** Filters are persisted separately from results so a queued browser lookup is immutable. */
+    @JdbcTypeCode(SqlTypes.JSON) @Column(name = "request_filters", nullable = false, columnDefinition = "jsonb")
+    private Map<String, Object> requestFilters = new LinkedHashMap<>();
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 24) private Status status;
     @Column(name = "error_code", length = 64) private String errorCode;
     @Column(name = "created_at", nullable = false) private Instant createdAt;

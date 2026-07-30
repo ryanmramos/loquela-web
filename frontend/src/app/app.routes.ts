@@ -56,17 +56,8 @@ export const routes: Routes = [
       {
         path: 'cards',
         title: 'Cards',
-        data: {
-          featureKey: 'cards',
-          eyebrow: 'Card library',
-          heading: 'Cards',
-          description:
-            'Card management arrives in Step 11. Dashboard filters are preserved in this route.',
-        },
         loadComponent: () =>
-          import('@app/features/placeholder/feature-placeholder-page').then(
-            (module) => module.FeaturePlaceholderPage,
-          ),
+          import('@app/features/cards/cards-page').then((module) => module.CardsPage),
       },
       {
         path: 'decks',
@@ -115,17 +106,8 @@ export const routes: Routes = [
       {
         path: 'lookup',
         title: 'Lookup',
-        data: {
-          featureKey: 'lookup',
-          eyebrow: 'Global lookup',
-          heading: 'Lookup',
-          description:
-            'Your search is preserved in the URL. Lookup results arrive with card management in Step 11.',
-        },
         loadComponent: () =>
-          import('@app/features/placeholder/feature-placeholder-page').then(
-            (module) => module.FeaturePlaceholderPage,
-          ),
+          import('@app/features/lookup/lookup-page').then((module) => module.LookupPage),
       },
       {
         path: 'settings',

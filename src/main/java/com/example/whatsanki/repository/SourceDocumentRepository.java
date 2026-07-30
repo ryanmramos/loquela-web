@@ -27,6 +27,8 @@ public interface SourceDocumentRepository extends Repository<SourceDocumentEntit
     List<SourceDocumentEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     List<SourceDocumentEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
     List<SourceDocumentEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
+    List<SourceDocumentEntity> findAllByUserIdAndStatusAndLanguageOrderByDisplayName(
+            UUID userId, SourceDocumentEntity.Status status, String language);
     @Query("""
             select source
             from SourceDocumentEntity source

@@ -10,6 +10,7 @@ interface ShellNavigationItem {
   readonly key:
     | 'navigation.overview'
     | 'navigation.sources'
+    | 'navigation.lookup'
     | 'navigation.cards'
     | 'navigation.decks'
     | 'navigation.study'
@@ -36,6 +37,7 @@ export class AppShell {
   protected readonly navigation: readonly ShellNavigationItem[] = [
     { key: 'navigation.overview', symbol: '⌂', target: '/app' },
     { key: 'navigation.sources', symbol: '▤', target: '/app/sources' },
+    { key: 'navigation.lookup', symbol: '⌕', target: '/app/lookup' },
     { key: 'navigation.cards', symbol: '▣', target: '/app/cards' },
     { key: 'navigation.decks', symbol: '▥', target: '/app/decks' },
     { key: 'navigation.study', symbol: '◉', target: '/app/study' },
