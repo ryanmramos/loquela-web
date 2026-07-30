@@ -38,9 +38,17 @@
         <div class="language-context">
           <span>Current language pair</span>
           @if (lookup()?.languagePair; as pair) {
-            <strong>{{ pair.sourceLanguage }} → {{ pair.definitionLanguage }}</strong>
+            <strong
+              >{{ languageName(pair.sourceLanguage) }} →
+              {{ languageName(pair.definitionLanguage) }}</strong
+            >
+          } @else if (session().user; as user) {
+            <strong
+              >{{ languageName(user.sourceLanguage) }} →
+              {{ languageName(user.definitionLanguage) }}</strong
+            >
           } @else {
-            <strong>Your configured pair</strong>
+            <strong aria-label="Loading language pair">—</strong>
           }
           <a routerLink="/app/settings">Change in settings</a>
         </div>

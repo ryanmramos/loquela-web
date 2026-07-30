@@ -16,6 +16,8 @@ public record DashboardDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         SourceSummary sources,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        StorageSummary storage,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         JobSummary jobs,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         ActivitySummary activity
@@ -25,6 +27,7 @@ public record DashboardDto(
         Objects.requireNonNull(languagePair, "languagePair must not be null");
         Objects.requireNonNull(cards, "cards must not be null");
         Objects.requireNonNull(sources, "sources must not be null");
+        Objects.requireNonNull(storage, "storage must not be null");
         Objects.requireNonNull(jobs, "jobs must not be null");
         Objects.requireNonNull(activity, "activity must not be null");
     }
@@ -75,6 +78,17 @@ public record DashboardDto(
     ) {
         public static JobSummary unavailable() {
             return new JobSummary(SectionStatus.UNAVAILABLE, null);
+        }
+    }
+
+    public record StorageSummary(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+            SectionStatus status,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED, nullable = true)
+            Long usedBytes
+    ) {
+        public static StorageSummary unavailable() {
+            return new StorageSummary(SectionStatus.UNAVAILABLE, null);
         }
     }
 

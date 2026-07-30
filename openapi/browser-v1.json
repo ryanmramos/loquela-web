@@ -1538,6 +1538,9 @@
           "sources" : {
             "$ref" : "#/components/schemas/SourceSummary"
           },
+          "storage" : {
+            "$ref" : "#/components/schemas/StorageSummary"
+          },
           "jobs" : {
             "$ref" : "#/components/schemas/JobSummary"
           },
@@ -1545,7 +1548,7 @@
             "$ref" : "#/components/schemas/ActivitySummary"
           }
         },
-        "required" : [ "activity", "cards", "generatedAt", "jobs", "languagePair", "sources" ]
+        "required" : [ "activity", "cards", "generatedAt", "jobs", "languagePair", "sources", "storage" ]
       },
       "JobSummary" : {
         "type" : "object",
@@ -1594,6 +1597,20 @@
           }
         },
         "required" : [ "processingSources", "readySources", "status", "totalSources" ]
+      },
+      "StorageSummary" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "AVAILABLE", "UNAVAILABLE" ]
+          },
+          "usedBytes" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int64"
+          }
+        },
+        "required" : [ "status", "usedBytes" ]
       },
       "BrowserCardListDto" : {
         "type" : "object",

@@ -6,6 +6,7 @@ import { CardSummary } from '../models/card-summary';
 import { JobSummary } from '../models/job-summary';
 import { LanguagePair } from '../models/language-pair';
 import { SourceSummary } from '../models/source-summary';
+import { StorageSummary } from '../models/storage-summary';
 export interface DashboardDto {
   activity: ActivitySummary;
   cards: CardSummary;
@@ -13,4 +14,5 @@ export interface DashboardDto {
   jobs: JobSummary;
   languagePair: LanguagePair;
   sources: SourceSummary;
+  storage: StorageSummary;
 }

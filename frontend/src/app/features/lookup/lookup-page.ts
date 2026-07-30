@@ -17,6 +17,7 @@ import { SourceApi, SourceSummary } from '@api/api-adapters/source-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { ToastService } from '@app/shared/components/toast/toast.service';
+import { SessionFacade } from '@core/auth/session-facade';
 import { LookupSourceFilters } from './source-filters/lookup-source-filters';
 
 interface HighlightSegment {
@@ -38,6 +39,8 @@ export class LookupPage {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toasts = inject(ToastService);
+  private readonly sessionFacade = inject(SessionFacade);
+  readonly session = this.sessionFacade.view;
   readonly lookup = signal<BrowserLookupDto | null>(null);
   readonly loading = signal(false);
   readonly error = signal('');
@@ -163,6 +166,18 @@ export class LookupPage {
     if (kind === 'PDF') return 'PDF';
     if (kind === 'EPUB') return 'EPUB';
     return 'T';
+  }
+  languageName(tag: string | undefined): string {
+    if (!tag) return '—';
+    try {
+      return (
+        new Intl.DisplayNames([document.documentElement.lang || navigator.language], {
+          type: 'language',
+        }).of(tag) ?? tag
+      );
+    } catch {
+      return tag;
+    }
   }
   sourceLocation(context: NonNullable<BrowserLookupDto['contexts']>[number]): string {
     if (context.youtubeUrl && context.startMs !== undefined)

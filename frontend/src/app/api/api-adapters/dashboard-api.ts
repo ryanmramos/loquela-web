@@ -23,6 +23,10 @@ export interface DashboardSnapshot {
     readonly readySources: number | null;
     readonly processingSources: number | null;
   };
+  readonly storage: {
+    readonly status: DashboardSectionStatus;
+    readonly usedBytes: number | null;
+  };
   readonly jobs: {
     readonly status: DashboardSectionStatus;
     readonly activeJobs: number | null;
@@ -71,6 +75,10 @@ function toDashboardSnapshot(response: DashboardDto): DashboardSnapshot {
       totalSources: response.sources.totalSources,
       readySources: response.sources.readySources,
       processingSources: response.sources.processingSources,
+    },
+    storage: {
+      status: response.storage.status,
+      usedBytes: response.storage.usedBytes,
     },
     jobs: {
       status: response.jobs.status,

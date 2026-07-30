@@ -36,6 +36,7 @@ export type { SourceListDto } from './models/source-list-dto';
 export type { SourceMutationDto } from './models/source-mutation-dto';
 export type { SourceSummary } from './models/source-summary';
 export type { SourceUploadIntentDto } from './models/source-upload-intent-dto';
+export type { StorageSummary } from './models/storage-summary';
 export type { UpdateInterfaceLanguageRequestDto } from './models/update-interface-language-request-dto';
 export type { UpdateLanguageSettingsRequestDto } from './models/update-language-settings-request-dto';
 export type { YouTubeDetailsDto } from './models/you-tube-details-dto';

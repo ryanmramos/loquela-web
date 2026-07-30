@@ -216,27 +216,15 @@ h2 {
 }
 
 .learning-focus {
-  min-height: 15rem;
+  min-height: 0;
+  padding: var(--space-5);
 }
 
 .language-pair {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  margin: var(--space-7) 0 var(--space-4);
-}
-
-.language-pair > div {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.language-pair__label {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  font-weight: 750;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  margin: var(--space-4) 0 var(--space-1);
 }
 
 .language-pair strong {
@@ -253,13 +241,7 @@ h2 {
 
 @media (max-width: 30rem) {
   .language-pair {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .language-pair__arrow {
-    transform: rotate(90deg);
+    flex-wrap: wrap;
   }
 }
 

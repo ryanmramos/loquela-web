@@ -97,6 +97,14 @@ public class DashboardServiceImpl implements DashboardService {
                 ),
                 DashboardDto.JobSummary::unavailable
         );
+        DashboardDto.StorageSummary storage = section(
+                "storage",
+                () -> new DashboardDto.StorageSummary(
+                        DashboardDto.SectionStatus.AVAILABLE,
+                        sourceDocumentRepository.totalCorpusStoredBytesByUserId(userId.value())
+                ),
+                DashboardDto.StorageSummary::unavailable
+        );
         DashboardDto.ActivitySummary activity = section(
                 "activity",
                 () -> loadActivity(userId),
@@ -108,6 +116,7 @@ public class DashboardServiceImpl implements DashboardService {
                 new DashboardDto.LanguagePair(user.getSourceLanguage(), user.getDefinitionLanguage()),
                 cards,
                 sources,
+                storage,
                 jobs,
                 activity
         );

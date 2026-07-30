@@ -46,6 +46,7 @@ function dashboardResponse() {
       readySources: 24,
       processingSources: 2,
     },
+    storage: { status: 'AVAILABLE' as const, usedBytes: 1_572_864 },
     jobs: { status: 'AVAILABLE' as const, activeJobs: 2 },
     activity: { status: 'AVAILABLE' as const, items: [] },
   };

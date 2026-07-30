@@ -1,0 +1,82 @@
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { firstValueFrom } from 'rxjs';
+
+import { provideApiConfiguration } from '@api/generated/api-configuration';
+import { provideRuntimeConfig, RuntimeConfig } from '@core/config/runtime-config';
+import { apiCredentialsInterceptor } from '@core/http/api-credentials.interceptor';
+
+import { SettingsApi } from './settings-api';
+
+const runtimeConfig: RuntimeConfig = {
+  apiBasePath: '/api/v1',
+  googleLoginPath: '/api/v1/auth/google',
+  localLoginEnabled: true,
+  supportUrl: '/support',
+  environmentName: 'test',
+  telemetryEnabled: false,
+};
+
+describe('SettingsApi', () => {
+  let api: SettingsApi;
+  let httpTesting: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRuntimeConfig(runtimeConfig),
+        provideApiConfiguration(''),
+        provideHttpClient(withInterceptors([apiCredentialsInterceptor])),
+        provideHttpClientTesting(),
+      ],
+    });
+    api = TestBed.inject(SettingsApi);
+    httpTesting = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpTesting.verify());
+
+  it('loads the current pair and backend-supported pairs', async () => {
+    const response = firstValueFrom(api.getLanguages());
+    const request = httpTesting.expectOne('/api/v1/settings/languages');
+
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
+      supportedPairs: [
+        { sourceLanguage: 'es', definitionLanguage: 'en' },
+        { sourceLanguage: 'en', definitionLanguage: 'es' },
+      ],
+    });
+
+    await expect(response).resolves.toEqual({
+      languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
+      supportedPairs: [
+        { sourceLanguage: 'es', definitionLanguage: 'en' },
+        { sourceLanguage: 'en', definitionLanguage: 'es' },
+      ],
+    });
+  });
+
+  it('updates the complete language pair', async () => {
+    const response = firstValueFrom(
+      api.updateLanguages({ sourceLanguage: 'en', definitionLanguage: 'es' }),
+    );
+    const request = httpTesting.expectOne('/api/v1/settings/languages');
+
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({
+      sourceLanguage: 'en',
+      definitionLanguage: 'es',
+    });
+    request.flush({
+      languagePair: { sourceLanguage: 'en', definitionLanguage: 'es' },
+      supportedPairs: [{ sourceLanguage: 'en', definitionLanguage: 'es' }],
+    });
+
+    await expect(response).resolves.toMatchObject({
+      languagePair: { sourceLanguage: 'en', definitionLanguage: 'es' },
+    });
+  });
+});

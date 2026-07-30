@@ -95,7 +95,11 @@
       </div>
       <div class="storage-balance__status">
         <strong>Unlimited for now</strong>
-        <span>Usage and limits will appear here when storage plans launch.</span>
+        @if (dashboard.storage.status === 'AVAILABLE') {
+          <span>{{ formatStorage(dashboard.storage.usedBytes ?? 0) }} used</span>
+        } @else {
+          <span>Usage temporarily unavailable</span>
+        }
       </div>
     </section>
 
@@ -119,27 +123,15 @@
     <div class="dashboard-grid">
       <section class="panel learning-focus" aria-labelledby="learning-focus-title">
         <div class="section-heading">
-          <div>
-            <p class="eyebrow">Learning focus</p>
-            <h2 id="learning-focus-title">Your language pair</h2>
-          </div>
+          <p class="eyebrow" id="learning-focus-title">Learning focus</p>
           <a routerLink="/app/settings">Settings</a>
         </div>
         <div class="language-pair" aria-label="Language pair">
-          <div>
-            <span class="language-pair__label">Source language</span>
-            <strong>{{ languageName(dashboard.languagePair.sourceLanguage) }}</strong>
-          </div>
+          <strong>{{ languageName(dashboard.languagePair.sourceLanguage) }}</strong>
           <span class="language-pair__arrow" aria-hidden="true">→</span>
-          <div>
-            <span class="language-pair__label">Definition language</span>
-            <strong>{{ languageName(dashboard.languagePair.definitionLanguage) }}</strong>
-          </div>
+          <strong>{{ languageName(dashboard.languagePair.definitionLanguage) }}</strong>
         </div>
-        <p class="muted">
-          Your source text is in the source language. Definitions, translations, and card help use
-          the definition language.
-        </p>
+        <p class="muted">Sources → definitions</p>
       </section>
 
       <section class="panel quick-capture" aria-labelledby="quick-capture-title">

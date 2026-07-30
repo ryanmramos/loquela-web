@@ -1,0 +1,126 @@
+<section class="settings-page">
+  <header>
+    <p class="eyebrow">{{ 'settings.eyebrow' | translate }}</p>
+    <h1>{{ 'settings.title' | translate }}</h1>
+  </header>
+
+  <div class="settings-sections">
+    <section class="settings-card" aria-labelledby="interface-language-heading">
+      <h2 id="interface-language-heading">{{ 'settings.interfaceLanguage' | translate }}</h2>
+      <p>{{ 'settings.interfaceLanguageHelp' | translate }}</p>
+      <label for="interface-language">
+        <span>{{ 'settings.interfaceLanguage' | translate }}</span>
+        <select
+          id="interface-language"
+          [value]="translations.language()"
+          [disabled]="interfaceSaving()"
+          (change)="changeInterfaceLanguage($event)"
+        >
+          <option value="en">{{ 'settings.english' | translate }}</option>
+          <option value="es">{{ 'settings.spanish' | translate }}</option>
+        </select>
+      </label>
+      <div class="save-status" aria-live="polite">
+        @if (interfaceSaving()) {
+          <span>{{ 'settings.saving' | translate }}</span>
+        } @else if (interfaceSaved()) {
+          <span class="success">{{ 'settings.saved' | translate }}</span>
+        } @else if (interfaceError()) {
+          <span class="error">{{ 'settings.saveError' | translate }}</span>
+        }
+      </div>
+    </section>
+
+    <section class="settings-card" aria-labelledby="learning-languages-heading">
+      <h2 id="learning-languages-heading">{{ 'settings.learningLanguages' | translate }}</h2>
+      <p>{{ 'settings.learningLanguagesHelp' | translate }}</p>
+
+      @if (languageLoading()) {
+        <div class="language-loading" aria-label="Loading language settings">
+          <app-skeleton width="18rem" />
+          <app-skeleton width="18rem" />
+        </div>
+      } @else if (languageLoadError()) {
+        <app-ui-state
+          kind="error"
+          [title]="'settings.languageLoadErrorTitle' | translate"
+          [description]="'settings.languageLoadErrorHelp' | translate"
+        >
+          <button appButton type="button" (click)="loadLanguageSettings()">
+            {{ 'settings.tryAgain' | translate }}
+          </button>
+        </app-ui-state>
+      } @else {
+        <form [formGroup]="languageForm" (ngSubmit)="saveLanguageSettings()">
+          <div class="language-fields">
+            <label for="source-language">
+              <span>{{ 'settings.sourceLanguage' | translate }}</span>
+              <select
+                id="source-language"
+                formControlName="sourceLanguage"
+                (change)="sourceLanguageChanged()"
+              >
+                @for (language of sourceLanguages(); track language) {
+                  <option [value]="language">{{ languageName(language) }}</option>
+                }
+              </select>
+              <small>{{ 'settings.sourceLanguageHelp' | translate }}</small>
+            </label>
+
+            <span class="language-arrow" aria-hidden="true">→</span>
+
+            <label for="definition-language">
+              <span>{{ 'settings.definitionLanguage' | translate }}</span>
+              <select
+                id="definition-language"
+                formControlName="definitionLanguage"
+                (change)="languageSelectionChanged()"
+              >
+                @for (
+                  language of definitionLanguages(languageForm.controls.sourceLanguage.value);
+                  track language
+                ) {
+                  <option [value]="language">{{ languageName(language) }}</option>
+                }
+              </select>
+              <small>{{ 'settings.definitionLanguageHelp' | translate }}</small>
+            </label>
+          </div>
+
+          <app-alert [title]="'settings.futureWorkOnlyTitle' | translate" tone="info" live="off">
+            {{ 'settings.futureWorkOnlyHelp' | translate }}
+          </app-alert>
+
+          @if (languageError()) {
+            <app-alert
+              [title]="'settings.languageSaveErrorTitle' | translate"
+              tone="danger"
+              live="assertive"
+            >
+              {{ 'settings.languageSaveErrorHelp' | translate }}
+            </app-alert>
+          }
+
+          <div class="form-actions">
+            <button
+              appButton
+              type="submit"
+              [disabled]="languageSaving() || languageForm.pristine || languageForm.invalid"
+            >
+              {{
+                languageSaving()
+                  ? ('settings.saving' | translate)
+                  : ('settings.saveLanguages' | translate)
+              }}
+            </button>
+            <span class="save-status" aria-live="polite">
+              @if (languageSaved()) {
+                <span class="success">{{ 'settings.languagesSaved' | translate }}</span>
+              }
+            </span>
+          </div>
+        </form>
+      }
+    </section>
+  </div>
+</section>

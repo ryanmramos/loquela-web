@@ -45,10 +45,32 @@ export class DashboardPage {
 
   languageName(tag: string): string {
     try {
-      return new Intl.DisplayNames(['en'], { type: 'language' }).of(tag) ?? tag;
+      return (
+        new Intl.DisplayNames([document.documentElement.lang || navigator.language], {
+          type: 'language',
+        }).of(tag) ?? tag
+      );
     } catch {
       return tag;
     }
+  }
+
+  formatStorage(bytes: number): string {
+    if (bytes < 1_000) {
+      return `${bytes} B`;
+    }
+
+    const units = ['KB', 'MB', 'GB', 'TB'];
+    let value = bytes / 1_000;
+    let unitIndex = 0;
+    while (value >= 1_000 && unitIndex < units.length - 1) {
+      value /= 1_000;
+      unitIndex += 1;
+    }
+    const formatted = new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
+      maximumFractionDigits: value < 10 ? 1 : 0,
+    }).format(value);
+    return `${formatted} ${units[unitIndex]}`;
   }
 
   statusTone(status: string): StatusTone {

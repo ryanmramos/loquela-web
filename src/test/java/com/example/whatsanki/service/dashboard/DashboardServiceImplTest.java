@@ -78,6 +78,7 @@ class DashboardServiceImplTest {
         )).thenReturn(24L);
         when(sourceDocumentRepository.countByUserIdAndStatusIn(eq(userId.value()), any(Set.class)))
                 .thenReturn(2L);
+        when(sourceDocumentRepository.totalCorpusStoredBytesByUserId(userId.value())).thenReturn(1_572_864L);
         when(backgroundJobRepository.countByUserIdAndStateIn(eq(userId.value()), any(Set.class)))
                 .thenReturn(3L);
         SourceDocumentEntity source = source(Instant.parse("2026-07-26T20:00:00Z"));
@@ -92,6 +93,7 @@ class DashboardServiceImplTest {
         assertThat(result.cards().cardsToStudy()).isEqualTo(12);
         assertThat(result.cards().totalCards()).isEqualTo(384);
         assertThat(result.sources().readySources()).isEqualTo(24);
+        assertThat(result.storage().usedBytes()).isEqualTo(1_572_864L);
         assertThat(result.jobs().activeJobs()).isEqualTo(3);
         assertThat(result.languagePair().sourceLanguage()).isEqualTo("es");
         assertThat(result.activity().items())
@@ -126,7 +128,20 @@ class DashboardServiceImplTest {
         assertThat(result.cards().totalCards()).isNull();
         assertThat(result.sources().status()).isEqualTo(DashboardDto.SectionStatus.AVAILABLE);
         assertThat(result.sources().totalSources()).isZero();
+        assertThat(result.storage().status()).isEqualTo(DashboardDto.SectionStatus.AVAILABLE);
         assertThat(result.activity().items()).isEmpty();
+    }
+
+    @Test
+    void keepsDashboardAvailableWhenStorageUsageCannotBeLoaded() {
+        when(sourceDocumentRepository.totalCorpusStoredBytesByUserId(userId.value()))
+                .thenThrow(new IllegalStateException("storage projection unavailable"));
+
+        DashboardDto result = service.getByGoogleSubject("google-subject");
+
+        assertThat(result.storage().status()).isEqualTo(DashboardDto.SectionStatus.UNAVAILABLE);
+        assertThat(result.storage().usedBytes()).isNull();
+        assertThat(result.cards().status()).isEqualTo(DashboardDto.SectionStatus.AVAILABLE);
     }
 
     @Test

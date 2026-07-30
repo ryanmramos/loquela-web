@@ -102,7 +102,7 @@
                   </app-status-badge>
                 </td>
                 <td>{{ source.passageCount ?? '—' }}</td>
-                <td>{{ source.updatedAt | date: 'mediumDate' }}</td>
+                <td>{{ formatUpdatedDate(source.updatedAt) }}</td>
               </tr>
             }
           </tbody>
@@ -121,7 +121,7 @@
             <a [routerLink]="['/app/sources', source.reference]">{{ source.displayName }}</a>
             <p>
               {{ source.passageCount ?? 0 | number }} passages · Updated
-              {{ source.updatedAt | date: 'mediumDate' }}
+              {{ formatUpdatedDate(source.updatedAt) }}
             </p>
           </li>
         }

@@ -48,6 +48,23 @@ public interface SourceDocumentRepository extends Repository<SourceDocumentEntit
     long countByUserIdAndStatusNot(UUID userId, SourceDocumentEntity.Status status);
     long countByUserIdAndStatus(UUID userId, SourceDocumentEntity.Status status);
     long countByUserIdAndStatusIn(UUID userId, Set<SourceDocumentEntity.Status> statuses);
+    @Query(value = """
+            select
+                coalesce(sum(pg_column_size(source)), 0)
+                + coalesce((
+                    select sum(pg_column_size(passage))
+                    from passage
+                    join source_document passage_source
+                      on passage_source.id = passage.source_id
+                     and passage_source.user_id = passage.user_id
+                    where passage.user_id = :userId
+                      and passage_source.status <> 'DELETED'
+                ), 0)
+            from source_document source
+            where source.user_id = :userId
+              and source.status <> 'DELETED'
+            """, nativeQuery = true)
+    long totalCorpusStoredBytesByUserId(@Param("userId") UUID userId);
     void delete(SourceDocumentEntity source);
     long deleteByIdAndUserId(UUID id, UUID userId);
 

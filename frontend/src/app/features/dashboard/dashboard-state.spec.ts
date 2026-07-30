@@ -83,6 +83,7 @@ function snapshot(totalCards: number, generatedAt = new Date().toISOString()): D
       readySources: 3,
       processingSources: 1,
     },
+    storage: { status: 'AVAILABLE', usedBytes: 1_572_864 },
     jobs: { status: 'AVAILABLE', activeJobs: 1 },
     activity: { status: 'AVAILABLE', items: [] },
   };

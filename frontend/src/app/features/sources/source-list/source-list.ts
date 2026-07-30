@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -17,7 +17,6 @@ import { SourceListState } from './source-list-state';
   selector: 'app-source-list',
   imports: [
     ButtonDirective,
-    DatePipe,
     DecimalPipe,
     FormField,
     Pagination,
@@ -109,6 +108,14 @@ export class SourceList {
     if (status === 'FAILED') return 'danger';
     if (status === 'DELETING') return 'warning';
     return 'info';
+  }
+
+  formatUpdatedDate(value: string): string {
+    return new Intl.DateTimeFormat(document.documentElement.lang || navigator.language, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(new Date(value));
   }
 
   private queryFromRoute(): SourceListQuery {
