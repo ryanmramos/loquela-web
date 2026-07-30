@@ -108,6 +108,10 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                         "Content-Security-Policy",
                         containsString("img-src 'self' data: https://i.ytimg.com")
                 ))
+                .andExpect(header().string(
+                        "Content-Security-Policy",
+                        containsString("frame-src 'self' https://www.youtube-nocookie.com")
+                ))
                 .andExpect(header().string("X-Correlation-ID", not(blankOrNullString())));
     }
 
@@ -128,6 +132,15 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
                 .andExpect(jsonPath("$.fieldErrors").isEmpty());
+
+        mockMvc.perform(post("/api/v1/practice-sessions")
+                        .with(oidcLogin())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"deckReference":"AAAAAAAAAAAAAAAAAAAAAA"}
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
 
         mockMvc.perform(post("/api/v1/session/logout")
                         .with(oidcLogin())

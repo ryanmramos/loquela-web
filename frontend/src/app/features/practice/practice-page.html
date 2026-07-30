@@ -1,0 +1,171 @@
+<section class="practice-page">
+  @if (loading()) {
+    <app-ui-state kind="loading" title="Loading practice" description="" />
+  } @else if (session(); as current) {
+    @if (current.status === 'COMPLETED') {
+      <section class="completion-card" aria-labelledby="practice-complete-title">
+        <span class="completion-mark" aria-hidden="true">✓</span>
+        <p class="eyebrow">Practice complete</p>
+        <h1 id="practice-complete-title" #focusTarget tabindex="-1">Nice work</h1>
+        <p>
+          You practiced {{ current.totalCards ?? 0 }} cards from
+          <strong>{{ current.deckName }}</strong
+          >. These responses did not change Anki scheduling.
+        </p>
+        <div class="completion-actions">
+          <button appButton type="button" (click)="end()">Choose another deck</button>
+          <a appButton variant="secondary" routerLink="/app/decks">Back to decks</a>
+        </div>
+      </section>
+    } @else {
+      <header class="practice-header">
+        <div>
+          <p class="eyebrow">Loquela practice</p>
+          <h1>{{ current.deckName }}</h1>
+          <p class="semantics-note">Simple practice · no due dates or Anki scheduling</p>
+        </div>
+        <button appButton variant="secondary" type="button" (click)="end()">End session</button>
+      </header>
+
+      <div
+        class="progress-summary"
+        role="progressbar"
+        aria-label="Practice progress"
+        [attr.aria-valuenow]="current.position ?? 1"
+        aria-valuemin="1"
+        [attr.aria-valuemax]="current.totalCards ?? 1"
+      >
+        <span>{{ current.position ?? 1 }} of {{ current.totalCards ?? 0 }}</span>
+        <span class="progress-track" aria-hidden="true">
+          <span [style.width.%]="progress(current)"></span>
+        </span>
+      </div>
+
+      @if (error()) {
+        <app-ui-state kind="error" title="Practice needs attention" [description]="error()" />
+        @if (pendingRating()) {
+          <button appButton variant="secondary" type="button" (click)="retryRating()">
+            Retry response
+          </button>
+        }
+      }
+
+      <article
+        class="practice-card"
+        [class.practice-card--revealed]="current.answerRevealed"
+        aria-live="polite"
+      >
+        <p class="card-state">
+          {{ current.answerRevealed ? 'Answer shown' : 'Recall the answer' }}
+        </p>
+        <h2 #focusTarget tabindex="-1">{{ current.currentCard?.term }}</h2>
+
+        @if (current.answerRevealed) {
+          <section class="answer" aria-labelledby="answer-title">
+            <h3 id="answer-title">Answer</h3>
+            <p class="definition">{{ current.currentCard?.definition }}</p>
+            @if (
+              current.currentCard?.videoId && current.currentCard?.videoStartSeconds !== undefined
+            ) {
+              <section class="video-context" aria-labelledby="video-context-title">
+                <div class="video-context-heading">
+                  <h3 id="video-context-title">Video context</h3>
+                  @if (current.currentCard?.sourceLocator) {
+                    <span>Term appears at {{ current.currentCard?.sourceLocator }}</span>
+                  }
+                </div>
+                <app-youtube-practice-player
+                  [videoId]="current.currentCard?.videoId ?? ''"
+                  [startSeconds]="current.currentCard?.videoStartSeconds ?? 0"
+                  [timestampLabel]="current.currentCard?.sourceLocator ?? ''"
+                />
+              </section>
+            }
+            @if (current.currentCard?.exampleText) {
+              <blockquote>{{ current.currentCard?.exampleText }}</blockquote>
+            }
+            @if (current.currentCard?.sourceName || current.currentCard?.sourceLocator) {
+              <p class="source">
+                <span>Source context</span>
+                {{ current.currentCard?.sourceName }}
+                @if (current.currentCard?.sourceLocator) {
+                  · {{ current.currentCard?.sourceLocator }}
+                }
+              </p>
+            }
+          </section>
+        } @else {
+          <p class="prompt-help">Say the meaning aloud or recall it silently, then reveal it.</p>
+          <button appButton type="button" [disabled]="pending()" (click)="reveal()">
+            Show answer
+          </button>
+        }
+      </article>
+
+      @if (current.answerRevealed) {
+        <fieldset class="rating-actions" [disabled]="pending()">
+          <legend>How well did you remember?</legend>
+          @for (option of ratings; track option.rating) {
+            <button
+              type="button"
+              class="rating-button"
+              [class.rating-button--positive]="option.positive"
+              (click)="rate(option.rating)"
+            >
+              <span class="shortcut" aria-hidden="true">{{ option.key }}</span>
+              <strong>{{ option.label }}</strong>
+              <span>{{ option.description }}</span>
+            </button>
+          }
+        </fieldset>
+      }
+
+      <p class="keyboard-help">
+        Keyboard: Space reveals · 1 Needs work · 2 Almost · 3 Got it · 4 Easy
+      </p>
+    }
+  } @else {
+    <header class="practice-header">
+      <div>
+        <p class="eyebrow">Loquela practice</p>
+        <h1>Choose a deck</h1>
+        <p>Browse an immutable snapshot at your own pace—nothing here changes Anki scheduling.</p>
+      </div>
+    </header>
+
+    @if (error()) {
+      <app-ui-state kind="error" title="Practice needs attention" [description]="error()" />
+    }
+
+    @if (!decks().length) {
+      <app-ui-state
+        kind="empty"
+        title="No decks to practice"
+        description="Create a deck and add at least one card first."
+      />
+      <a appButton routerLink="/app/decks">Go to decks</a>
+    } @else {
+      <div class="deck-options">
+        @for (deck of decks(); track deck.reference) {
+          <article class="deck-option">
+            <span class="deck-mark" [attr.data-color]="deck.themeColor">{{
+              (deck.name ?? 'D').slice(0, 1)
+            }}</span>
+            <div>
+              <h2>{{ deck.name }}</h2>
+              <p>{{ deck.cardCount ?? 0 }} {{ deck.cardCount === 1 ? 'card' : 'cards' }}</p>
+            </div>
+            <button
+              appButton
+              type="button"
+              [disabled]="!deck.cardCount || pending()"
+              (click)="start(deck)"
+            >
+              {{ deck.cardCount ? 'Start practice' : 'No cards yet' }}
+            </button>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>

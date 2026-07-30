@@ -10,6 +10,7 @@ import com.example.whatsanki.dto.DeckMutationRequestDto;
 import com.example.whatsanki.repository.CardRepository;
 import com.example.whatsanki.repository.DeckRepository;
 import com.example.whatsanki.repository.ExportRequestRepository;
+import com.example.whatsanki.repository.PracticeSessionRepository;
 import com.example.whatsanki.service.BrowserDeckService;
 import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.exception.BrowserDeckException;
@@ -43,6 +44,7 @@ public class BrowserDeckServiceImpl implements BrowserDeckService {
     private final DeckRepository deckRepository;
     private final CardRepository cardRepository;
     private final ExportRequestRepository exportRequestRepository;
+    private final PracticeSessionRepository practiceSessionRepository;
     private final DeckExportService deckExportService;
     private final ObjectStore objectStore;
     private final TextNormalizer textNormalizer;
@@ -100,6 +102,12 @@ public class BrowserDeckServiceImpl implements BrowserDeckService {
         DeckEntity deck = activeDeck(userId, reference);
         if (cardRepository.countByUserIdAndDeckId(userId.value(), deck.getId()) > 0) {
             throw conflict("DECK_NOT_EMPTY");
+        }
+        if (practiceSessionRepository.existsByUserIdAndDeckIdAndStatus(
+                userId.value(), deck.getId(),
+                com.example.whatsanki.domain.PracticeSessionEntity.Status.ACTIVE
+        )) {
+            throw conflict("DECK_PRACTICE_ACTIVE");
         }
         if (exportRequestRepository.existsByUserIdAndDeckIdAndStateIn(
                 userId.value(), deck.getId(), ACTIVE_EXPORT_STATES

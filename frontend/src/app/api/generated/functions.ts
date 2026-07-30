@@ -25,6 +25,18 @@ export type { UpdateInterfaceLanguage$Params as UpdateInterfaceLanguage$Params }
 export { updateInterfaceLanguage as updateInterfaceLanguage } from './fn/browser-session-controller/update-interface-language';
 export type { GetBrowserSession$Params as GetBrowserSession$Params } from './fn/browser-session-controller/get-browser-session';
 export { getBrowserSession as getBrowserSession } from './fn/browser-session-controller/get-browser-session';
+export type { CreatePracticeSession$Params as CreatePracticeSession$Params } from './fn/browser-practice-controller/create-practice-session';
+export { createPracticeSession as createPracticeSession } from './fn/browser-practice-controller/create-practice-session';
+export type { RevealPracticeAnswer$Params as RevealPracticeAnswer$Params } from './fn/browser-practice-controller/reveal-practice-answer';
+export { revealPracticeAnswer as revealPracticeAnswer } from './fn/browser-practice-controller/reveal-practice-answer';
+export type { RatePracticeCard$Params as RatePracticeCard$Params } from './fn/browser-practice-controller/rate-practice-card';
+export { ratePracticeCard as ratePracticeCard } from './fn/browser-practice-controller/rate-practice-card';
+export type { GetPracticeSession$Params as GetPracticeSession$Params } from './fn/browser-practice-controller/get-practice-session';
+export { getPracticeSession as getPracticeSession } from './fn/browser-practice-controller/get-practice-session';
+export type { EndPracticeSession$Params as EndPracticeSession$Params } from './fn/browser-practice-controller/end-practice-session';
+export { endPracticeSession as endPracticeSession } from './fn/browser-practice-controller/end-practice-session';
+export type { GetActivePracticeSession$Params as GetActivePracticeSession$Params } from './fn/browser-practice-controller/get-active-practice-session';
+export { getActivePracticeSession as getActivePracticeSession } from './fn/browser-practice-controller/get-active-practice-session';
 export type { CreateBrowserLookup$Params as CreateBrowserLookup$Params } from './fn/browser-lookup-controller/create-browser-lookup';
 export { createBrowserLookup as createBrowserLookup } from './fn/browser-lookup-controller/create-browser-lookup';
 export type { SaveBrowserLookupContext$Params as SaveBrowserLookupContext$Params } from './fn/browser-lookup-controller/save-browser-lookup-context';

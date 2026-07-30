@@ -68,17 +68,8 @@ export const routes: Routes = [
       {
         path: 'study',
         title: 'Practice',
-        data: {
-          featureKey: 'study',
-          eyebrow: 'Loquela practice',
-          heading: 'Practice',
-          description:
-            'The Loquela-owned practice workflow arrives in Step 13. No Anki scheduling state is inferred here.',
-        },
         loadComponent: () =>
-          import('@app/features/placeholder/feature-placeholder-page').then(
-            (module) => module.FeaturePlaceholderPage,
-          ),
+          import('@app/features/practice/practice-page').then((module) => module.PracticePage),
       },
       {
         path: 'activity',

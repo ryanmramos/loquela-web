@@ -441,6 +441,115 @@ test('deck shelf scrolls, persists visual edits, opens cards, and resumes export
   await expect(page.getByRole('heading', { name: 'Decks', exact: true })).toBeVisible();
 });
 
+test('practice hides answers, resumes after refresh, and supports reduced-motion keyboard use', async ({
+  page,
+}) => {
+  await mockAuthentication(page, true);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 320, height: 760 });
+
+  const deckReference = 'AAAAAAAAAAAAAAAAAAAAAA';
+  let session: Record<string, unknown> | null = null;
+  let ratingCount = 0;
+  const hiddenCard = { noteType: 'BASIC_CONTEXT', term: 'sobremesa' };
+  const revealedCard = {
+    ...hiddenCard,
+    definition: 'time talking after a meal',
+    exampleText: 'La sobremesa se alargó.',
+    sourceName: 'Madrid video',
+    sourceLocator: '8:42',
+    videoId: 'dQw4w9WgXcQ',
+    videoStartSeconds: 522,
+  };
+
+  await page.route('**/api/v1/decks', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { reference: deckReference, name: 'Spanish Core', themeColor: 'GREEN', cardCount: 2 },
+      ]),
+    });
+  });
+  await page.route('**/api/v1/practice-sessions/active', async (route: Route) => {
+    if (session) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(session),
+      });
+    } else {
+      await route.fulfill({ status: 204 });
+    }
+  });
+  await page.route('**/api/v1/practice-sessions', async (route: Route) => {
+    session = {
+      reference: 'SSSSSSSSSSSSSSSSSSSSSS',
+      deckReference,
+      deckName: 'Spanish Core',
+      status: 'ACTIVE',
+      position: 1,
+      totalCards: 2,
+      answerRevealed: false,
+      currentCard: hiddenCard,
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    };
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify(session),
+    });
+  });
+  await page.route('**/api/v1/practice-sessions/*/reveal', async (route: Route) => {
+    session = { ...session, answerRevealed: true, currentCard: revealedCard };
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(session),
+    });
+  });
+  await page.route('**/api/v1/practice-sessions/*/ratings', async (route: Route) => {
+    ratingCount += 1;
+    session = {
+      ...session,
+      position: 2,
+      answerRevealed: false,
+      currentCard: { noteType: 'BASIC', term: 'tertulia' },
+    };
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(session),
+    });
+  });
+
+  await page.goto('/app/study');
+  await page.getByRole('button', { name: 'Start practice' }).click();
+  await expect(page.getByRole('heading', { name: 'sobremesa' })).toBeVisible();
+  await expect(page.getByText('time talking after a meal')).toHaveCount(0);
+
+  await page.keyboard.press('Space');
+  await expect(page.getByRole('heading', { name: 'Answer' })).toBeVisible();
+  await expect(page.getByText('time talking after a meal')).toBeVisible();
+  await expect(page.getByTitle('YouTube context at 8:42')).toHaveAttribute(
+    'src',
+    /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ\?start=522/u,
+  );
+
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Answer' })).toBeVisible();
+  await page.keyboard.press('3');
+  await expect(page.getByRole('heading', { name: 'tertulia' })).toBeVisible();
+  expect(ratingCount).toBe(1);
+
+  const progressTransition = await page
+    .locator('.progress-track span')
+    .evaluate((element) => getComputedStyle(element).transitionDuration);
+  expect(progressTransition).toBe('0s');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
 test('source management keeps filters in the URL and resumes source details', async ({ page }) => {
   await mockAuthentication(page, true);
   await page.goto('/app/sources?status=READY&kind=YOUTUBE_VIDEO');

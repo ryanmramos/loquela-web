@@ -1,0 +1,327 @@
+@use '../../../styles/tokens' as tokens;
+
+:host {
+  display: block;
+}
+
+.practice-page {
+  display: grid;
+  max-width: 64rem;
+  min-height: calc(100vh - 5rem);
+  align-content: start;
+  gap: var(--space-6);
+  margin: 0 auto;
+  padding: var(--space-10);
+}
+
+.practice-header,
+.progress-summary,
+.deck-option,
+.completion-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.practice-header h1,
+.completion-card h1 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+}
+
+.practice-header p:not(.eyebrow),
+.completion-card p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+}
+
+.eyebrow,
+.card-state {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.semantics-note {
+  font-weight: 650;
+}
+
+.progress-summary {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+}
+
+.progress-track {
+  flex: 1;
+  height: 0.45rem;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+  transition: width var(--motion-normal) var(--ease-standard);
+}
+
+.practice-card,
+.completion-card {
+  padding: clamp(var(--space-6), 5vw, var(--space-12));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.practice-card--revealed {
+  border-top: 0.35rem solid var(--color-accent);
+}
+
+.practice-card h2 {
+  margin: var(--space-4) 0 var(--space-8);
+  font-family: var(--font-family-display);
+  font-size: clamp(2.5rem, 8vw, 4.75rem);
+  line-height: var(--line-height-tight);
+}
+
+.practice-card h2:focus,
+.completion-card h1:focus {
+  outline: none;
+}
+
+.practice-card h2:focus-visible,
+.completion-card h1:focus-visible {
+  border-radius: var(--radius-sm);
+  box-shadow: var(--focus-ring);
+}
+
+.prompt-help {
+  margin: 0 auto var(--space-5);
+  color: var(--color-text-muted);
+}
+
+.answer {
+  display: grid;
+  gap: var(--space-4);
+  text-align: left;
+}
+
+.answer h3 {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.video-context {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.video-context-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.video-context-heading span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.definition {
+  margin: 0;
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-size: var(--font-size-lg);
+  font-weight: 750;
+}
+
+blockquote {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border-left: 0.25rem solid var(--color-accent);
+  background: var(--color-accent-soft);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-lg);
+}
+
+.source {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.source span {
+  display: inline-flex;
+  margin-right: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-warning);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+
+.rating-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  padding: 0;
+  border: 0;
+}
+
+.rating-actions legend {
+  width: 100%;
+  margin-bottom: var(--space-3);
+  text-align: center;
+  font-weight: 800;
+}
+
+.rating-button {
+  position: relative;
+  display: grid;
+  min-height: 5.5rem;
+  place-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-panel);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.rating-button:hover,
+.rating-button:focus-visible {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.rating-button--positive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.rating-button > span:last-child {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.shortcut {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-xs);
+}
+
+.keyboard-help {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+.deck-options {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.deck-option {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+}
+
+.deck-option > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.deck-option h2,
+.deck-option p {
+  margin: 0;
+}
+
+.deck-option h2 {
+  font-family: var(--font-family-display);
+}
+
+.deck-option p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.deck-mark,
+.completion-mark {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+}
+
+.completion-card {
+  max-width: 42rem;
+  margin: var(--space-16) auto 0;
+}
+
+.completion-mark {
+  margin: 0 auto var(--space-4);
+  border-radius: 50%;
+}
+
+.completion-actions {
+  justify-content: center;
+  margin-top: var(--space-6);
+}
+
+@media (max-width: tokens.$breakpoint-mobile) {
+  .practice-page {
+    padding: var(--space-5) var(--space-4) var(--space-10);
+  }
+
+  .practice-header,
+  .deck-option {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rating-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .keyboard-help {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-track span {
+    transition: none;
+  }
+}

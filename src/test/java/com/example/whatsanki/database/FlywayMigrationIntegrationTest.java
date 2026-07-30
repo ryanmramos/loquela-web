@@ -26,7 +26,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(24);
+        assertThat(flyway.info().applied()).hasSize(26);
     }
 
     @Test
@@ -43,6 +43,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                 "background_job", "lookup_session", "deck", "card", "export_request",
                 "outbound_message", "account_deletion_request", "video_source",
                 "user_identity", "source_upload", "spring_session", "spring_session_attributes",
+                "practice_session", "practice_session_item", "practice_response",
                 "flyway_schema_history"
         );
 
@@ -158,6 +159,14 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                 "saved_from_lookup_session_id", "saved_from_context_number", "anki_template_version",
                 "last_practiced_at"
         );
+
+        List<String> practiceItemColumns = jdbcTemplate.queryForList("""
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'practice_session_item'
+                """, String.class);
+        assertThat(practiceItemColumns).contains("video_id", "video_start_seconds");
 
         Integer savedCardOriginIndexCount = jdbcTemplate.queryForObject("""
                 select count(*)

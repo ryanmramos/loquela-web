@@ -264,6 +264,99 @@
         }
       }
     },
+    "/api/v1/practice-sessions" : {
+      "post" : {
+        "tags" : [ "browser-practice-controller" ],
+        "summary" : "Start or resume immutable deck practice",
+        "operationId" : "createPracticeSession",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreatePracticeSessionRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PracticeSessionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/practice-sessions/{reference}/reveal" : {
+      "post" : {
+        "tags" : [ "browser-practice-controller" ],
+        "summary" : "Reveal the current practice answer",
+        "operationId" : "revealPracticeAnswer",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PracticeSessionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/practice-sessions/{reference}/ratings" : {
+      "post" : {
+        "tags" : [ "browser-practice-controller" ],
+        "summary" : "Record practice feedback and advance",
+        "operationId" : "ratePracticeCard",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PracticeRatingRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PracticeSessionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/lookups" : {
       "post" : {
         "tags" : [ "browser-lookup-controller" ],
@@ -849,6 +942,77 @@
         }
       }
     },
+    "/api/v1/practice-sessions/{reference}" : {
+      "get" : {
+        "tags" : [ "browser-practice-controller" ],
+        "summary" : "Get authoritative practice position",
+        "operationId" : "getPracticeSession",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PracticeSessionDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "browser-practice-controller" ],
+        "summary" : "End the active practice session",
+        "operationId" : "endPracticeSession",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PracticeSessionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/practice-sessions/active" : {
+      "get" : {
+        "tags" : [ "browser-practice-controller" ],
+        "summary" : "Resume the active practice session",
+        "operationId" : "getActivePracticeSession",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PracticeSessionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/lookups/{lookupReference}" : {
       "get" : {
         "tags" : [ "browser-lookup-controller" ],
@@ -1138,6 +1302,102 @@
           }
         },
         "required" : [ "acceptedMediaTypes", "completionPath", "expiresAt", "maxBytes", "uploadMode", "uploadReference" ]
+      },
+      "CreatePracticeSessionRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "deckReference" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "deckReference" ]
+      },
+      "PracticeCardDto" : {
+        "type" : "object",
+        "properties" : {
+          "noteType" : {
+            "type" : "string",
+            "enum" : [ "BASIC", "BASIC_CONTEXT" ]
+          },
+          "term" : {
+            "type" : "string"
+          },
+          "definition" : {
+            "type" : "string"
+          },
+          "exampleText" : {
+            "type" : "string"
+          },
+          "sourceName" : {
+            "type" : "string"
+          },
+          "sourceLocator" : {
+            "type" : "string"
+          },
+          "videoId" : {
+            "type" : "string"
+          },
+          "videoStartSeconds" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "PracticeSessionDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "deckReference" : {
+            "type" : "string"
+          },
+          "deckName" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "COMPLETED", "EXPIRED" ]
+          },
+          "position" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalCards" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "answerRevealed" : {
+            "type" : "boolean"
+          },
+          "currentCard" : {
+            "$ref" : "#/components/schemas/PracticeCardDto"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "completedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "PracticeRatingRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "requestId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "rating" : {
+            "type" : "string",
+            "enum" : [ "NEEDS_WORK", "ALMOST", "GOT_IT", "EASY" ]
+          }
+        },
+        "required" : [ "rating", "requestId" ]
       },
       "CreateBrowserLookupRequestDto" : {
         "type" : "object",

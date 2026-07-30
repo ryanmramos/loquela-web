@@ -4,6 +4,7 @@ import com.example.whatsanki.dto.ApiErrorResponseDto;
 import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.service.exception.BrowserAccountUnavailableException;
 import com.example.whatsanki.service.exception.BrowserDeckException;
+import com.example.whatsanki.service.exception.BrowserPracticeException;
 import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.exception.BrowserSourceNotFoundException;
 import com.example.whatsanki.service.exception.BrowserSourceValidationException;
@@ -30,6 +31,20 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BrowserPracticeException.class)
+    public ResponseEntity<ApiProblemDto> handlePractice(
+            BrowserPracticeException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                exception.getStatus(),
+                exception.getProblemCode(),
+                "Practice session could not be completed",
+                "Refresh the practice page or start a new session.",
+                request
+        );
+    }
 
     @ExceptionHandler(BrowserDeckException.class)
     public ResponseEntity<ApiProblemDto> handleDeck(

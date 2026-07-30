@@ -84,6 +84,7 @@ public class BrowserSecurityConfiguration {
                         .frameOptions(frame -> frame.deny())
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
                                 "default-src 'self'; img-src 'self' data: https://i.ytimg.com; "
+                                        + "frame-src 'self' https://www.youtube-nocookie.com; "
                                         + "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
                         )))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)

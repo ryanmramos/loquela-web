@@ -8,6 +8,7 @@ import com.example.whatsanki.dto.DeckMutationRequestDto;
 import com.example.whatsanki.repository.CardRepository;
 import com.example.whatsanki.repository.DeckRepository;
 import com.example.whatsanki.repository.ExportRequestRepository;
+import com.example.whatsanki.repository.PracticeSessionRepository;
 import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.exception.BrowserDeckException;
 import com.example.whatsanki.service.export.DeckExportService;
@@ -41,6 +42,7 @@ class BrowserDeckServiceImplTest {
     @Mock private DeckRepository deckRepository;
     @Mock private CardRepository cardRepository;
     @Mock private ExportRequestRepository exportRequestRepository;
+    @Mock private PracticeSessionRepository practiceSessionRepository;
     @Mock private DeckExportService deckExportService;
     @Mock private ObjectStore objectStore;
     @Mock private TextNormalizer textNormalizer;
@@ -51,7 +53,7 @@ class BrowserDeckServiceImplTest {
     void setUp() {
         service = new BrowserDeckServiceImpl(
                 userIdentityService, deckRepository, cardRepository, exportRequestRepository,
-                deckExportService, objectStore, textNormalizer
+                practiceSessionRepository, deckExportService, objectStore, textNormalizer
         );
         userId = UserId.random();
         when(userIdentityService.findUserId(UserIdentityEntity.Provider.GOOGLE, "subject"))
@@ -99,6 +101,23 @@ class BrowserDeckServiceImplTest {
         service.delete("subject", BrowserReferenceCodec.encode(deck.getId()));
 
         verify(deckRepository).delete(deck);
+    }
+
+    @Test
+    void refusesToDeleteAnEmptyDeckReferencedByActivePractice() {
+        DeckEntity deck = deck("Active practice");
+        when(deckRepository.findByIdAndUserId(deck.getId(), userId.value())).thenReturn(Optional.of(deck));
+        when(practiceSessionRepository.existsByUserIdAndDeckIdAndStatus(
+                userId.value(), deck.getId(),
+                com.example.whatsanki.domain.PracticeSessionEntity.Status.ACTIVE
+        )).thenReturn(true);
+
+        assertThatThrownBy(() -> service.delete("subject", BrowserReferenceCodec.encode(deck.getId())))
+                .isInstanceOfSatisfying(BrowserDeckException.class,
+                        exception -> assertThat(exception.problemCode())
+                                .isEqualTo("DECK_PRACTICE_ACTIVE"));
+
+        verify(deckRepository, never()).delete(any());
     }
 
     @Test

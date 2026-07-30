@@ -81,6 +81,14 @@
               >
                 View cards
               </a>
+              <a
+                appButton
+                variant="secondary"
+                routerLink="/app/study"
+                [attr.aria-disabled]="!deck.cardCount"
+              >
+                Practice
+              </a>
               <button appButton type="button" (click)="requestExport(deck)">Export</button>
               <app-action-menu
                 [label]="'Actions for ' + deck.name"
