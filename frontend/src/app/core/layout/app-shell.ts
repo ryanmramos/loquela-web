@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/action-menu';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { ToastRegion } from '@app/shared/components/toast/toast-region';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { ThemeService } from '@core/theme/theme.service';
 
 interface ShellNavigationItem {
   readonly key:
@@ -27,6 +28,7 @@ interface ShellNavigationItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShell {
+  protected readonly themes = inject(ThemeService);
   readonly userName = input('Ryan Ramos');
   readonly userEmail = input('ryan@example.com');
   readonly activeJobCount = input<number | null>(null);
@@ -60,6 +62,10 @@ export class AppShell {
   focusMain(event: MouseEvent, main: HTMLElement): void {
     event.preventDefault();
     main.focus();
+  }
+
+  themeToggleLabel(): string {
+    return this.themes.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
   }
 
   initials(): string {

@@ -28,18 +28,21 @@
   font-family: var(--font-family-display);
   font-size: var(--font-size-2xl);
 }
-.page-heading p {
+.page-heading p:not(.eyebrow) {
   max-width: 42rem;
   margin: 0;
   color: var(--color-text-muted);
 }
-.eyebrow,
 .context-label {
   color: var(--color-primary);
   font-size: var(--font-size-xs);
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.eyebrow {
+  margin: 0;
 }
 .lookup-layout {
   display: grid;
@@ -149,9 +152,9 @@ app-lookup-source-filters {
 .state-panel {
   margin-top: var(--space-5);
   padding: var(--space-3);
-  border: 1px dashed #c9dbca;
+  border: 1px dashed var(--color-primary);
   border-radius: var(--radius-md);
-  background: #f8fbf6;
+  background: var(--color-primary-soft);
 }
 .state-panel--error {
   border-color: var(--color-danger);
@@ -215,7 +218,7 @@ app-lookup-source-filters {
   border-radius: 0.2em;
   padding: 0.05em 0.15em;
   background: var(--color-accent-soft);
-  box-shadow: 0 0 0 1px rgb(202 138 4 / 24%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 24%, transparent);
   color: inherit;
   font-weight: 800;
 }
@@ -296,10 +299,10 @@ app-lookup-source-filters {
 }
 .why-notice {
   padding: var(--space-3);
-  border: 1px solid #f4df9d;
+  border: 1px solid var(--color-accent);
   border-radius: var(--radius-md);
   background: var(--color-warning-soft);
-  color: #705206;
+  color: var(--color-warning);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-body);
 }
@@ -344,7 +347,7 @@ app-lookup-source-filters {
   display: grid;
   place-items: center;
   padding: var(--space-5);
-  background: rgb(20 38 27 / 38%);
+  background: rgb(0 0 0 / 58%);
 }
 .save-modal {
   width: min(100%, 30rem);

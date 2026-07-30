@@ -19,6 +19,8 @@ public record BrowserSourceSummaryDto(
         String language,
         Long characterCount,
         Integer passageCount,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        long databaseSizeBytes,
         String errorCode,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         boolean retryable,

@@ -1,4 +1,10 @@
-import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  ErrorHandler,
+  inject,
+  provideAppInitializer,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
 
@@ -12,11 +18,13 @@ import { requestDeadlineInterceptor } from '@core/http/request-deadline.intercep
 import { apiProblemInterceptor } from '@core/http/api-problem.interceptor';
 import { provideApiConfiguration } from '@api/generated/api-configuration';
 import { sessionExpirationInterceptor } from '@core/auth/session-expiration.interceptor';
+import { ThemeService } from '@core/theme/theme.service';
 
 export function createAppConfig(runtimeConfig: RuntimeConfig): ApplicationConfig {
   return {
     providers: [
       provideBrowserGlobalErrorListeners(),
+      provideAppInitializer(() => inject(ThemeService).initialize()),
       provideRuntimeConfig(runtimeConfig),
       // An empty generated-client root preserves same-origin /api paths from the contract.
       provideApiConfiguration(''),

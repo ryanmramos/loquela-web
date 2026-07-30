@@ -61,6 +61,15 @@
         />
       </form>
       <div class="topbar__actions">
+        <button
+          class="theme-toggle"
+          type="button"
+          [attr.aria-label]="themeToggleLabel()"
+          [attr.title]="themeToggleLabel()"
+          (click)="themes.toggle()"
+        >
+          <span aria-hidden="true">{{ themes.theme() === 'dark' ? '☀' : '☾' }}</span>
+        </button>
         <a
           class="activity-link"
           routerLink="/app/activity"

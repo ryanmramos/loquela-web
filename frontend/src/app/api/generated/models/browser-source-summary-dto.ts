@@ -4,6 +4,7 @@
 export interface BrowserSourceSummaryDto {
   characterCount?: number;
   createdAt: string;
+  databaseSizeBytes: number;
   displayName: string;
   errorCode?: string;
   kind: 'PASTED_TEXT' | 'TXT' | 'PDF' | 'EPUB' | 'YOUTUBE_VIDEO';

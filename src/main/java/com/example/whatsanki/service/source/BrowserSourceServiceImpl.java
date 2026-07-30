@@ -40,7 +40,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -112,8 +115,19 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
                 status == null ? null : SourceDocumentEntity.Status.valueOf(status.name()),
                 PageRequest.of(page, pageSize, Sort.by(springDirection, property).and(Sort.by("id")))
         );
+        var sourceIds = result.getContent().stream().map(SourceDocumentEntity::getId).toList();
+        Map<UUID, Long> storedBytes = sourceIds.isEmpty()
+                ? Map.of()
+                : sourceDocumentRepository.findStoredBytesByUserIdAndSourceIdIn(userId.value(), sourceIds)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                SourceDocumentRepository.SourceStorageProjection::getSourceId,
+                                SourceDocumentRepository.SourceStorageProjection::getStoredBytes
+                        ));
         return new SourceListDto(
-                result.getContent().stream().map(this::toSummary).toList(),
+                result.getContent().stream()
+                        .map(source -> toSummary(source, storedBytes.getOrDefault(source.getId(), 0L)))
+                        .toList(),
                 result.getNumber(),
                 result.getSize(),
                 result.getTotalElements(),
@@ -177,7 +191,8 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
             throw new BrowserSourceConflictException("SOURCE_NAME_INVALID");
         }
         source.setDisplayName(normalizedName);
-        return toSummary(sourceDocumentRepository.saveAndFlush(source));
+        SourceDocumentEntity saved = sourceDocumentRepository.saveAndFlush(source);
+        return toSummary(saved, databaseSizeBytes(userId, saved));
     }
 
     @Override
@@ -244,7 +259,7 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
                 .orElseThrow(BrowserSourceNotFoundException::new);
     }
 
-    private BrowserSourceSummaryDto toSummary(SourceDocumentEntity source) {
+    private BrowserSourceSummaryDto toSummary(SourceDocumentEntity source, long databaseSizeBytes) {
         return new BrowserSourceSummaryDto(
                 SourceReferenceCodec.encode(new SourceId(source.getId())),
                 source.getKind(),
@@ -253,12 +268,18 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
                 source.getLanguage(),
                 source.getCharacterCount(),
                 source.getPassageCount(),
+                databaseSizeBytes,
                 source.getErrorCode(),
                 isRetryable(source),
                 source.getCreatedAt(),
                 source.getUpdatedAt(),
                 source.getVersion()
         );
+    }
+
+    private long databaseSizeBytes(UserId userId, SourceDocumentEntity source) {
+        return sourceDocumentRepository.storedBytesByIdAndUserId(source.getId(), userId.value())
+                + passageRepository.totalStoredBytesByUserIdAndSourceId(userId.value(), source.getId());
     }
 
     private boolean isRetryable(SourceDocumentEntity source) {

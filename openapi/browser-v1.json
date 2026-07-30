@@ -1093,6 +1093,10 @@
             "type" : "integer",
             "format" : "int32"
           },
+          "databaseSizeBytes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
           "errorCode" : {
             "type" : "string"
           },
@@ -1112,7 +1116,7 @@
             "format" : "int64"
           }
         },
-        "required" : [ "createdAt", "displayName", "kind", "language", "reference", "retryable", "status", "updatedAt", "version" ]
+        "required" : [ "createdAt", "databaseSizeBytes", "displayName", "kind", "language", "reference", "retryable", "status", "updatedAt", "version" ]
       },
       "UpdateLanguageSettingsRequestDto" : {
         "type" : "object",

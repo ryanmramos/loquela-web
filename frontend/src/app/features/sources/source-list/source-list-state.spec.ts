@@ -52,6 +52,7 @@ function sourcePage(): SourcePage {
         status: 'READY',
         displayName: 'Reader notes',
         language: 'es',
+        databaseSizeBytes: 2_176,
         retryable: false,
         createdAt: '2026-07-26T20:00:00Z',
         updatedAt: '2026-07-26T20:01:00Z',

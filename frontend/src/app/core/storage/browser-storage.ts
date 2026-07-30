@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 
-export type BrowserPreferenceKey = 'dismissed-whatsapp-link-tip';
+export type BrowserPreferenceKey = 'dismissed-whatsapp-link-tip' | 'color-theme';
 
 /**
  * The only reviewed browser-storage boundary. It accepts explicit non-sensitive preference keys;

@@ -8,6 +8,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -65,8 +66,28 @@ public interface SourceDocumentRepository extends Repository<SourceDocumentEntit
               and source.status <> 'DELETED'
             """, nativeQuery = true)
     long totalCorpusStoredBytesByUserId(@Param("userId") UUID userId);
+    @Query(value = """
+            select source.id as "sourceId",
+                   pg_column_size(source) + coalesce(sum(pg_column_size(passage)), 0) as "storedBytes"
+            from source_document source
+            left join passage
+              on passage.source_id = source.id
+             and passage.user_id = source.user_id
+            where source.user_id = :userId
+              and source.id in (:sourceIds)
+            group by source.id
+            """, nativeQuery = true)
+    List<SourceStorageProjection> findStoredBytesByUserIdAndSourceIdIn(
+            @Param("userId") UUID userId,
+            @Param("sourceIds") Collection<UUID> sourceIds
+    );
     void delete(SourceDocumentEntity source);
     long deleteByIdAndUserId(UUID id, UUID userId);
+
+    interface SourceStorageProjection {
+        UUID getSourceId();
+        long getStoredBytes();
+    }
 
     @Query(value = """
             select *

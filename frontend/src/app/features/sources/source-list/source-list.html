@@ -85,7 +85,7 @@
               <th scope="col">Source</th>
               <th scope="col">Type</th>
               <th scope="col">Status</th>
-              <th scope="col">Passages</th>
+              <th scope="col">Storage</th>
               <th scope="col">Updated</th>
             </tr>
           </thead>
@@ -101,7 +101,7 @@
                     {{ statusLabel(source.status) }}
                   </app-status-badge>
                 </td>
-                <td>{{ source.passageCount ?? '—' }}</td>
+                <td>{{ formatStorage(source.databaseSizeBytes) }}</td>
                 <td>{{ formatUpdatedDate(source.updatedAt) }}</td>
               </tr>
             }
@@ -120,7 +120,7 @@
             </div>
             <a [routerLink]="['/app/sources', source.reference]">{{ source.displayName }}</a>
             <p>
-              {{ source.passageCount ?? 0 | number }} passages · Updated
+              {{ formatStorage(source.databaseSizeBytes) }} · Updated
               {{ formatUpdatedDate(source.updatedAt) }}
             </p>
           </li>
