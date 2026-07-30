@@ -6,6 +6,7 @@ import com.example.whatsanki.service.exception.BrowserAccountUnavailableExceptio
 import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.exception.BrowserSourceNotFoundException;
 import com.example.whatsanki.service.exception.BrowserSourceValidationException;
+import com.example.whatsanki.service.exception.UnsupportedBrowserLanguagePairException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -179,6 +180,20 @@ public class GlobalExceptionHandler {
                 "DOCUMENT_TOO_LARGE",
                 "Source could not be accepted",
                 sourceProblemDetail("DOCUMENT_TOO_LARGE"),
+                request
+        );
+    }
+
+    @ExceptionHandler(UnsupportedBrowserLanguagePairException.class)
+    public ResponseEntity<ApiProblemDto> handleUnsupportedBrowserLanguagePair(
+            UnsupportedBrowserLanguagePairException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                HttpStatus.BAD_REQUEST,
+                "UNSUPPORTED_LANGUAGE_PAIR",
+                "Language pair is not supported",
+                "Choose one of the supported source and definition language combinations.",
                 request
         );
     }

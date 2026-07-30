@@ -43,6 +43,10 @@ export type { Delete$Params as Delete$Params } from './fn/browser-card-controlle
 export { delete$ as delete$ } from './fn/browser-card-controller/delete';
 export type { UpdateBrowserCard$Params as UpdateBrowserCard$Params } from './fn/browser-card-controller/update-browser-card';
 export { updateBrowserCard as updateBrowserCard } from './fn/browser-card-controller/update-browser-card';
+export type { GetBrowserLanguageSettings$Params as GetBrowserLanguageSettings$Params } from './fn/browser-language-settings-controller/get-browser-language-settings';
+export { getBrowserLanguageSettings as getBrowserLanguageSettings } from './fn/browser-language-settings-controller/get-browser-language-settings';
+export type { UpdateBrowserLanguageSettings$Params as UpdateBrowserLanguageSettings$Params } from './fn/browser-language-settings-controller/update-browser-language-settings';
+export { updateBrowserLanguageSettings as updateBrowserLanguageSettings } from './fn/browser-language-settings-controller/update-browser-language-settings';
 export type { GetDashboard$Params as GetDashboard$Params } from './fn/dashboard-controller/get-dashboard';
 export { getDashboard as getDashboard } from './fn/dashboard-controller/get-dashboard';
 export type { StartGoogleLogin$Params as StartGoogleLogin$Params } from './fn/browser-authentication-controller/start-google-login';

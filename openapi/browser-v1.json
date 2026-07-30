@@ -510,6 +510,52 @@
         }
       }
     },
+    "/api/v1/settings/languages" : {
+      "get" : {
+        "tags" : [ "browser-language-settings-controller" ],
+        "summary" : "Return the current and supported source/definition language pairs",
+        "operationId" : "getBrowserLanguageSettings",
+        "responses" : {
+          "200" : {
+            "description" : "Language settings",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserLanguageSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "browser-language-settings-controller" ],
+        "summary" : "Update the source and definition languages for future work",
+        "operationId" : "updateBrowserLanguageSettings",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateLanguageSettingsRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Updated language settings",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserLanguageSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/session/interface-language" : {
       "patch" : {
         "tags" : [ "browser-session-controller" ],
@@ -1068,6 +1114,47 @@
         },
         "required" : [ "createdAt", "displayName", "kind", "language", "reference", "retryable", "status", "updatedAt", "version" ]
       },
+      "UpdateLanguageSettingsRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "sourceLanguage" : {
+            "type" : "string",
+            "maxLength" : 35,
+            "minLength" : 0
+          },
+          "definitionLanguage" : {
+            "type" : "string",
+            "maxLength" : 35,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "definitionLanguage", "sourceLanguage" ]
+      },
+      "BrowserLanguageSettingsDto" : {
+        "type" : "object",
+        "properties" : {
+          "languagePair" : {
+            "$ref" : "#/components/schemas/LanguagePairDto"
+          },
+          "supportedPairs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LanguagePairDto"
+            }
+          }
+        }
+      },
+      "LanguagePairDto" : {
+        "type" : "object",
+        "properties" : {
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "definitionLanguage" : {
+            "type" : "string"
+          }
+        }
+      },
       "UpdateInterfaceLanguageRequestDto" : {
         "type" : "object",
         "properties" : {
@@ -1345,17 +1432,6 @@
             "format" : "int64"
           },
           "youtubeUrl" : {
-            "type" : "string"
-          }
-        }
-      },
-      "LanguagePairDto" : {
-        "type" : "object",
-        "properties" : {
-          "sourceLanguage" : {
-            "type" : "string"
-          },
-          "definitionLanguage" : {
             "type" : "string"
           }
         }
