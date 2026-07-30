@@ -26,7 +26,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(23);
+        assertThat(flyway.info().applied()).hasSize(24);
     }
 
     @Test
@@ -54,6 +54,14 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                 """, String.class);
         assertThat(appUserColumns)
                 .doesNotContain("whatsapp_address_hash", "whatsapp_address_ciphertext");
+
+        List<String> deckColumns = jdbcTemplate.queryForList("""
+                select column_name
+                from information_schema.columns
+                where table_schema = 'public'
+                  and table_name = 'deck'
+                """, String.class);
+        assertThat(deckColumns).contains("theme_color");
     }
 
     @Test

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BrowserCardDto, CardApi } from '@api/api-adapters/card-api';
 import { BrowserDeckOptionDto, LookupApi } from '@api/api-adapters/lookup-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
@@ -16,6 +16,7 @@ import { UiState } from '@app/shared/components/ui-state/ui-state';
 export class CardsPage {
   private readonly api = inject(CardApi);
   private readonly lookupApi = inject(LookupApi);
+  private readonly route = inject(ActivatedRoute);
   readonly cards = signal<BrowserCardDto[]>([]);
   readonly decks = signal<BrowserDeckOptionDto[]>([]);
   readonly selected = signal<BrowserCardDto | null>(null);
@@ -60,6 +61,7 @@ export class CardsPage {
     version: new FormControl<number | null>(null),
   });
   constructor() {
+    this.deckFilter.setValue(this.route.snapshot.queryParamMap.get('deckReference') ?? '');
     this.load();
     this.lookupApi.decks().subscribe({ next: (d) => this.decks.set(d) });
   }

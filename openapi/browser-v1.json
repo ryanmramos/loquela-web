@@ -339,6 +339,82 @@
         }
       }
     },
+    "/api/v1/decks" : {
+      "get" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "List active owned decks",
+        "operationId" : "listBrowserDecks",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/BrowserDeckDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "Create a deck",
+        "operationId" : "createBrowserDeck",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeckMutationRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserDeckDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/decks/{reference}/exports" : {
+      "post" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "Create an immutable deck export",
+        "operationId" : "createBrowserDeckExport",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "description" : "Accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserExportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cards" : {
       "get" : {
         "tags" : [ "browser-card-controller" ],
@@ -585,6 +661,86 @@
         }
       }
     },
+    "/api/v1/decks/{reference}" : {
+      "get" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "Get an owned deck",
+        "operationId" : "getBrowserDeck",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserDeckDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "Delete an unreferenced deck",
+        "operationId" : "deleteBrowserDeck",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "Rename or recolor a deck",
+        "operationId" : "updateBrowserDeck",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeckMutationRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserDeckDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cards/{reference}" : {
       "get" : {
         "tags" : [ "browser-card-controller" ],
@@ -738,6 +894,75 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/exports" : {
+      "get" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "List recent owned exports",
+        "operationId" : "listBrowserExports",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/BrowserExportDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/exports/{reference}" : {
+      "get" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "Get owned export state",
+        "operationId" : "getBrowserExport",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserExportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/exports/{reference}/download" : {
+      "get" : {
+        "tags" : [ "browser-deck-controller" ],
+        "summary" : "Authorize an expiring export download",
+        "operationId" : "downloadBrowserExport",
+        "parameters" : [ {
+          "name" : "reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
           }
         }
       }
@@ -980,6 +1205,84 @@
           },
           "deckReference" : {
             "type" : "string"
+          }
+        }
+      },
+      "DeckMutationRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "themeColor" : {
+            "type" : "string",
+            "enum" : [ "GREEN", "ORANGE", "BLUE", "TEAL", "PURPLE" ]
+          }
+        },
+        "required" : [ "name", "themeColor" ]
+      },
+      "BrowserDeckDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "themeColor" : {
+            "type" : "string",
+            "enum" : [ "GREEN", "ORANGE", "BLUE", "TEAL", "PURPLE" ]
+          },
+          "cardCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "BrowserExportDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "deckReference" : {
+            "type" : "string"
+          },
+          "deckName" : {
+            "type" : "string"
+          },
+          "cardCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "state" : {
+            "type" : "string",
+            "enum" : [ "QUEUED", "RUNNING", "READY", "FAILED", "EXPIRED" ]
+          },
+          "errorCode" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "downloadAvailable" : {
+            "type" : "boolean"
           }
         }
       },

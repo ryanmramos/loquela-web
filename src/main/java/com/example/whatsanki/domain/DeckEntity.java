@@ -25,6 +25,8 @@ public class DeckEntity {
     @Column(name = "user_id", nullable = false) private UUID userId;
     @Column(nullable = false, length = 255) private String name;
     @Column(name = "normalized_name", nullable = false, length = 255) private String normalizedName;
+    @Enumerated(EnumType.STRING) @Column(name = "theme_color", nullable = false, length = 24)
+    private ThemeColor themeColor = ThemeColor.GREEN;
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 24) private Status status;
     @Column(name = "created_at", nullable = false) private Instant createdAt;
     @Column(name = "updated_at", nullable = false) private Instant updatedAt;
@@ -38,4 +40,5 @@ public class DeckEntity {
     }
     @PreUpdate void preUpdate() { updatedAt = Instant.now(); }
     public enum Status { ACTIVE, ARCHIVED, DELETING }
+    public enum ThemeColor { GREEN, ORANGE, BLUE, TEAL, PURPLE }
 }

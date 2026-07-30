@@ -7,7 +7,9 @@ export type { ActivitySummary } from './models/activity-summary';
 export type { ApiProblemDto } from './models/api-problem-dto';
 export type { BrowserCardDto } from './models/browser-card-dto';
 export type { BrowserCardListDto } from './models/browser-card-list-dto';
+export type { BrowserDeckDto } from './models/browser-deck-dto';
 export type { BrowserDeckOptionDto } from './models/browser-deck-option-dto';
+export type { BrowserExportDto } from './models/browser-export-dto';
 export type { BrowserLanguageSettingsDto } from './models/browser-language-settings-dto';
 export type { BrowserLookupAcceptedDto } from './models/browser-lookup-accepted-dto';
 export type { BrowserLookupDto } from './models/browser-lookup-dto';
@@ -23,6 +25,7 @@ export type { CreatePastedTextSourceRequestDto } from './models/create-pasted-te
 export type { CreateSourceUploadRequestDto } from './models/create-source-upload-request-dto';
 export type { CreateYouTubeSourceRequestDto } from './models/create-you-tube-source-request-dto';
 export type { DashboardDto } from './models/dashboard-dto';
+export type { DeckMutationRequestDto } from './models/deck-mutation-request-dto';
 export type { FieldErrorDto } from './models/field-error-dto';
 export type { JobSummary } from './models/job-summary';
 export type { LanguagePair } from './models/language-pair';

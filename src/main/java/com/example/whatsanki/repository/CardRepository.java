@@ -31,6 +31,7 @@ public interface CardRepository extends Repository<CardEntity, UUID> {
                                      @Param("search") String search, Pageable pageable);
     void delete(CardEntity card);
     long countByUserId(UUID userId);
+    long countByUserIdAndDeckId(UUID userId, UUID deckId);
     long countByUserIdAndLastPracticedAtIsNull(UUID userId);
     long countByUserIdAndCreatedAtGreaterThanEqual(UUID userId, Instant createdAt);
 }

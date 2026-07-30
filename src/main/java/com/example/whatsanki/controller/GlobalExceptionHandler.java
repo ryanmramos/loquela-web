@@ -3,6 +3,7 @@ package com.example.whatsanki.controller;
 import com.example.whatsanki.dto.ApiErrorResponseDto;
 import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.service.exception.BrowserAccountUnavailableException;
+import com.example.whatsanki.service.exception.BrowserDeckException;
 import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.exception.BrowserSourceNotFoundException;
 import com.example.whatsanki.service.exception.BrowserSourceValidationException;
@@ -29,6 +30,20 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BrowserDeckException.class)
+    public ResponseEntity<ApiProblemDto> handleDeck(
+            BrowserDeckException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                exception.status(),
+                exception.problemCode(),
+                "Deck operation could not be completed",
+                "Review the deck and try again.",
+                request
+        );
+    }
 
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ApiErrorResponseDto> handleBinding(BindException exception) {

@@ -13,9 +13,11 @@ import java.util.UUID;
 
 public interface DeckRepository extends Repository<DeckEntity, UUID> {
     DeckEntity save(DeckEntity deck);
+    DeckEntity saveAndFlush(DeckEntity deck);
     Optional<DeckEntity> findByIdAndUserId(UUID id, UUID userId);
     Optional<DeckEntity> findByUserIdAndNormalizedName(UUID userId, String normalizedName);
     List<DeckEntity> findAllByUserIdAndStatusOrderByName(UUID userId, DeckEntity.Status status);
+    void delete(DeckEntity deck);
 
     @Modifying
     @Query(value = """

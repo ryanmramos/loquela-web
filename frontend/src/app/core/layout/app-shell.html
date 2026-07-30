@@ -13,6 +13,7 @@
       @for (item of navigation; track item.key) {
         <a
           [routerLink]="item.target"
+          [attr.aria-label]="item.key | translate"
           routerLinkActive="navigation__link--active"
           [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
         >

@@ -17,6 +17,10 @@ public interface ExportRequestRepository extends Repository<ExportRequestEntity,
     ExportRequestEntity save(ExportRequestEntity exportRequest);
     Optional<ExportRequestEntity> findByIdAndUserId(UUID id, UUID userId);
     List<ExportRequestEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
+    long countByUserIdAndDeckId(UUID userId, UUID deckId);
+    boolean existsByUserIdAndDeckIdAndStateIn(
+            UUID userId, UUID deckId, List<ExportRequestEntity.State> states
+    );
     List<ExportRequestEntity> findAllByStateAndExpiresAtLessThanEqualOrderByExpiresAt(
             ExportRequestEntity.State state, Instant expiresAt, Pageable pageable
     );

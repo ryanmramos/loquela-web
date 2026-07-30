@@ -1,0 +1,155 @@
+<section class="decks-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Learning collections</p>
+      <h1>Decks</h1>
+      <p>Group cards by goal, browse what you saved, or export a snapshot for Anki.</p>
+    </div>
+    <div class="heading-actions">
+      <a appButton variant="secondary" href="#export-history">⇩ Exports</a>
+      <button appButton type="button" (click)="newDeck()">＋ New deck</button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <app-ui-state kind="error" title="Decks need attention" [description]="error()" />
+  }
+
+  @if (editorOpen()) {
+    <section class="deck-editor" aria-labelledby="deck-editor-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">{{ selected() ? 'Deck details' : 'New collection' }}</p>
+          <h2 id="deck-editor-title">{{ selected() ? 'Edit deck' : 'Create a deck' }}</h2>
+        </div>
+        <button appButton variant="ghost" type="button" (click)="closeEditor()">Close</button>
+      </div>
+      <form [formGroup]="form" (ngSubmit)="save()">
+        <label class="field">
+          <span>Deck name</span>
+          <input formControlName="name" maxlength="255" />
+        </label>
+        <fieldset>
+          <legend>Theme color</legend>
+          <div class="color-options">
+            @for (color of colors; track color) {
+              <label
+                class="color-option"
+                [class]="'color-option color-option--' + color.toLowerCase()"
+              >
+                <input type="radio" formControlName="themeColor" [value]="color" />
+                <span>{{ color[0] + color.slice(1).toLowerCase() }}</span>
+              </label>
+            }
+          </div>
+        </fieldset>
+        <button appButton type="submit" [disabled]="form.invalid">
+          {{ selected() ? 'Save changes' : 'Create deck' }}
+        </button>
+      </form>
+    </section>
+  }
+
+  @if (loading()) {
+    <app-ui-state kind="loading" title="Loading decks" description="" />
+  } @else if (!decks().length) {
+    <app-ui-state
+      kind="empty"
+      title="No decks yet"
+      description="Create a deck to organize your first cards."
+    />
+  } @else {
+    <div class="deck-scroll" aria-label="Your decks" tabindex="0">
+      @for (deck of decks(); track deck.reference) {
+        <article class="deck-card">
+          <div
+            class="deck-cover"
+            [class]="'deck-cover deck-cover--' + (deck.themeColor ?? 'GREEN').toLowerCase()"
+          >
+            <span class="deck-symbol">{{ initials(deck.name) }}</span>
+          </div>
+          <div class="deck-body">
+            <span class="pill">Active deck</span>
+            <h2>{{ deck.name }}</h2>
+            <p>{{ deck.cardCount ?? 0 }} {{ deck.cardCount === 1 ? 'card' : 'cards' }}</p>
+            <div class="deck-actions">
+              <a
+                appButton
+                variant="secondary"
+                routerLink="/app/cards"
+                [queryParams]="{ deckReference: deck.reference }"
+              >
+                View cards
+              </a>
+              <button appButton type="button" (click)="requestExport(deck)">Export</button>
+              <app-action-menu
+                [label]="'Actions for ' + deck.name"
+                [items]="deckActions"
+                (itemSelected)="action(deck, $event)"
+              />
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <section id="export-history" class="export-card" aria-labelledby="exports-title" tabindex="0">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Immutable snapshots</p>
+        <h2 id="exports-title">Recent exports</h2>
+      </div>
+      @if (hasPendingExports()) {
+        <span class="polling-note" aria-live="polite">Refreshing active exports…</span>
+      }
+    </div>
+    <div class="export-row export-row--header" aria-hidden="true">
+      <span>Deck snapshot</span><span>Cards</span><span>Status</span><span>Created</span
+      ><span>Expires</span><span></span>
+    </div>
+    @for (item of exports(); track item.reference) {
+      <article class="export-row">
+        <div>
+          <strong>{{ item.deckName }}</strong>
+          <span>{{
+            item.state === 'FAILED' ? item.errorCode || 'EXPORT_FAILED' : 'Anki package snapshot'
+          }}</span>
+        </div>
+        <span>{{ item.cardCount ?? 0 }}</span>
+        <span class="status" [attr.data-state]="item.state">{{ statusLabel(item.state) }}</span>
+        <span>{{ formatDate(item.createdAt) }}</span>
+        <span>{{ item.state === 'EXPIRED' ? 'Expired' : formatDate(item.expiresAt) }}</span>
+        <span>
+          @if (item.downloadAvailable && item.reference) {
+            <a appButton variant="secondary" [href]="api.downloadUrl(item.reference)">Download</a>
+          } @else if (item.state === 'FAILED' && item.deckReference) {
+            <button
+              appButton
+              variant="secondary"
+              type="button"
+              (click)="
+                requestExport({
+                  reference: item.deckReference,
+                  name: item.deckName,
+                  cardCount: item.cardCount,
+                })
+              "
+            >
+              Retry
+            </button>
+          } @else {
+            <span class="muted">—</span>
+          }
+        </span>
+      </article>
+    }
+    @if (!exports().length) {
+      <app-ui-state
+        kind="empty"
+        title="No exports yet"
+        description="Export a deck and its progress will appear here."
+      />
+    }
+  </section>
+</section>

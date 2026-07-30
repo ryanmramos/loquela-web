@@ -8,6 +8,7 @@ import com.example.whatsanki.domain.ExportRequestId;
 import com.example.whatsanki.domain.JobId;
 import com.example.whatsanki.domain.ProviderMessageId;
 import com.example.whatsanki.domain.UserId;
+import com.example.whatsanki.domain.UserIdentityEntity;
 import com.example.whatsanki.domain.WhatsAppAddress;
 import com.example.whatsanki.dto.AnkiCardFieldsDto;
 import com.example.whatsanki.dto.DeckExportPreparationDto;
@@ -132,6 +133,8 @@ class DeckExportServiceImplTest {
                 .thenReturn(expiresAt);
         when(objectStore.createPresignedGetUrl(eq(objectKey), any()))
                 .thenReturn(URI.create("https://store.example/private-token"));
+        when(userIdentityService.hasIdentity(userId, UserIdentityEntity.Provider.WHATSAPP))
+                .thenReturn(true);
         when(userIdentityService.requireWhatsAppAddress(userId)).thenReturn(address);
         when(outboundMessenger.send(eq(address), any())).thenReturn(new ProviderMessageId("SM123"));
 

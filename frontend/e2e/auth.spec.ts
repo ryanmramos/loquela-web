@@ -326,18 +326,119 @@ test('card management preserves versioned edits and confirms permanent deletion'
   });
 
   await page.goto('/app/cards');
-  await page.getByRole('button', { name: /vivir to live Vocabulary/u }).click();
-  await page.getByLabel('Term').fill('vivir bien');
-  await page.getByLabel('Definition').fill('to live well');
-  await page.getByRole('button', { name: 'Save card' }).click();
-  await expect(page.getByRole('button', { name: /vivir bien to live well/u })).toBeVisible();
+  await page.locator('.card-preview').filter({ hasText: 'vivir' }).click();
+  await page.getByLabel('Front', { exact: true }).fill('vivir bien');
+  await page.getByLabel('Back', { exact: true }).fill('to live well');
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await expect(page.locator('.card-preview').filter({ hasText: 'vivir bien' })).toBeVisible();
 
   page.once('dialog', (dialog) => dialog.accept());
-  await page.getByRole('button', { name: 'Delete' }).click();
-  await expect(page.getByText('No cards yet')).toBeVisible();
+  await page.getByRole('button', { name: 'Actions for vivir bien' }).click();
+  await page.getByRole('menuitem', { name: 'Delete card' }).click();
+  await expect(page.getByText('No cards found')).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+});
+
+test('deck shelf scrolls, persists visual edits, opens cards, and resumes exports', async ({
+  page,
+}) => {
+  await mockAuthentication(page, true);
+  const deckReference = 'AAAAAAAAAAAAAAAAAAAAAA';
+  let decks = [
+    {
+      reference: deckReference,
+      name: 'Spanish Core',
+      themeColor: 'GREEN',
+      cardCount: 248,
+    },
+    { reference: 'BBBBBBBBBBBBBBBBBBBBBB', name: 'Travel', themeColor: 'ORANGE', cardCount: 82 },
+    { reference: 'CCCCCCCCCCCCCCCCCCCCCC', name: 'Climate', themeColor: 'BLUE', cardCount: 54 },
+    { reference: 'DDDDDDDDDDDDDDDDDDDDDD', name: 'Reading', themeColor: 'PURPLE', cardCount: 11 },
+  ];
+  let exports = [
+    {
+      reference: 'EEEEEEEEEEEEEEEEEEEEEE',
+      deckReference,
+      deckName: 'Spanish Core',
+      cardCount: 231,
+      state: 'EXPIRED',
+      createdAt: '2026-07-10T12:00:00Z',
+      downloadAvailable: false,
+    },
+  ];
+
+  await page.route('**/api/v1/decks', async (route: Route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(decks),
+      });
+      return;
+    }
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '{}' });
+  });
+  await page.route(`**/api/v1/decks/${deckReference}`, async (route: Route) => {
+    const body = route.request().postDataJSON() as { name: string; themeColor: string };
+    decks = [{ ...decks[0], ...body }, ...decks.slice(1)];
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(decks[0]),
+    });
+  });
+  await page.route(`**/api/v1/decks/${deckReference}/exports`, async (route: Route) => {
+    const queued = {
+      reference: 'FFFFFFFFFFFFFFFFFFFFFF',
+      deckReference,
+      deckName: decks[0].name,
+      cardCount: 248,
+      state: 'QUEUED',
+      createdAt: new Date().toISOString(),
+      downloadAvailable: false,
+    };
+    exports = [queued, ...exports];
+    await route.fulfill({
+      status: 202,
+      contentType: 'application/json',
+      body: JSON.stringify(queued),
+    });
+  });
+  await page.route('**/api/v1/exports', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(exports),
+    });
+  });
+
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto('/app/decks');
+
+  const shelf = page.getByLabel('Your decks');
+  await expect(shelf).toHaveCSS('overflow-x', 'auto');
+  expect(await shelf.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+
+  await page.getByRole('button', { name: 'Actions for Spanish Core' }).click();
+  await page.getByRole('menuitem', { name: 'Rename or change color' }).click();
+  await page.getByLabel('Deck name').fill('Core Spanish');
+  await page.getByLabel('Purple').check();
+  await page.getByRole('button', { name: 'Save changes' }).click();
+  await expect(page.getByRole('heading', { name: 'Core Spanish' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Export', exact: true }).first().click();
+  await expect(page.getByText('Queued')).toBeVisible();
+  await expect(page.locator('.status[data-state="EXPIRED"]')).toHaveText('Expired');
+
+  await page.getByRole('link', { name: 'View cards' }).first().click();
+  await expect(page).toHaveURL(new RegExp(`/app/cards\\?deckReference=${deckReference}$`, 'u'));
+
+  await page.goto('/app/decks');
+  await expect(page.getByRole('heading', { name: 'Decks', exact: true })).toBeVisible();
 });
 
 test('source management keeps filters in the URL and resumes source details', async ({ page }) => {
@@ -491,6 +592,7 @@ const dashboardSnapshot = {
     readySources: 24,
     processingSources: 2,
   },
+  storage: { status: 'AVAILABLE', usedBytes: 1_048_576 },
   jobs: { status: 'AVAILABLE', activeJobs: 2 },
   activity: {
     status: 'AVAILABLE',

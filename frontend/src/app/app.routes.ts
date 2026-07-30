@@ -62,16 +62,8 @@ export const routes: Routes = [
       {
         path: 'decks',
         title: 'Decks',
-        data: {
-          featureKey: 'decks',
-          eyebrow: 'Organization',
-          heading: 'Decks',
-          description: 'Deck management and exports arrive in Step 12.',
-        },
         loadComponent: () =>
-          import('@app/features/placeholder/feature-placeholder-page').then(
-            (module) => module.FeaturePlaceholderPage,
-          ),
+          import('@app/features/decks/decks-page').then((module) => module.DecksPage),
       },
       {
         path: 'study',

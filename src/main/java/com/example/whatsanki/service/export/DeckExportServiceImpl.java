@@ -6,6 +6,7 @@ import com.example.whatsanki.domain.ExportRequestEntity;
 import com.example.whatsanki.domain.ExportRequestId;
 import com.example.whatsanki.domain.JobId;
 import com.example.whatsanki.domain.UserId;
+import com.example.whatsanki.domain.UserIdentityEntity;
 import com.example.whatsanki.dto.AnkiCardFieldsDto;
 import com.example.whatsanki.dto.DeckExportAcceptanceDto;
 import com.example.whatsanki.dto.DeckExportPreparationDto;
@@ -131,7 +132,11 @@ public class DeckExportServiceImpl implements DeckExportService {
                 cleanupArtifact(artifact);
             }
         }
-        deliverReadyLink(userId, exportRequestId, preparation.deckName(), artifactKey, expiresAt);
+        // Browser-only accounts retrieve this same artifact through the authorized
+        // download endpoint and must not fail merely because they have no WhatsApp identity.
+        if (userIdentityService.hasIdentity(userId, UserIdentityEntity.Provider.WHATSAPP)) {
+            deliverReadyLink(userId, exportRequestId, preparation.deckName(), artifactKey, expiresAt);
+        }
     }
 
     @Override
