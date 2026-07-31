@@ -13,12 +13,13 @@ import { Alert } from '@app/shared/components/alert/alert';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { Skeleton } from '@app/shared/components/skeleton/skeleton';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
 
 type Section = 'profile' | 'accounts' | 'language' | 'delivery' | 'export' | 'privacy';
 
 @Component({
   selector: 'app-settings-page',
-  imports: [Alert, ButtonDirective, ReactiveFormsModule, Skeleton, UiState],
+  imports: [Alert, ButtonDirective, ReactiveFormsModule, Skeleton, UiState, TranslatePipe],
   templateUrl: './settings-page.html',
   styleUrl: './settings-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

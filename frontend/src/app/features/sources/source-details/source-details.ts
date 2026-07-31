@@ -1,5 +1,5 @@
 import { Dialog, DialogModule } from '@angular/cdk/dialog';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
@@ -14,6 +14,8 @@ import {
 import { FormField } from '@app/shared/components/form-field/form-field';
 import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/status-badge';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 
 import { SourceDetailsState } from './source-details-state';
 
@@ -22,13 +24,13 @@ import { SourceDetailsState } from './source-details-state';
   imports: [
     Alert,
     ButtonDirective,
-    DatePipe,
     DecimalPipe,
     DialogModule,
     FormField,
     RouterLink,
     StatusBadge,
     UiState,
+    TranslatePipe,
   ],
   providers: [SourceDetailsState],
   templateUrl: './source-details.html',
@@ -39,6 +41,7 @@ export class SourceDetails {
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(Dialog);
   readonly state = inject(SourceDetailsState);
+  private readonly translations = inject(TranslationService);
 
   constructor() {
     this.state.load(this.route.snapshot.paramMap.get('sourceReference') ?? '');
@@ -52,12 +55,11 @@ export class SourceDetails {
     this.dialog
       .open<boolean, ConfirmDialogData>(ConfirmDialog, {
         data: {
-          title: 'Delete this source?',
-          description:
-            'Its searchable contexts will be removed. Cards already saved from it keep their copied attribution.',
-          confirmLabel: 'Delete source',
+          title: this.translations.translate('sourceDetails.confirmDeleteTitle'),
+          description: this.translations.translate('sourceDetails.confirmDeleteDescription'),
+          confirmLabel: this.translations.translate('sourceDetails.deleteSource'),
         },
-        ariaLabel: 'Confirm source deletion',
+        ariaLabel: this.translations.translate('sourceDetails.confirmDeleteAria'),
         autoFocus: 'button',
         restoreFocus: true,
       })
@@ -68,17 +70,28 @@ export class SourceDetails {
   kindLabel(kind: SourceDetailsModel['kind']): string {
     return (
       {
-        PASTED_TEXT: 'Pasted text',
-        TXT: 'TXT document',
-        PDF: 'PDF document',
-        EPUB: 'EPUB document',
-        YOUTUBE_VIDEO: 'YouTube captions',
+        PASTED_TEXT: this.translations.translate('sourceDetails.pastedText'),
+        TXT: this.translations.translate('sourceDetails.txt'),
+        PDF: this.translations.translate('sourceDetails.pdf'),
+        EPUB: this.translations.translate('sourceDetails.epub'),
+        YOUTUBE_VIDEO: this.translations.translate('sourceDetails.youtube'),
       } as const
     )[kind];
   }
 
   statusLabel(status: SourceDetailsModel['status']): string {
-    return status.toLowerCase().replace('_', ' ');
+    const keys = {
+      READY: 'sourceDetails.statusReady',
+      RECEIVED: 'sourceDetails.statusReceived',
+      FETCHING: 'sourceDetails.statusFetching',
+      STORED: 'sourceDetails.statusStored',
+      EXTRACTING: 'sourceDetails.statusExtracting',
+      INDEXING: 'sourceDetails.statusIndexing',
+      FAILED: 'sourceDetails.statusFailed',
+      DELETING: 'sourceDetails.statusDeleting',
+      DELETED: 'sourceDetails.statusDeleted',
+    } as const;
+    return this.translations.translate(keys[status]);
   }
 
   statusTone(status: SourceDetailsModel['status']): StatusTone {
@@ -89,14 +102,15 @@ export class SourceDetails {
   }
 
   failureGuidance(code: string | undefined): string {
-    return (
-      {
-        PDF_NEEDS_OCR: 'This PDF has no readable text layer. Run OCR and upload it again.',
-        ENCRYPTED_DOCUMENT: 'Remove document encryption and upload it again.',
-        INVALID_TEXT_ENCODING: 'Save the TXT file as UTF-8 and upload it again.',
-        NO_VIDEO_CAPTIONS: 'This video has no supported captions for your source language.',
-        DOCUMENT_HAS_NO_TEXT: 'The document did not contain readable text.',
-      }[code ?? ''] ?? 'The source could not be processed. Review it and try a new source.'
+    const keys = {
+      PDF_NEEDS_OCR: 'sourceDetails.failurePdfOcr',
+      ENCRYPTED_DOCUMENT: 'sourceDetails.failureEncrypted',
+      INVALID_TEXT_ENCODING: 'sourceDetails.failureEncoding',
+      NO_VIDEO_CAPTIONS: 'sourceDetails.failureCaptions',
+      DOCUMENT_HAS_NO_TEXT: 'sourceDetails.failureNoText',
+    } as const;
+    return this.translations.translate(
+      keys[code as keyof typeof keys] ?? 'sourceDetails.failureGeneric',
     );
   }
 
@@ -114,5 +128,15 @@ export class SourceDetails {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  }
+
+  formatDate(value: string): string {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? '—'
+      : new Intl.DateTimeFormat(this.translations.language(), {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(date);
   }
 }

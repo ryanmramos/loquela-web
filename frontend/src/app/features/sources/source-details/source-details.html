@@ -1,32 +1,34 @@
 <section class="details-page">
-  <a class="back-link" routerLink="/app/sources">← Sources</a>
+  <a class="back-link" routerLink="/app/sources">← {{ 'sourceDetails.back' | translate }}</a>
 
   @if (state.loadStatus() === 'loading') {
     <app-ui-state
       kind="loading"
-      title="Loading source"
-      description="Checking its latest processing state."
+      [title]="'sourceDetails.loading' | translate"
+      [description]="'sourceDetails.loadingDescription' | translate"
     />
   } @else if (state.loadStatus() === 'not-found') {
     <app-ui-state
       kind="empty"
-      title="Source unavailable"
-      description="It may have finished deleting or may not belong to this account."
+      [title]="'sourceDetails.unavailable' | translate"
+      [description]="'sourceDetails.unavailableDescription' | translate"
     />
-    <a appButton routerLink="/app/sources">Return to sources</a>
+    <a appButton routerLink="/app/sources">{{ 'sourceDetails.returnToSources' | translate }}</a>
   } @else if (state.loadStatus() === 'error') {
     <app-ui-state
       kind="error"
-      title="Source could not be loaded"
-      description="Check your connection and try again."
+      [title]="'sourceDetails.errorTitle' | translate"
+      [description]="'sourceDetails.errorDescription' | translate"
     />
-    <button appButton type="button" (click)="state.refresh()">Try again</button>
+    <button appButton type="button" (click)="state.refresh()">
+      {{ 'common.tryAgain' | translate }}
+    </button>
   } @else if (state.source(); as source) {
     <header>
       <div>
         <p class="eyebrow">{{ kindLabel(source.kind) }}</p>
         <h1>{{ source.displayName }}</h1>
-        <p>Added {{ source.createdAt | date: 'medium' }}</p>
+        <p>{{ 'sourceDetails.added' | translate }} {{ formatDate(source.createdAt) }}</p>
       </div>
       <app-status-badge [tone]="statusTone(source.status)">
         {{ statusLabel(source.status) }}
@@ -34,81 +36,83 @@
     </header>
 
     @if (state.errorMessage(); as error) {
-      <app-alert title="Source not updated" tone="danger">{{ error }}</app-alert>
+      <app-alert [title]="'sourceDetails.notUpdated' | translate" tone="danger">{{
+        error
+      }}</app-alert>
     }
 
     @if (source.status === 'FAILED') {
-      <app-alert title="Processing failed" tone="danger">
+      <app-alert [title]="'sourceDetails.processingFailed' | translate" tone="danger">
         {{ failureGuidance(source.errorCode) }}
       </app-alert>
     } @else if (source.status === 'DELETING') {
-      <app-alert title="Deletion in progress" tone="warning">
-        The source stays visible until its contexts and stored document are removed.
+      <app-alert [title]="'sourceDetails.deletionProgress' | translate" tone="warning">
+        {{ 'sourceDetails.deletionDescription' | translate }}
       </app-alert>
     } @else if (source.status !== 'READY') {
-      <app-alert title="Processing continues" tone="info">
-        You can leave this page. Refreshing or returning later resumes status checks.
+      <app-alert [title]="'sourceDetails.processingContinues' | translate" tone="info">
+        {{ 'sourceDetails.processingDescription' | translate }}
       </app-alert>
     }
 
     <div class="details-grid">
       <section class="panel" aria-labelledby="overview-heading">
-        <h2 id="overview-heading">Overview</h2>
+        <h2 id="overview-heading">{{ 'sourceDetails.overview' | translate }}</h2>
         <dl>
           <div>
-            <dt>Type</dt>
+            <dt>{{ 'common.type' | translate }}</dt>
             <dd>{{ kindLabel(source.kind) }}</dd>
           </div>
           <div>
-            <dt>Language</dt>
+            <dt>{{ 'sourceDetails.language' | translate }}</dt>
             <dd>{{ languageName(source.language) }}</dd>
           </div>
           <div>
-            <dt>Total words</dt>
+            <dt>{{ 'sourceDetails.totalWords' | translate }}</dt>
             <dd>{{ source.totalWords ?? 0 | number }}</dd>
           </div>
           <div>
-            <dt>Database size</dt>
+            <dt>{{ 'sourceDetails.databaseSize' | translate }}</dt>
             <dd>{{ formatBytes(source.databaseSizeBytes) }}</dd>
           </div>
           <div>
-            <dt>Last updated</dt>
-            <dd>{{ source.updatedAt | date: 'medium' }}</dd>
+            <dt>{{ 'sourceDetails.lastUpdated' | translate }}</dt>
+            <dd>{{ formatDate(source.updatedAt) }}</dd>
           </div>
         </dl>
       </section>
 
       @if (source.youtube; as youtube) {
         <section class="panel" aria-labelledby="video-heading">
-          <h2 id="video-heading">Video provenance</h2>
+          <h2 id="video-heading">{{ 'sourceDetails.videoProvenance' | translate }}</h2>
           <dl>
             @if (youtube.title) {
               <div>
-                <dt>Title</dt>
+                <dt>{{ 'sourceDetails.title' | translate }}</dt>
                 <dd>{{ youtube.title }}</dd>
               </div>
             }
             @if (youtube.channelName) {
               <div>
-                <dt>Channel</dt>
+                <dt>{{ 'sourceDetails.channel' | translate }}</dt>
                 <dd>{{ youtube.channelName }}</dd>
               </div>
             }
             <div>
-              <dt>Captions</dt>
+              <dt>{{ 'sourceDetails.captions' | translate }}</dt>
               <dd>{{ youtube.captionKind.toLowerCase() }}</dd>
             </div>
           </dl>
-          <a [href]="youtube.canonicalUrl" target="_blank" rel="noopener noreferrer"
-            >Open on YouTube</a
-          >
+          <a [href]="youtube.canonicalUrl" target="_blank" rel="noopener noreferrer">{{
+            'sourceDetails.openYoutube' | translate
+          }}</a>
         </section>
       }
 
       <section class="panel panel--wide" aria-labelledby="manage-heading">
-        <h2 id="manage-heading">Manage source</h2>
+        <h2 id="manage-heading">{{ 'sourceDetails.manage' | translate }}</h2>
         <div class="manage-row">
-          <app-form-field inputId="source-name" label="Display name">
+          <app-form-field inputId="source-name" [label]="'sourceDetails.displayName' | translate">
             <input id="source-name" #sourceName [value]="source.displayName" maxlength="512" />
           </app-form-field>
           <button
@@ -118,7 +122,7 @@
             [disabled]="state.mutationStatus() === 'submitting' || source.status === 'DELETING'"
             (click)="rename(sourceName.value)"
           >
-            Rename
+            {{ 'sourceDetails.rename' | translate }}
           </button>
         </div>
         <div class="danger-row">
@@ -130,7 +134,7 @@
               [disabled]="state.mutationStatus() === 'submitting'"
               (click)="state.retry()"
             >
-              Retry processing
+              {{ 'sourceDetails.retryProcessing' | translate }}
             </button>
           }
           <button
@@ -140,7 +144,7 @@
             [disabled]="state.mutationStatus() === 'submitting' || source.status === 'DELETING'"
             (click)="confirmDelete()"
           >
-            Delete source
+            {{ 'sourceDetails.deleteSource' | translate }}
           </button>
         </div>
       </section>

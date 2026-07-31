@@ -1,78 +1,89 @@
 <section class="settings-page">
   <header class="page-heading">
     <div>
-      <p class="eyebrow">Account preferences</p>
-      <h1>Settings</h1>
-      <p>Manage your Google identity, language defaults, exports, and account data.</p>
+      <p class="eyebrow">{{ 'settings.accountPreferences' | translate }}</p>
+      <h1>{{ 'settings.title' | translate }}</h1>
+      <p>{{ 'settings.description' | translate }}</p>
     </div>
   </header>
 
   @if (loading()) {
-    <div class="loading" aria-label="Loading settings">
+    <div class="loading" [attr.aria-label]="'settings.loading' | translate">
       <app-skeleton height="16rem" />
       <app-skeleton height="28rem" />
     </div>
   } @else if (loadError()) {
     <app-ui-state
       kind="error"
-      title="Settings are unavailable"
-      description="Your preferences were not changed. Try loading them again."
+      [title]="'settings.unavailable' | translate"
+      [description]="'settings.preferencesNotChanged' | translate"
     >
-      <button appButton type="button" (click)="load()">Try again</button>
+      <button appButton type="button" (click)="load()">{{ 'common.tryAgain' | translate }}</button>
     </app-ui-state>
   } @else if (settings(); as current) {
     <div class="settings-layout">
-      <nav class="settings-nav" aria-label="Settings sections">
+      <nav class="settings-nav" [attr.aria-label]="'settings.title' | translate">
         <button [class.active]="activeSection() === 'profile'" (click)="selectSection('profile')">
-          Profile
+          {{ 'settings.profile' | translate }}
         </button>
         <button [class.active]="activeSection() === 'accounts'" (click)="selectSection('accounts')">
-          Linked accounts
+          {{ 'settings.linkedAccounts' | translate }}
         </button>
         <button [class.active]="activeSection() === 'language'" (click)="selectSection('language')">
-          Language & lookup
+          {{ 'settings.languageLookup' | translate }}
         </button>
         <button [class.active]="activeSection() === 'delivery'" (click)="selectSection('delivery')">
-          Delivery
+          {{ 'settings.delivery' | translate }}
         </button>
         <button [class.active]="activeSection() === 'export'" (click)="selectSection('export')">
-          Export defaults
+          {{ 'settings.exportDefaults' | translate }}
         </button>
         <button [class.active]="activeSection() === 'privacy'" (click)="selectSection('privacy')">
-          Privacy & data
+          {{ 'settings.privacy' | translate }}
         </button>
       </nav>
 
       <div class="settings-sections">
         <section class="settings-card" id="profile" aria-labelledby="profile-heading">
-          <h2 id="profile-heading">Profile</h2>
-          <p>Your profile information is managed by the authenticated Google account.</p>
+          <h2 id="profile-heading">{{ 'settings.profile' | translate }}</h2>
+          <p>{{ 'settings.profileDescription' | translate }}</p>
           <div class="settings-row">
-            <div><strong>Display name</strong><span>Provided by Google</span></div>
-            <output>{{ current.profile.displayName || 'Not provided' }}</output>
+            <div>
+              <strong>{{ 'settings.displayName' | translate }}</strong
+              ><span>{{ 'settings.providedByGoogle' | translate }}</span>
+            </div>
+            <output>{{
+              current.profile.displayName || ('settings.notProvided' | translate)
+            }}</output>
           </div>
           <div class="settings-row">
-            <div><strong>Email address</strong><span>Verified Google metadata</span></div>
-            <output>{{ current.profile.email || 'Not provided' }}</output>
+            <div>
+              <strong>{{ 'settings.emailAddress' | translate }}</strong
+              ><span>{{ 'settings.verifiedMetadata' | translate }}</span>
+            </div>
+            <output>{{ current.profile.email || ('settings.notProvided' | translate) }}</output>
           </div>
           <div class="settings-row">
-            <div><strong>Interface language</strong><span>Used throughout Loquela</span></div>
+            <div>
+              <strong>{{ 'settings.interfaceLanguage' | translate }}</strong
+              ><span>{{ 'settings.usedThroughout' | translate }}</span>
+            </div>
             <div>
               <select
-                aria-label="Interface language"
+                [attr.aria-label]="'settings.languageAria' | translate"
                 [value]="translations.language()"
                 [disabled]="interfaceSaving()"
                 (change)="changeInterfaceLanguage($event)"
               >
-                <option value="en">English</option>
-                <option value="es">Español</option>
+                <option value="en">{{ 'settings.english' | translate }}</option>
+                <option value="es">{{ 'settings.spanish' | translate }}</option>
               </select>
               <span class="save-status" aria-live="polite">
                 @if (interfaceSaving()) {
-                  Saving…
+                  {{ 'common.saving' | translate }}
                 }
                 @if (interfaceError()) {
-                  <span class="error">Could not save.</span>
+                  <span class="error">{{ 'settings.couldNotSave' | translate }}</span>
                 }
               </span>
             </div>
@@ -80,10 +91,13 @@
         </section>
 
         <section class="settings-card" id="accounts" aria-labelledby="accounts-heading">
-          <h2 id="accounts-heading">Linked accounts</h2>
-          <p>Google is required for website access.</p>
+          <h2 id="accounts-heading">{{ 'settings.linkedAccounts' | translate }}</h2>
+          <p>{{ 'settings.googleRequired' | translate }}</p>
           <div class="settings-row">
-            <div><strong>Google account</strong><span>Required website sign-in</span></div>
+            <div>
+              <strong>{{ 'settings.googleAccount' | translate }}</strong
+              ><span>{{ 'settings.requiredSignIn' | translate }}</span>
+            </div>
             <div class="account-chip">
               <span class="provider-mark provider-mark--google" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false">
@@ -93,23 +107,25 @@
                 </svg>
               </span>
               <span class="account-details"
-                >{{ current.profile.email || 'Google account'
+                >{{ current.profile.email || ('settings.googleAccount' | translate)
                 }}<small
-                  >Linked {{ formatDate(current.linkedAccounts.googleLinkedAt) }}</small
+                  >{{ 'settings.linked' | translate }}
+                  {{ formatDate(current.linkedAccounts.googleLinkedAt) }}</small
                 ></span
               >
-              <span class="pill success-pill">Required · verified</span>
+              <span class="pill success-pill">{{ 'settings.requiredVerified' | translate }}</span>
             </div>
           </div>
         </section>
 
         <section class="settings-card" id="language" aria-labelledby="language-heading">
-          <h2 id="language-heading">Language & lookup</h2>
-          <p>These defaults apply to future sources, lookups, and cards.</p>
+          <h2 id="language-heading">{{ 'settings.languageLookup' | translate }}</h2>
+          <p>{{ 'settings.futureDefaults' | translate }}</p>
           <form [formGroup]="languageForm" (ngSubmit)="saveLanguages()">
             <div class="settings-row">
               <label for="source-language"
-                ><strong>Source language</strong><span>The language you are learning</span></label
+                ><strong>{{ 'settings.sourceLanguage' | translate }}</strong
+                ><span>{{ 'settings.learningLanguage' | translate }}</span></label
               >
               <select
                 id="source-language"
@@ -123,7 +139,8 @@
             </div>
             <div class="settings-row">
               <label for="definition-language"
-                ><strong>Definition language</strong><span>Used for explanations</span></label
+                ><strong>{{ 'settings.definitionLanguage' | translate }}</strong
+                ><span>{{ 'settings.explanations' | translate }}</span></label
               >
               <select
                 id="definition-language"
@@ -138,13 +155,13 @@
                 }
               </select>
             </div>
-            <app-alert title="Changes apply to future work" tone="info" live="off">
-              Existing source, lookup, and card snapshots are never rewritten.
+            <app-alert [title]="'settings.futureWorkOnlyTitle' | translate" tone="info" live="off">
+              {{ 'settings.snapshotsNeverRewritten' | translate }}
             </app-alert>
             @if (languageError()) {
-              <app-alert title="Language settings were not saved" tone="danger"
-                >Choose a supported pair and try again.</app-alert
-              >
+              <app-alert [title]="'settings.languageSaveErrorTitle' | translate" tone="danger">{{
+                'settings.chooseSupportedPair' | translate
+              }}</app-alert>
             }
             <div class="form-actions">
               <button
@@ -152,10 +169,14 @@
                 type="submit"
                 [disabled]="languageSaving() || languageForm.pristine"
               >
-                {{ languageSaving() ? 'Saving…' : 'Save languages' }}
+                {{
+                  languageSaving()
+                    ? ('common.saving' | translate)
+                    : ('settings.saveLanguages' | translate)
+                }}
               </button>
               @if (languageSaved()) {
-                <span class="success" aria-live="polite">Saved</span>
+                <span class="success" aria-live="polite">{{ 'common.saved' | translate }}</span>
               }
             </div>
           </form>
@@ -163,8 +184,8 @@
           <form [formGroup]="captionForm" (ngSubmit)="saveCaptions()" class="sub-form">
             <div class="settings-row">
               <label for="automatic-captions"
-                ><strong>Automatic captions</strong
-                ><span>Use when manual YouTube captions are unavailable</span></label
+                ><strong>{{ 'settings.captionTitle' | translate }}</strong
+                ><span>{{ 'settings.captionHelp' | translate }}</span></label
               >
               <label class="toggle-control" for="automatic-captions">
                 <input
@@ -172,7 +193,7 @@
                   class="toggle-input"
                   type="checkbox"
                   role="switch"
-                  aria-label="Automatic captions"
+                  [attr.aria-label]="'settings.captionAria' | translate"
                   [attr.aria-checked]="captionForm.controls.automaticCaptionFallback.value"
                   formControlName="automaticCaptionFallback"
                   (change)="captionSaved.set(false)"
@@ -183,39 +204,47 @@
               </label>
             </div>
             @if (captionError()) {
-              <app-alert title="Caption preference was not saved" tone="danger"
-                >Try again.</app-alert
-              >
+              <app-alert [title]="'settings.captionError' | translate" tone="danger">{{
+                'settings.captionTryAgain' | translate
+              }}</app-alert>
             }
             <div class="form-actions">
               <button appButton type="submit" [disabled]="captionSaving() || captionForm.pristine">
-                {{ captionSaving() ? 'Saving…' : 'Save caption preference' }}
+                {{
+                  captionSaving()
+                    ? ('common.saving' | translate)
+                    : ('settings.saveCaptionPreference' | translate)
+                }}
               </button>
               @if (captionSaved()) {
-                <span class="success" aria-live="polite">Saved</span>
+                <span class="success" aria-live="polite">{{ 'common.saved' | translate }}</span>
               }
             </div>
           </form>
         </section>
 
         <section class="settings-card" id="delivery" aria-labelledby="delivery-heading">
-          <h2 id="delivery-heading">Delivery</h2>
-          <p>Long-running work remains visible in Loquela after navigation or refresh.</p>
+          <h2 id="delivery-heading">{{ 'settings.delivery' | translate }}</h2>
+          <p>{{ 'settings.deliveryDescription' | translate }}</p>
           <div class="settings-row">
             <div>
-              <strong>Job completion messages</strong><span>Source ingestion and deck exports</span>
+              <strong>{{ 'settings.jobMessages' | translate }}</strong
+              ><span>{{ 'settings.ingestionExports' | translate }}</span>
             </div>
-            <div class="pills"><span class="pill success-pill">Web activity</span></div>
+            <div class="pills">
+              <span class="pill success-pill">{{ 'settings.webActivity' | translate }}</span>
+            </div>
           </div>
         </section>
 
         <section class="settings-card" id="export" aria-labelledby="export-heading">
-          <h2 id="export-heading">Export defaults</h2>
-          <p>These choices are snapshotted when a downloadable Anki package is requested.</p>
+          <h2 id="export-heading">{{ 'settings.exportDefaults' | translate }}</h2>
+          <p>{{ 'settings.exportDescription' | translate }}</p>
           <form [formGroup]="exportForm" (ngSubmit)="saveExports()">
             <div class="settings-row">
               <label for="deck-prefix"
-                ><strong>Deck naming</strong><span>Prefix exported decks for sorting</span></label
+                ><strong>{{ 'settings.deckNaming' | translate }}</strong
+                ><span>{{ 'settings.deckNamingHelp' | translate }}</span></label
               >
               <input
                 id="deck-prefix"
@@ -227,8 +256,8 @@
             </div>
             <div class="settings-row">
               <label for="include-provenance"
-                ><strong>Include source provenance</strong
-                ><span>Source name and page/timestamp fields</span></label
+                ><strong>{{ 'settings.includeProvenance' | translate }}</strong
+                ><span>{{ 'settings.provenanceHelp' | translate }}</span></label
               >
               <label class="toggle-control" for="include-provenance">
                 <input
@@ -236,7 +265,7 @@
                   class="toggle-input"
                   type="checkbox"
                   role="switch"
-                  aria-label="Include source provenance"
+                  [attr.aria-label]="'settings.provenanceAria' | translate"
                   [attr.aria-checked]="exportForm.controls.exportIncludeProvenance.value"
                   formControlName="exportIncludeProvenance"
                   (change)="exportSaved.set(false)"
@@ -247,32 +276,37 @@
               </label>
             </div>
             @if (exportError()) {
-              <app-alert title="Export defaults were not saved" tone="danger"
-                >Review the prefix and try again.</app-alert
-              >
+              <app-alert [title]="'settings.exportNotSaved' | translate" tone="danger">{{
+                'settings.reviewPrefix' | translate
+              }}</app-alert>
             }
             <div class="form-actions">
               <button appButton type="submit" [disabled]="exportSaving() || exportForm.pristine">
-                {{ exportSaving() ? 'Saving…' : 'Save export defaults' }}
+                {{
+                  exportSaving()
+                    ? ('common.saving' | translate)
+                    : ('settings.saveExportDefaults' | translate)
+                }}
               </button>
               @if (exportSaved()) {
-                <span class="success" aria-live="polite">Saved</span>
+                <span class="success" aria-live="polite">{{ 'common.saved' | translate }}</span>
               }
             </div>
           </form>
         </section>
 
         <section class="settings-card privacy" id="privacy" aria-labelledby="privacy-heading">
-          <h2 id="privacy-heading">Privacy & data</h2>
-          <p>Account deletion is asynchronous and blocks new work as soon as it is accepted.</p>
+          <h2 id="privacy-heading">{{ 'settings.privacy' | translate }}</h2>
+          <p>{{ 'settings.privacyDescription' | translate }}</p>
           <form [formGroup]="deletionForm" (ngSubmit)="deleteAccount()" class="delete-form">
-            <h3>Delete my account</h3>
-            <p>This permanently removes sources, cards, decks, settings, and stored files.</p>
-            <a appButton variant="secondary" [href]="reauthenticateUrl"
-              >Reauthenticate with Google</a
-            >
+            <h3>{{ 'settings.deleteAccount' | translate }}</h3>
+            <p>{{ 'settings.deleteDescription' | translate }}</p>
+            <a appButton variant="secondary" [href]="reauthenticateUrl">{{
+              'settings.reauthenticate' | translate
+            }}</a>
             <label for="confirmation-phrase"
-              >Type <strong>DELETE MY ACCOUNT</strong> to confirm</label
+              >{{ 'settings.deleteConfirmation' | translate }} <strong>DELETE MY ACCOUNT</strong>
+              {{ 'settings.deleteConfirmPhrase' | translate }}</label
             >
             <input
               id="confirmation-phrase"
@@ -281,13 +315,13 @@
               formControlName="confirmationPhrase"
             />
             @if (deletionError() === 'reauth') {
-              <app-alert title="Recent Google authentication required" tone="danger"
-                >Reauthenticate above, then submit the confirmation again.</app-alert
-              >
+              <app-alert [title]="'settings.reauthRequired' | translate" tone="danger">{{
+                'settings.reauthDescription' | translate
+              }}</app-alert>
             } @else if (deletionError() === 'request') {
-              <app-alert title="Deletion could not be started" tone="danger"
-                >No account changes were made. Try again.</app-alert
-              >
+              <app-alert [title]="'settings.deleteError' | translate" tone="danger">{{
+                'settings.deleteErrorDescription' | translate
+              }}</app-alert>
             }
             <button
               appButton
@@ -295,7 +329,11 @@
               type="submit"
               [disabled]="deletionSaving() || deletionForm.invalid"
             >
-              {{ deletionSaving() ? 'Starting deletion…' : 'Delete account permanently' }}
+              {{
+                deletionSaving()
+                  ? ('settings.startingDeletion' | translate)
+                  : ('settings.deletePermanently' | translate)
+              }}
             </button>
           </form>
         </section>

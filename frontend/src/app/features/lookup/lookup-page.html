@@ -1,42 +1,46 @@
 <section class="lookup-page">
   <header class="page-heading">
     <div>
-      <p class="eyebrow">Contextual dictionary</p>
-      <h1>Lookup</h1>
-      <p>Find a definition, see it in your own corpus, and save the clearest example as a card.</p>
+      <p class="eyebrow">{{ 'lookup.eyebrow' | translate }}</p>
+      <h1>{{ 'lookup.title' | translate }}</h1>
+      <p>{{ 'lookup.description' | translate }}</p>
     </div>
-    <a appButton variant="secondary" routerLink="/app/sources">▤ Browse sources</a>
+    <a appButton variant="secondary" routerLink="/app/sources"
+      >▤ {{ 'lookup.browseSources' | translate }}</a
+    >
   </header>
 
   <div class="lookup-layout">
     <section>
       <article class="lookup-card">
         <div class="section-head">
-          <h2>Look up a term</h2>
-          <span class="ready-pill">Ready sources only</span>
+          <h2>{{ 'lookup.termTitle' | translate }}</h2>
+          <span class="ready-pill">{{ 'lookup.readyOnly' | translate }}</span>
         </div>
         <form [formGroup]="form" (ngSubmit)="submit()" class="lookup-form">
-          <label class="visually-hidden" for="lookup-term">Term to look up</label>
+          <label class="visually-hidden" for="lookup-term">{{
+            'lookup.termLabel' | translate
+          }}</label>
           <input
             id="lookup-term"
             class="lookup-input"
             formControlName="term"
             autocomplete="off"
             spellcheck="false"
-            placeholder="Enter a word or phrase"
+            [placeholder]="'lookup.termPlaceholder' | translate"
           />
           <button appButton type="submit" [disabled]="loading()">
             @if (loading()) {
               <span class="lookup-spinner" aria-hidden="true">Q</span>
-              Looking up…
+              {{ 'common.loading' | translate }}…
             } @else {
               <span aria-hidden="true">⌕</span>
-              Look up
+              {{ 'lookup.submit' | translate }}
             }
           </button>
         </form>
         <div class="language-context">
-          <span>Current language pair</span>
+          <span>{{ 'lookup.currentLanguagePair' | translate }}</span>
           @if (lookup()?.languagePair; as pair) {
             <strong
               >{{ languageName(pair.sourceLanguage) }} →
@@ -48,9 +52,9 @@
               {{ languageName(user.definitionLanguage) }}</strong
             >
           } @else {
-            <strong aria-label="Loading language pair">—</strong>
+            <strong [attr.aria-label]="'lookup.loadingLanguagePair' | translate">—</strong>
           }
-          <a routerLink="/app/settings">Change in settings</a>
+          <a routerLink="/app/settings">{{ 'lookup.changeSettings' | translate }}</a>
         </div>
 
         <app-lookup-source-filters
@@ -75,15 +79,17 @@
           <section class="results" aria-live="polite">
             <div class="section-head">
               <div>
-                <h2>Results for “{{ result.term }}”</h2>
-                <p>Available definitions and corpus contexts are shown independently.</p>
+                <h2>{{ 'lookup.resultsFor' | translate }} “{{ result.term }}”</h2>
+                <p>{{ 'lookup.resultsDescription' | translate }}</p>
               </div>
-              <span class="result-count">{{ (result.contexts ?? []).length }} examples</span>
+              <span class="result-count"
+                >{{ (result.contexts ?? []).length }} {{ 'lookup.examples' | translate }}</span
+              >
             </div>
             @if (result.senses?.length) {
               <article class="lookup-result lookup-result--definition">
                 <div class="result-main">
-                  <span class="context-label">Dictionary definition</span>
+                  <span class="context-label">{{ 'lookup.dictionaryDefinition' | translate }}</span>
                   <h3>{{ result.lemma ?? result.term }}</h3>
                   @for (sense of result.senses ?? []; track $index) {
                     <p class="definition">
@@ -92,24 +98,26 @@
                   }
                   <div class="definition-actions">
                     <button appButton type="button" (click)="chooseDefinition()">
-                      ＋ Save card
+                      ＋ {{ 'lookup.saveCard' | translate }}
                     </button>
-                    <span>Save this definition without a corpus context.</span>
+                    <span>{{ 'lookup.saveDefinitionWithoutContext' | translate }}</span>
                   </div>
                 </div>
               </article>
             } @else {
               <div class="partial-result-notice">
-                <strong>Definition not found</strong>
-                <span>Matching contexts are still available below.</span>
+                <strong>{{ 'lookup.definitionNotFound' | translate }}</strong>
+                <span>{{ 'lookup.contextsAvailable' | translate }}</span>
               </div>
             }
             <div class="result-list">
               @for (context of result.contexts ?? []; track context.number) {
                 <article class="lookup-result">
                   <div class="result-main">
-                    <span class="sense-pill">{{ context.number }} · Context</span>
-                    <span class="context-label">Context from your corpus</span>
+                    <span class="sense-pill"
+                      >{{ context.number }} · {{ 'lookup.context' | translate }}</span
+                    >
+                    <span class="context-label">{{ 'lookup.contextFromCorpus' | translate }}</span>
                     <p class="context-copy">
                       @for (
                         segment of highlightedContext(context.displayText ?? '', result.term ?? '');
@@ -131,11 +139,12 @@
                         target="_blank"
                         rel="noopener noreferrer"
                         [attr.aria-label]="
-                          'Open ' +
-                          context.sourceDisplayName +
-                          ' at ' +
-                          sourceLocation(context) +
-                          ' on YouTube'
+                          'lookup.openSourceAt'
+                            | translate
+                              : {
+                                  source: context.sourceDisplayName ?? '',
+                                  location: sourceLocation(context),
+                                }
                         "
                       >
                         @if (youtubeThumbnail(context); as thumbnail) {
@@ -150,7 +159,10 @@
                         }
                         <span class="video-provenance__copy">
                           <strong>{{ context.sourceDisplayName }}</strong>
-                          <small>{{ sourceLocation(context) }} · Open video ↗</small>
+                          <small
+                            >{{ sourceLocation(context) }} ·
+                            {{ 'lookup.openVideo' | translate }}</small
+                          >
                         </span>
                       </a>
                     } @else {
@@ -169,7 +181,7 @@
                           type="button"
                           (click)="chooseContext(context.number ?? 0)"
                         >
-                          ＋ Save card
+                          ＋ {{ 'lookup.saveCard' | translate }}
                         </button>
                       }
                     </div>
@@ -180,14 +192,13 @@
             @if (!(result.contexts ?? []).length) {
               <app-ui-state
                 kind="empty"
-                title="No matching contexts"
-                description="The definition is available above. Try another term or broaden the source scope."
+                [title]="'lookup.noContextsTitle' | translate"
+                [description]="'lookup.noContextsDescription' | translate"
               />
             }
             <aside class="why-notice">
-              <strong>Why these examples?</strong> Loquela searches only your ready sources, then
-              diversifies examples across sources. Saving preserves the definition, attribution, and
-              captured source location.
+              <strong>{{ 'lookup.whyExamples' | translate }}</strong>
+              {{ 'lookup.whyExamplesDescription' | translate }}
             </aside>
           </section>
         }
@@ -196,27 +207,22 @@
 
     <aside class="lookup-aside">
       <article class="side-card">
-        <h2>How saving works</h2>
+        <h2>{{ 'lookup.howSavingWorks' | translate }}</h2>
         <ol>
+          <li><span>1</span>{{ 'lookup.stepOne' | translate }}</li>
           <li>
-            <span>1</span>Choose the example that best shows the meaning you want to remember.
+            <span>2</span>{{ 'lookup.stepTwo' | translate }} <strong>Default</strong>
+            {{ 'lookup.defaultFastOption' | translate }}
           </li>
-          <li>
-            <span>2</span>Select an active deck. <strong>Default</strong> stays a fast option.
-          </li>
-          <li>
-            <span>3</span>Loquela copies the definition, context, attribution, and source location
-            into a durable card.
-          </li>
+          <li><span>3</span>{{ 'lookup.stepThree' | translate }}</li>
         </ol>
       </article>
       <article class="side-card">
-        <h2>Saved cards stay trustworthy</h2>
-        <p>
-          Changing a source title or deleting an old lookup does not erase provenance already copied
-          to a card.
-        </p>
-        <a appButton variant="secondary" routerLink="/app/cards">View cards</a>
+        <h2>{{ 'lookup.savedCardsTrustworthy' | translate }}</h2>
+        <p>{{ 'lookup.savedCardsDescription' | translate }}</p>
+        <a appButton variant="secondary" routerLink="/app/cards">{{
+          'common.viewCards' | translate
+        }}</a>
       </article>
     </aside>
   </div>
@@ -224,15 +230,12 @@
   @if (selectedContext()) {
     <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="save-title">
       <div class="save-modal">
-        <span class="ready-pill">Create card</span>
-        <h2 id="save-title">Save “{{ lookup()?.term }}”</h2>
+        <span class="ready-pill">{{ 'lookup.createCard' | translate }}</span>
+        <h2 id="save-title">{{ 'lookup.saveTerm' | translate }} “{{ lookup()?.term }}”</h2>
         @if (selectedContext() === 'definition') {
-          <p>Choose where this definition card should live.</p>
+          <p>{{ 'lookup.definitionCardLocation' | translate }}</p>
         } @else {
-          <p>
-            Choose where this contextual card should live. Its definition and source provenance are
-            saved with it.
-          </p>
+          <p>{{ 'lookup.contextCardLocation' | translate }}</p>
         }
         <form [formGroup]="saveForm" (ngSubmit)="save()">
           <div class="deck-options">
@@ -250,9 +253,10 @@
             }
           </div>
           <div class="modal-actions">
-            <button appButton variant="secondary" type="button" (click)="closeSave()">Cancel</button
+            <button appButton variant="secondary" type="button" (click)="closeSave()">
+              {{ 'common.cancel' | translate }}</button
             ><button appButton type="submit" [disabled]="saving() || !decks().length">
-              {{ saving() ? 'Saving…' : 'Save card' }}
+              {{ (saving() ? 'common.saving' : 'lookup.saveCard') | translate }}
             </button>
           </div>
         </form>

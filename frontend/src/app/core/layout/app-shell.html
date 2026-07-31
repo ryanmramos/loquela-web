@@ -4,12 +4,12 @@
 
 <div class="shell">
   <aside class="sidebar">
-    <a class="brand" routerLink="/app" aria-label="Loquela home">
+    <a class="brand" routerLink="/app" [attr.aria-label]="'shell.home' | translate">
       <span class="brand__mark" aria-hidden="true">LQ</span>
       <span class="brand__name">Loquela</span>
     </a>
 
-    <nav class="navigation" aria-label="Primary navigation">
+    <nav class="navigation" [attr.aria-label]="'shell.primaryNavigation' | translate">
       @for (item of navigation; track item.key) {
         <a
           [routerLink]="item.target"
@@ -29,7 +29,7 @@
           'shell.cardsToStudy' | translate: { count: cardsToStudy() ?? 0 }
         }}</strong>
       } @else {
-        <strong id="study-callout-title">Practice in Loquela</strong>
+        <strong id="study-callout-title">{{ 'shell.practiceInLoquela' | translate }}</strong>
       }
       <p>{{ 'shell.practiceDescription' | translate }}</p>
       <a appButton variant="secondary" routerLink="/app/study">{{
@@ -76,8 +76,8 @@
           routerLink="/app/activity"
           [attr.aria-label]="
             activeJobCount() === null
-              ? 'Open activity'
-              : 'Open activity, ' + activeJobCount() + ' active jobs'
+              ? ('shell.openActivity' | translate)
+              : ('shell.openActivityCount' | translate: { count: activeJobCount() ?? 0 })
           "
         >
           <span aria-hidden="true">↻</span>
@@ -90,7 +90,7 @@
           'shell.addSource' | translate
         }}</a>
         <app-action-menu
-          label="Open user menu"
+          [label]="'shell.openUserMenu' | translate"
           [items]="userActions"
           (itemSelected)="userActionSelected.emit($event)"
         />
@@ -102,7 +102,7 @@
     </main>
   </div>
 
-  <nav class="mobile-navigation" aria-label="Mobile primary navigation">
+  <nav class="mobile-navigation" [attr.aria-label]="'shell.mobileNavigation' | translate">
     @for (item of navigation.slice(0, 4); track item.key) {
       <a
         [routerLink]="item.target"

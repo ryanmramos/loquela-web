@@ -13,20 +13,22 @@ import { Deck, DeckApi } from '@api/api-adapters/deck-api';
 import { PracticeApi, PracticeRating, PracticeSession } from '@api/api-adapters/practice-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 
 import { YoutubePracticePlayer } from './youtube-practice-player';
 
 interface RatingOption {
   readonly rating: PracticeRating;
-  readonly label: string;
-  readonly description: string;
+  readonly label: 'practice.needsWork' | 'practice.almost' | 'practice.gotIt' | 'practice.easy';
+  readonly description: 'practice.keepPracticing' | 'practice.nearlyThere' | 'practice.continue';
   readonly key: string;
   readonly positive?: boolean;
 }
 
 @Component({
   selector: 'app-practice-page',
-  imports: [RouterLink, ButtonDirective, UiState, YoutubePracticePlayer],
+  imports: [RouterLink, ButtonDirective, UiState, YoutubePracticePlayer, TranslatePipe],
   templateUrl: './practice-page.html',
   styleUrl: './practice-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +36,7 @@ interface RatingOption {
 export class PracticePage {
   private readonly practiceApi = inject(PracticeApi);
   private readonly deckApi = inject(DeckApi);
+  private readonly translations = inject(TranslationService);
   private readonly focusTarget = viewChild<ElementRef<HTMLElement>>('focusTarget');
 
   readonly session = signal<PracticeSession | null>(null);
@@ -43,16 +46,21 @@ export class PracticePage {
   readonly error = signal('');
   readonly pendingRating = signal<{ requestId: string; rating: PracticeRating } | null>(null);
   readonly ratings: readonly RatingOption[] = [
-    { rating: 'NEEDS_WORK', label: 'Needs work', description: 'Keep practicing', key: '1' },
-    { rating: 'ALMOST', label: 'Almost', description: 'Nearly there', key: '2' },
+    {
+      rating: 'NEEDS_WORK',
+      label: 'practice.needsWork',
+      description: 'practice.keepPracticing',
+      key: '1',
+    },
+    { rating: 'ALMOST', label: 'practice.almost', description: 'practice.nearlyThere', key: '2' },
     {
       rating: 'GOT_IT',
-      label: 'Got it',
-      description: 'Continue',
+      label: 'practice.gotIt',
+      description: 'practice.continue',
       key: '3',
       positive: true,
     },
-    { rating: 'EASY', label: 'Easy', description: 'Continue', key: '4' },
+    { rating: 'EASY', label: 'practice.easy', description: 'practice.continue', key: '4' },
   ];
 
   constructor() {
@@ -68,7 +76,7 @@ export class PracticePage {
         this.loadDecks();
       },
       error: () => {
-        this.error.set('Practice could not be loaded.');
+        this.error.set(this.translations.translate('practice.loadError'));
         this.loadDecks();
       },
     });
@@ -86,7 +94,7 @@ export class PracticePage {
       },
       error: () => {
         this.pending.set(false);
-        this.error.set('This deck could not start a practice session.');
+        this.error.set(this.translations.translate('practice.startError'));
       },
     });
   }
@@ -104,7 +112,7 @@ export class PracticePage {
       },
       error: () => {
         this.pending.set(false);
-        this.error.set('The answer could not be revealed. Refresh and try again.');
+        this.error.set(this.translations.translate('practice.revealError'));
       },
     });
   }
@@ -130,7 +138,7 @@ export class PracticePage {
     if (
       !reference ||
       this.pending() ||
-      !confirm('End this practice session? Its current progress will be discarded.')
+      !confirm(this.translations.translate('practice.endConfirm'))
     ) {
       return;
     }
@@ -142,7 +150,7 @@ export class PracticePage {
       },
       error: () => {
         this.pending.set(false);
-        this.error.set('The session could not be ended.');
+        this.error.set(this.translations.translate('practice.endError'));
       },
     });
   }
@@ -179,7 +187,7 @@ export class PracticePage {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Decks could not be loaded.');
+        this.error.set(this.translations.translate('decks.loadError'));
         this.loading.set(false);
       },
     });
@@ -200,7 +208,7 @@ export class PracticePage {
       },
       error: () => {
         this.pending.set(false);
-        this.error.set('Your response could not be confirmed. Retry safely with the same request.');
+        this.error.set(this.translations.translate('practice.ratingError'));
       },
     });
   }

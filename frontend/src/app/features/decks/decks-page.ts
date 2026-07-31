@@ -15,12 +15,14 @@ import { Deck, DeckApi, DeckExport } from '@api/api-adapters/deck-api';
 import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/action-menu';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 
 type ThemeColor = NonNullable<Deck['themeColor']>;
 
 @Component({
   selector: 'app-decks-page',
-  imports: [ReactiveFormsModule, RouterLink, ActionMenu, ButtonDirective, UiState],
+  imports: [ReactiveFormsModule, RouterLink, ActionMenu, ButtonDirective, UiState, TranslatePipe],
   templateUrl: './decks-page.html',
   styleUrl: './decks-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +30,7 @@ type ThemeColor = NonNullable<Deck['themeColor']>;
 export class DecksPage {
   readonly api = inject(DeckApi);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translations = inject(TranslationService);
 
   readonly decks = signal<Deck[]>([]);
   readonly exports = signal<DeckExport[]>([]);
@@ -40,9 +43,9 @@ export class DecksPage {
     this.exports().some((item) => item.state === 'QUEUED' || item.state === 'RUNNING'),
   );
   readonly deckActions: readonly ActionMenuItem[] = [
-    { id: 'edit', label: 'Rename or change color' },
-    { id: 'export', label: 'Export for Anki' },
-    { id: 'delete', label: 'Delete deck', danger: true },
+    { id: 'edit', label: '', labelKey: 'decks.renameOrColor' },
+    { id: 'export', label: '', labelKey: 'decks.exportForAnki' },
+    { id: 'delete', label: '', labelKey: 'common.delete', danger: true },
   ];
   readonly form = new FormGroup({
     name: new FormControl('', {
@@ -77,7 +80,7 @@ export class DecksPage {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Decks could not be loaded.');
+        this.error.set(this.translations.translate('decks.loadError'));
         this.loading.set(false);
       },
     });
@@ -87,7 +90,7 @@ export class DecksPage {
   loadExports(): void {
     this.api.exports().subscribe({
       next: (exports) => this.exports.set(exports),
-      error: () => this.error.set('Export history could not be loaded.'),
+      error: () => this.error.set(this.translations.translate('decks.exportHistoryError')),
     });
   }
 
@@ -122,13 +125,13 @@ export class DecksPage {
         this.closeEditor();
         this.load();
       },
-      error: () => this.error.set('The deck name is already used or could not be saved.'),
+      error: () => this.error.set(this.translations.translate('decks.saveError')),
     });
   }
 
   requestExport(deck: Deck): void {
     if (!deck.reference || !deck.cardCount) {
-      this.error.set('Add at least one card before exporting this deck.');
+      this.error.set(this.translations.translate('decks.addCardBeforeExport'));
       return;
     }
     this.api.export(deck.reference).subscribe({
@@ -139,19 +142,19 @@ export class DecksPage {
           history.scrollIntoView({ behavior: 'smooth' });
         }
       },
-      error: () => this.error.set('The export could not be queued. Review the deck and try again.'),
+      error: () => this.error.set(this.translations.translate('decks.queueError')),
     });
   }
 
   delete(deck: Deck): void {
-    if (!deck.reference || !confirm(`Delete “${deck.name}”? Only empty decks can be deleted.`))
+    if (
+      !deck.reference ||
+      !confirm(this.translations.translate('decks.deleteConfirm', { name: deck.name ?? '' }))
+    )
       return;
     this.api.delete(deck.reference).subscribe({
       next: () => this.load(),
-      error: () =>
-        this.error.set(
-          'Move or delete this deck’s cards and finish active exports before deleting it.',
-        ),
+      error: () => this.error.set(this.translations.translate('decks.deleteError')),
     });
   }
 
@@ -170,7 +173,15 @@ export class DecksPage {
   }
 
   statusLabel(state?: DeckExport['state']): string {
-    return state ? state[0] + state.slice(1).toLocaleLowerCase() : 'Unknown';
+    if (!state) return this.translations.translate('decks.unknown');
+    const keys = {
+      QUEUED: 'decks.queued',
+      RUNNING: 'decks.running',
+      READY: 'decks.ready',
+      FAILED: 'decks.failed',
+      EXPIRED: 'decks.expired',
+    } as const;
+    return this.translations.translate(keys[state]);
   }
 
   formatDate(value?: string): string {
@@ -178,6 +189,9 @@ export class DecksPage {
     const date = new Date(value);
     return Number.isNaN(date.getTime())
       ? '—'
-      : new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date);
+      : new Intl.DateTimeFormat(this.translations.language(), {
+          month: 'short',
+          day: 'numeric',
+        }).format(date);
   }
 }

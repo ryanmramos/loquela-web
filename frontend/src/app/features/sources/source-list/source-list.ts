@@ -1,4 +1,3 @@
-import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -10,6 +9,8 @@ import { FormField } from '@app/shared/components/form-field/form-field';
 import { Pagination } from '@app/shared/components/pagination/pagination';
 import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/status-badge';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 
 import { SourceListState } from './source-list-state';
 
@@ -17,13 +18,13 @@ import { SourceListState } from './source-list-state';
   selector: 'app-source-list',
   imports: [
     ButtonDirective,
-    DecimalPipe,
     FormField,
     Pagination,
     ReactiveFormsModule,
     RouterLink,
     StatusBadge,
     UiState,
+    TranslatePipe,
   ],
   providers: [SourceListState],
   templateUrl: './source-list.html',
@@ -34,6 +35,7 @@ export class SourceList {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translations = inject(TranslationService);
 
   readonly state = inject(SourceListState);
   readonly filters = new FormGroup({
@@ -90,17 +92,28 @@ export class SourceList {
   kindLabel(kind: SourceSummary['kind']): string {
     return (
       {
-        PASTED_TEXT: 'Pasted text',
+        PASTED_TEXT: this.translations.translate('sources.pastedText'),
         TXT: 'TXT',
         PDF: 'PDF',
         EPUB: 'EPUB',
-        YOUTUBE_VIDEO: 'YouTube',
+        YOUTUBE_VIDEO: this.translations.translate('sources.youtube'),
       } as const
     )[kind];
   }
 
   statusLabel(status: SourceSummary['status']): string {
-    return status.toLowerCase().replace('_', ' ');
+    const keys = {
+      READY: 'sources.ready',
+      RECEIVED: 'sources.received',
+      FETCHING: 'sources.fetching',
+      STORED: 'sources.stored',
+      EXTRACTING: 'sources.extracting',
+      INDEXING: 'sources.indexing',
+      FAILED: 'sources.failed',
+      DELETING: 'sources.deleting',
+      DELETED: 'sources.deleted',
+    } as const;
+    return this.translations.translate(keys[status]);
   }
 
   statusTone(status: SourceSummary['status']): StatusTone {

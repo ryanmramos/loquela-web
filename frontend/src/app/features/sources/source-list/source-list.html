@@ -1,92 +1,101 @@
 <section class="source-page">
   <header class="source-header">
     <div>
-      <p class="eyebrow">Source library</p>
-      <h1>Sources</h1>
-      <p>Search everything Loquela can use for examples and future cards.</p>
+      <p class="eyebrow">{{ 'sources.eyebrow' | translate }}</p>
+      <h1>{{ 'sources.title' | translate }}</h1>
+      <p>{{ 'sources.description' | translate }}</p>
     </div>
-    <a appButton routerLink="/app/sources/new">Add source</a>
+    <a appButton routerLink="/app/sources/new">{{ 'sources.add' | translate }}</a>
   </header>
 
   <form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
-    <app-form-field inputId="source-search" label="Search">
-      <input id="source-search" type="search" formControlName="search" placeholder="Source name" />
+    <app-form-field inputId="source-search" [label]="'sources.search' | translate">
+      <input
+        id="source-search"
+        type="search"
+        formControlName="search"
+        [placeholder]="'sources.searchPlaceholder' | translate"
+      />
     </app-form-field>
-    <app-form-field inputId="source-kind" label="Type">
+    <app-form-field inputId="source-kind" [label]="'sources.type' | translate">
       <select id="source-kind" formControlName="kind">
-        <option value="">All types</option>
-        <option value="PASTED_TEXT">Pasted text</option>
-        <option value="YOUTUBE_VIDEO">YouTube</option>
+        <option value="">{{ 'sources.allTypes' | translate }}</option>
+        <option value="PASTED_TEXT">{{ 'sources.pastedText' | translate }}</option>
+        <option value="YOUTUBE_VIDEO">{{ 'sources.youtube' | translate }}</option>
         <option value="PDF">PDF</option>
         <option value="TXT">TXT</option>
         <option value="EPUB">EPUB</option>
       </select>
     </app-form-field>
-    <app-form-field inputId="source-status" label="Status">
+    <app-form-field inputId="source-status" [label]="'sources.status' | translate">
       <select id="source-status" formControlName="status">
-        <option value="">All statuses</option>
-        <option value="READY">Ready</option>
-        <option value="RECEIVED">Received</option>
-        <option value="FETCHING">Fetching</option>
-        <option value="STORED">Stored</option>
-        <option value="EXTRACTING">Extracting</option>
-        <option value="INDEXING">Indexing</option>
-        <option value="FAILED">Failed</option>
-        <option value="DELETING">Deleting</option>
+        <option value="">{{ 'sources.allStatuses' | translate }}</option>
+        <option value="READY">{{ 'sources.ready' | translate }}</option>
+        <option value="RECEIVED">{{ 'sources.received' | translate }}</option>
+        <option value="FETCHING">{{ 'sources.fetching' | translate }}</option>
+        <option value="STORED">{{ 'sources.stored' | translate }}</option>
+        <option value="EXTRACTING">{{ 'sources.extracting' | translate }}</option>
+        <option value="INDEXING">{{ 'sources.indexing' | translate }}</option>
+        <option value="FAILED">{{ 'sources.failed' | translate }}</option>
+        <option value="DELETING">{{ 'sources.deleting' | translate }}</option>
       </select>
     </app-form-field>
-    <app-form-field inputId="source-sort" label="Sort">
+    <app-form-field inputId="source-sort" [label]="'sources.sort' | translate">
       <select id="source-sort" formControlName="sort">
-        <option value="CREATED_AT">Created</option>
-        <option value="UPDATED_AT">Updated</option>
-        <option value="DISPLAY_NAME">Name</option>
+        <option value="CREATED_AT">{{ 'sources.created' | translate }}</option>
+        <option value="UPDATED_AT">{{ 'sources.updated' | translate }}</option>
+        <option value="DISPLAY_NAME">{{ 'sources.name' | translate }}</option>
       </select>
     </app-form-field>
-    <app-form-field inputId="source-direction" label="Direction">
+    <app-form-field inputId="source-direction" [label]="'sources.direction' | translate">
       <select id="source-direction" formControlName="direction">
-        <option value="DESC">Descending</option>
-        <option value="ASC">Ascending</option>
+        <option value="DESC">{{ 'sources.descending' | translate }}</option>
+        <option value="ASC">{{ 'sources.ascending' | translate }}</option>
       </select>
     </app-form-field>
     <div class="filter-actions">
-      <button appButton type="submit">Apply</button>
-      <button appButton variant="ghost" type="button" (click)="clearFilters()">Clear</button>
+      <button appButton type="submit">{{ 'common.apply' | translate }}</button>
+      <button appButton variant="ghost" type="button" (click)="clearFilters()">
+        {{ 'common.clear' | translate }}
+      </button>
     </div>
   </form>
 
   @if (state.loadStatus() === 'loading') {
     <app-ui-state
       kind="loading"
-      title="Loading sources"
-      description="Fetching this page from your source library."
+      [title]="'sources.loadingTitle' | translate"
+      [description]="'sources.loadingDescription' | translate"
     />
   } @else if (state.loadStatus() === 'error') {
     <app-ui-state
       kind="error"
-      title="Sources could not be loaded"
-      description="Check your connection and try this view again."
+      [title]="'sources.errorTitle' | translate"
+      [description]="'sources.errorDescription' | translate"
     />
   } @else if (state.page(); as page) {
     @if (page.items.length === 0) {
       <app-ui-state
         kind="empty"
-        title="No sources match this view"
-        description="Clear the filters or add something new."
+        [title]="'sources.emptyTitle' | translate"
+        [description]="'sources.emptyDescription' | translate"
       />
       <div class="empty-action">
-        <a appButton routerLink="/app/sources/new">Add your first source</a>
+        <a appButton routerLink="/app/sources/new">{{ 'sources.addFirst' | translate }}</a>
       </div>
     } @else {
-      <p class="result-count">{{ page.totalItems | number }} sources</p>
+      <p class="result-count">
+        {{ 'sources.resultCount' | translate: { count: page.totalItems ?? 0 } }}
+      </p>
       <div class="source-table">
         <table>
           <thead>
             <tr>
-              <th scope="col">Source</th>
-              <th scope="col">Type</th>
-              <th scope="col">Status</th>
-              <th scope="col">Storage</th>
-              <th scope="col">Updated</th>
+              <th scope="col">{{ 'common.source' | translate }}</th>
+              <th scope="col">{{ 'common.type' | translate }}</th>
+              <th scope="col">{{ 'common.status' | translate }}</th>
+              <th scope="col">{{ 'sources.storage' | translate }}</th>
+              <th scope="col">{{ 'common.updated' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -109,7 +118,7 @@
         </table>
       </div>
 
-      <ul class="source-cards" aria-label="Sources">
+      <ul class="source-cards" [attr.aria-label]="'common.sources' | translate">
         @for (source of page.items; track source.reference) {
           <li>
             <div>
@@ -120,7 +129,8 @@
             </div>
             <a [routerLink]="['/app/sources', source.reference]">{{ source.displayName }}</a>
             <p>
-              {{ formatStorage(source.databaseSizeBytes) }} · Updated
+              {{ formatStorage(source.databaseSizeBytes) }} ·
+              {{ 'sources.updatedLabel' | translate }}
               {{ formatUpdatedDate(source.updatedAt) }}
             </p>
           </li>

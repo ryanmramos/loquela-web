@@ -12,7 +12,7 @@
         [class.menu__item--danger]="item.danger"
         (cdkMenuItemTriggered)="itemSelected.emit(item.id)"
       >
-        {{ item.label }}
+        {{ item.labelKey ? (item.labelKey | translate) : item.label }}
       </button>
     }
   </div>

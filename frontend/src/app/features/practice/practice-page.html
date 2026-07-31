@@ -1,36 +1,46 @@
 <section class="practice-page">
   @if (loading()) {
-    <app-ui-state kind="loading" title="Loading practice" description="" />
+    <app-ui-state kind="loading" [title]="'practice.loading' | translate" description="" />
   } @else if (session(); as current) {
     @if (current.status === 'COMPLETED') {
       <section class="completion-card" aria-labelledby="practice-complete-title">
         <span class="completion-mark" aria-hidden="true">✓</span>
-        <p class="eyebrow">Practice complete</p>
-        <h1 id="practice-complete-title" #focusTarget tabindex="-1">Nice work</h1>
+        <p class="eyebrow">{{ 'practice.complete' | translate }}</p>
+        <h1 id="practice-complete-title" #focusTarget tabindex="-1">
+          {{ 'practice.niceWork' | translate }}
+        </h1>
         <p>
-          You practiced {{ current.totalCards ?? 0 }} cards from
-          <strong>{{ current.deckName }}</strong
-          >. These responses did not change Anki scheduling.
+          {{
+            'practice.completedDescription'
+              | translate: { count: current.totalCards ?? 0, deck: current.deckName ?? '' }
+          }}
+          {{ 'practice.responsesNoScheduling' | translate }}
         </p>
         <div class="completion-actions">
-          <button appButton type="button" (click)="end()">Choose another deck</button>
-          <a appButton variant="secondary" routerLink="/app/decks">Back to decks</a>
+          <button appButton type="button" (click)="end()">
+            {{ 'practice.chooseAnotherDeck' | translate }}
+          </button>
+          <a appButton variant="secondary" routerLink="/app/decks">{{
+            'practice.backToDecks' | translate
+          }}</a>
         </div>
       </section>
     } @else {
       <header class="practice-header">
         <div>
-          <p class="eyebrow">Loquela practice</p>
+          <p class="eyebrow">{{ 'practice.eyebrow' | translate }}</p>
           <h1>{{ current.deckName }}</h1>
-          <p class="semantics-note">Simple practice · no due dates or Anki scheduling</p>
+          <p class="semantics-note">{{ 'practice.simplePractice' | translate }}</p>
         </div>
-        <button appButton variant="secondary" type="button" (click)="end()">End session</button>
+        <button appButton variant="secondary" type="button" (click)="end()">
+          {{ 'practice.endSession' | translate }}
+        </button>
       </header>
 
       <div
         class="progress-summary"
         role="progressbar"
-        aria-label="Practice progress"
+        [attr.aria-label]="'practice.progress' | translate"
         [attr.aria-valuenow]="current.position ?? 1"
         aria-valuemin="1"
         [attr.aria-valuemax]="current.totalCards ?? 1"
@@ -42,10 +52,14 @@
       </div>
 
       @if (error()) {
-        <app-ui-state kind="error" title="Practice needs attention" [description]="error()" />
+        <app-ui-state
+          kind="error"
+          [title]="'lookup.lookupAttention' | translate"
+          [description]="error()"
+        />
         @if (pendingRating()) {
           <button appButton variant="secondary" type="button" (click)="retryRating()">
-            Retry response
+            {{ 'common.retry' | translate }}
           </button>
         }
       }
@@ -56,22 +70,27 @@
         aria-live="polite"
       >
         <p class="card-state">
-          {{ current.answerRevealed ? 'Answer shown' : 'Recall the answer' }}
+          {{
+            (current.answerRevealed ? 'practice.answerShown' : 'practice.recallAnswer') | translate
+          }}
         </p>
         <h2 #focusTarget tabindex="-1">{{ current.currentCard?.term }}</h2>
 
         @if (current.answerRevealed) {
           <section class="answer" aria-labelledby="answer-title">
-            <h3 id="answer-title">Answer</h3>
+            <h3 id="answer-title">{{ 'practice.answer' | translate }}</h3>
             <p class="definition">{{ current.currentCard?.definition }}</p>
             @if (
               current.currentCard?.videoId && current.currentCard?.videoStartSeconds !== undefined
             ) {
               <section class="video-context" aria-labelledby="video-context-title">
                 <div class="video-context-heading">
-                  <h3 id="video-context-title">Video context</h3>
+                  <h3 id="video-context-title">{{ 'practice.videoContext' | translate }}</h3>
                   @if (current.currentCard?.sourceLocator) {
-                    <span>Term appears at {{ current.currentCard?.sourceLocator }}</span>
+                    <span
+                      >{{ 'practice.termAppearsAt' | translate }}
+                      {{ current.currentCard?.sourceLocator }}</span
+                    >
                   }
                 </div>
                 <app-youtube-practice-player
@@ -86,7 +105,7 @@
             }
             @if (current.currentCard?.sourceName || current.currentCard?.sourceLocator) {
               <p class="source">
-                <span>Source context</span>
+                <span>{{ 'practice.sourceContext' | translate }}</span>
                 {{ current.currentCard?.sourceName }}
                 @if (current.currentCard?.sourceLocator) {
                   · {{ current.currentCard?.sourceLocator }}
@@ -95,16 +114,16 @@
             }
           </section>
         } @else {
-          <p class="prompt-help">Say the meaning aloud or recall it silently, then reveal it.</p>
+          <p class="prompt-help">{{ 'practice.promptHelp' | translate }}</p>
           <button appButton type="button" [disabled]="pending()" (click)="reveal()">
-            Show answer
+            {{ 'practice.showAnswer' | translate }}
           </button>
         }
       </article>
 
       @if (current.answerRevealed) {
         <fieldset class="rating-actions" [disabled]="pending()">
-          <legend>How well did you remember?</legend>
+          <legend>{{ 'practice.remembered' | translate }}</legend>
           @for (option of ratings; track option.rating) {
             <button
               type="button"
@@ -113,37 +132,41 @@
               (click)="rate(option.rating)"
             >
               <span class="shortcut" aria-hidden="true">{{ option.key }}</span>
-              <strong>{{ option.label }}</strong>
-              <span>{{ option.description }}</span>
+              <strong>{{ option.label | translate }}</strong>
+              <span>{{ option.description | translate }}</span>
             </button>
           }
         </fieldset>
       }
 
       <p class="keyboard-help">
-        Keyboard: Space reveals · 1 Needs work · 2 Almost · 3 Got it · 4 Easy
+        {{ 'practice.keyboardHelp' | translate }}
       </p>
     }
   } @else {
     <header class="practice-header">
       <div>
-        <p class="eyebrow">Loquela practice</p>
-        <h1>Choose a deck</h1>
-        <p>Browse an immutable snapshot at your own pace—nothing here changes Anki scheduling.</p>
+        <p class="eyebrow">{{ 'practice.eyebrow' | translate }}</p>
+        <h1>{{ 'practice.chooseDeck' | translate }}</h1>
+        <p>{{ 'practice.chooseDeckDescription' | translate }}</p>
       </div>
     </header>
 
     @if (error()) {
-      <app-ui-state kind="error" title="Practice needs attention" [description]="error()" />
+      <app-ui-state
+        kind="error"
+        [title]="'lookup.lookupAttention' | translate"
+        [description]="error()"
+      />
     }
 
     @if (!decks().length) {
       <app-ui-state
         kind="empty"
-        title="No decks to practice"
-        description="Create a deck and add at least one card first."
+        [title]="'practice.noDecks' | translate"
+        [description]="'practice.noDecksDescription' | translate"
       />
-      <a appButton routerLink="/app/decks">Go to decks</a>
+      <a appButton routerLink="/app/decks">{{ 'practice.goToDecks' | translate }}</a>
     } @else {
       <div class="deck-options">
         @for (deck of decks(); track deck.reference) {
@@ -153,7 +176,10 @@
             }}</span>
             <div>
               <h2>{{ deck.name }}</h2>
-              <p>{{ deck.cardCount ?? 0 }} {{ deck.cardCount === 1 ? 'card' : 'cards' }}</p>
+              <p>
+                {{ deck.cardCount ?? 0 }}
+                {{ (deck.cardCount === 1 ? 'common.card' : 'common.cards') | translate }}
+              </p>
             </div>
             <button
               appButton
@@ -161,7 +187,7 @@
               [disabled]="!deck.cardCount || pending()"
               (click)="start(deck)"
             >
-              {{ deck.cardCount ? 'Start practice' : 'No cards yet' }}
+              {{ (deck.cardCount ? 'practice.start' : 'common.noCardsYet') | translate }}
             </button>
           </article>
         }

@@ -19,6 +19,8 @@ import { ButtonDirective } from '@app/shared/components/button/button.directive'
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { ToastService } from '@app/shared/components/toast/toast.service';
 import { SessionFacade } from '@core/auth/session-facade';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 import { LookupSourceFilters } from './source-filters/lookup-source-filters';
 
 interface HighlightSegment {
@@ -28,7 +30,14 @@ interface HighlightSegment {
 
 @Component({
   selector: 'app-lookup-page',
-  imports: [ReactiveFormsModule, ButtonDirective, LookupSourceFilters, RouterLink, UiState],
+  imports: [
+    ReactiveFormsModule,
+    ButtonDirective,
+    LookupSourceFilters,
+    RouterLink,
+    UiState,
+    TranslatePipe,
+  ],
   templateUrl: './lookup-page.html',
   styleUrl: './lookup-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +51,7 @@ export class LookupPage {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toasts = inject(ToastService);
   private readonly sessionFacade = inject(SessionFacade);
+  private readonly translations = inject(TranslationService);
   readonly session = this.sessionFacade.view;
   readonly lookup = signal<BrowserLookupDto | null>(null);
   readonly loading = signal(false);
@@ -90,7 +100,7 @@ export class LookupPage {
       .list({ page: 0, pageSize: 50, status: 'READY', sort: 'DISPLAY_NAME', direction: 'ASC' })
       .subscribe({
         next: (page) => this.sources.set(page.items),
-        error: () => this.error.set('Ready sources could not be loaded.'),
+        error: () => this.error.set(this.translations.translate('lookup.sourcesLoadError')),
       });
   }
   submit(): void {
@@ -106,7 +116,7 @@ export class LookupPage {
         }),
       error: () => {
         this.loading.set(false);
-        this.error.set('We could not start that lookup.');
+        this.error.set(this.translations.translate('lookup.startError'));
       },
     });
   }
@@ -124,7 +134,7 @@ export class LookupPage {
         this.decks.set(decks);
         if (decks[0]?.reference) this.saveForm.controls.deckReference.setValue(decks[0].reference);
       },
-      error: () => this.error.set('Active decks could not be loaded.'),
+      error: () => this.error.set(this.translations.translate('lookup.decksLoadError')),
     });
   }
   save(): void {
@@ -138,7 +148,7 @@ export class LookupPage {
         .join('\n');
       if (!lookup.term || !definition) {
         this.saving.set(false);
-        this.error.set('This definition can no longer be saved.');
+        this.error.set(this.translations.translate('lookup.definitionSaveError'));
         return;
       }
       this.cardApi
@@ -152,14 +162,14 @@ export class LookupPage {
             this.saving.set(false);
             this.selectedContext.set(null);
             this.toasts.show(
-              'Card saved',
-              'The definition was saved without a corpus context.',
+              this.translations.translate('lookup.cardSaved'),
+              this.translations.translate('lookup.definitionSaved'),
               'success',
             );
           },
           error: () => {
             this.saving.set(false);
-            this.error.set('This definition can no longer be saved.');
+            this.error.set(this.translations.translate('lookup.definitionSaveError'));
           },
         });
       return;
@@ -175,14 +185,14 @@ export class LookupPage {
           this.saving.set(false);
           this.selectedContext.set(null);
           this.toasts.show(
-            'Card saved',
-            'Your contextual card and source provenance were saved.',
+            this.translations.translate('lookup.cardSaved'),
+            this.translations.translate('lookup.contextCardSaved'),
             'success',
           );
         },
         error: () => {
           this.saving.set(false);
-          this.error.set('This result can no longer be saved.');
+          this.error.set(this.translations.translate('lookup.resultSaveError'));
         },
       });
   }
@@ -206,7 +216,16 @@ export class LookupPage {
     );
   }
   sourceKindLabel(kind: string | undefined): string {
-    return kind === 'YOUTUBE_VIDEO' ? 'Video' : (kind ?? 'Source').replaceAll('_', ' ');
+    const keys = {
+      YOUTUBE_VIDEO: 'lookup.videoType',
+      PASTED_TEXT: 'lookup.pastedType',
+      TXT: 'lookup.txtSourceType',
+      PDF: 'lookup.pdfSourceType',
+      EPUB: 'lookup.epubSourceType',
+    } as const;
+    return kind && kind in keys
+      ? this.translations.translate(keys[kind as keyof typeof keys])
+      : this.translations.translate('lookup.genericSource');
   }
   sourceIcon(kind: string | undefined): string {
     if (kind === 'YOUTUBE_VIDEO') return '▶';
@@ -228,10 +247,10 @@ export class LookupPage {
   }
   sourceLocation(context: NonNullable<BrowserLookupDto['contexts']>[number]): string {
     if (context.youtubeUrl && context.startMs !== undefined)
-      return `Video · ${this.formatDuration(context.startMs)}`;
+      return `${this.translations.translate('lookup.video')} · ${this.formatDuration(context.startMs)}`;
     if (context.pageNumber !== undefined)
-      return `${this.sourceKindLabel(context.sourceKind)} · page ${context.pageNumber}`;
-    return `${this.sourceKindLabel(context.sourceKind)} · context ${context.ordinal ?? ''}`;
+      return `${this.sourceKindLabel(context.sourceKind)} · ${this.translations.translate('lookup.page')} ${context.pageNumber}`;
+    return `${this.sourceKindLabel(context.sourceKind)} · ${this.translations.translate('lookup.context')} ${context.ordinal ?? ''}`;
   }
   youtubeThumbnail(context: NonNullable<BrowserLookupDto['contexts']>[number]): string | null {
     if (!context.youtubeUrl) return null;
@@ -266,34 +285,40 @@ export class LookupPage {
     return this.loading() ? '↻' : '✓';
   }
   stateTitle(): string {
-    if (this.error()) return 'Lookup needs attention';
+    if (this.error()) return this.translations.translate('lookup.lookupAttention');
     if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND' && this.lookup()?.contexts?.length)
-      return 'Definition not found — contexts available';
+      return this.translations.translate('lookup.definitionContextsAvailable');
     if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND' && this.lookup()?.senses?.length)
-      return 'Contexts not found — definition available';
-    if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND') return 'No definition found';
-    if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND') return 'No matching contexts';
-    if (this.lookup()?.status === 'FAILED') return 'Lookup needs attention';
-    if (this.lookup()?.status === 'EXPIRED') return 'Lookup expired';
-    return this.loading() ? 'Lookup in progress' : 'Lookup ready';
+      return this.translations.translate('lookup.contextsDefinitionAvailable');
+    if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND')
+      return this.translations.translate('lookup.noDefinition');
+    if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND')
+      return this.translations.translate('lookup.noContextsTitle');
+    if (this.lookup()?.status === 'FAILED')
+      return this.translations.translate('lookup.lookupAttention');
+    if (this.lookup()?.status === 'EXPIRED')
+      return this.translations.translate('lookup.lookupExpired');
+    return this.loading()
+      ? this.translations.translate('lookup.lookupProgress')
+      : this.translations.translate('lookup.lookupReady');
   }
   stateDescription(): string {
     if (this.error()) return this.error();
     if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND' && this.lookup()?.contexts?.length)
-      return 'The dictionary did not return a definition, but matching contexts from your sources are shown below.';
+      return this.translations.translate('lookup.definitionMissingContexts');
     if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND' && this.lookup()?.senses?.length)
-      return 'A definition was found, but none of your selected ready sources contained a matching context.';
+      return this.translations.translate('lookup.contextMissingDefinition');
     if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND')
-      return 'The dictionary did not return a definition for this term in your current language pair.';
+      return this.translations.translate('lookup.definitionMissing');
     if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND')
-      return 'No selected ready sources contained a matching context.';
+      return this.translations.translate('lookup.contextMissing');
     if (this.lookup()?.status === 'FAILED')
-      return 'The dictionary could not complete this lookup. Your sources are safe.';
+      return this.translations.translate('lookup.lookupFailed');
     if (this.lookup()?.status === 'EXPIRED')
-      return 'Run the lookup again to create a fresh snapshot.';
+      return this.translations.translate('lookup.expiredDescription');
     return this.loading()
-      ? 'Finding dictionary senses and matching ready sources…'
-      : 'Results use your current language pair and ready sources.';
+      ? this.translations.translate('lookup.loadingDescription')
+      : this.translations.translate('lookup.readyDescription');
   }
   private poll(reference: string) {
     this.loading.set(true);
@@ -307,7 +332,7 @@ export class LookupPage {
       // Include the terminal response in the UI, then stop polling until another lookup starts.
       takeWhile((lookup) => lookup.status === 'PENDING', true),
       catchError(() => {
-        this.error.set('That lookup is unavailable.');
+        this.error.set(this.translations.translate('lookup.unavailable'));
         this.loading.set(false);
         return EMPTY;
       }),

@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 
 import { SourceSummary } from '@api/api-adapters/source-api';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 
 interface FilterToggle {
   readonly value: string;
@@ -9,11 +11,13 @@ interface FilterToggle {
 
 @Component({
   selector: 'app-lookup-source-filters',
+  imports: [TranslatePipe],
   templateUrl: './lookup-source-filters.html',
   styleUrl: './lookup-source-filters.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LookupSourceFilters {
+  private readonly translations = inject(TranslationService);
   readonly sources = input.required<SourceSummary[]>();
   readonly selectedKinds = input.required<string[]>();
   readonly selectedSources = input.required<string[]>();
@@ -23,11 +27,11 @@ export class LookupSourceFilters {
     () => this.selectedKinds().length + this.selectedSources().length,
   );
   readonly kinds = [
-    { value: 'YOUTUBE_VIDEO', label: 'Video' },
-    { value: 'PASTED_TEXT', label: 'Pasted text' },
-    { value: 'TXT', label: 'TXT' },
-    { value: 'PDF', label: 'PDF' },
-    { value: 'EPUB', label: 'EPUB' },
+    { value: 'YOUTUBE_VIDEO', label: 'lookup.videoType' },
+    { value: 'PASTED_TEXT', label: 'lookup.pastedType' },
+    { value: 'TXT', label: 'lookup.txtType' },
+    { value: 'PDF', label: 'lookup.pdfType' },
+    { value: 'EPUB', label: 'lookup.epubType' },
   ] as const;
 
   toggleKind(value: string, checked: boolean): void {
@@ -39,7 +43,16 @@ export class LookupSourceFilters {
   }
 
   sourceKindLabel(kind: string | undefined): string {
-    return kind === 'YOUTUBE_VIDEO' ? 'Video' : (kind ?? 'Source').replaceAll('_', ' ');
+    const keys = {
+      YOUTUBE_VIDEO: 'lookup.videoType',
+      PASTED_TEXT: 'lookup.pastedType',
+      TXT: 'lookup.txtSourceType',
+      PDF: 'lookup.pdfSourceType',
+      EPUB: 'lookup.epubSourceType',
+    } as const;
+    return kind && kind in keys
+      ? this.translations.translate(keys[kind as keyof typeof keys])
+      : this.translations.translate('lookup.genericSource');
   }
 
   sourceIcon(kind: string | undefined): string {

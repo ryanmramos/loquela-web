@@ -9,12 +9,14 @@ import { Alert } from '@app/shared/components/alert/alert';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { FormField } from '@app/shared/components/form-field/form-field';
 import { ApiProblemError } from '@core/errors/api-problem';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 
 type IntakeStatus = 'idle' | 'submitting' | 'error';
 
 @Component({
   selector: 'app-source-intake',
-  imports: [Alert, ButtonDirective, FormField, ReactiveFormsModule, RouterLink],
+  imports: [Alert, ButtonDirective, FormField, ReactiveFormsModule, RouterLink, TranslatePipe],
   templateUrl: './source-intake.html',
   styleUrl: './source-intake.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +26,7 @@ export class SourceIntake {
   private readonly sourceApi = inject(SourceApi);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translations = inject(TranslationService);
 
   readonly status = signal<IntakeStatus>('idle');
   readonly errorMessage = signal<string | null>(null);
@@ -67,14 +70,14 @@ export class SourceIntake {
     }
     if (file.size > SourceIntake.MAX_UPLOAD_BYTES) {
       this.selectedFile.set(null);
-      this.errorMessage.set('Choose a document smaller than 15 MB.');
+      this.errorMessage.set(this.translations.translate('sourcesIntake.fileTooLarge'));
       input.value = '';
       return;
     }
     const mediaType = file.type || this.mediaTypeFromName(file.name);
     if (!['application/pdf', 'text/plain', 'application/epub+zip'].includes(mediaType)) {
       this.selectedFile.set(null);
-      this.errorMessage.set('Choose a PDF, UTF-8 TXT, or EPUB document.');
+      this.errorMessage.set(this.translations.translate('sourcesIntake.fileType'));
       input.value = '';
       return;
     }
@@ -88,7 +91,7 @@ export class SourceIntake {
   submitFile(): void {
     const file = this.selectedFile();
     if (!file) {
-      this.errorMessage.set('Choose a PDF, UTF-8 TXT, or EPUB document.');
+      this.errorMessage.set(this.translations.translate('sourcesIntake.fileType'));
       return;
     }
     this.submit(this.sourceApi.upload(file));
@@ -112,7 +115,7 @@ export class SourceIntake {
           this.errorMessage.set(
             error instanceof ApiProblemError
               ? (error.problem.detail ?? error.problem.title)
-              : 'The source could not be added. Check your connection and try again.',
+              : this.translations.translate('sourcesIntake.submitError'),
           );
         },
       });

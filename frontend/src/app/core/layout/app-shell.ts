@@ -6,6 +6,7 @@ import { ButtonDirective } from '@app/shared/components/button/button.directive'
 import { ToastRegion } from '@app/shared/components/toast/toast-region';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { ThemeService } from '@core/theme/theme.service';
+import { TranslationService } from '@core/i18n/translation.service';
 
 interface ShellNavigationItem {
   readonly key:
@@ -29,6 +30,7 @@ interface ShellNavigationItem {
 })
 export class AppShell {
   protected readonly themes = inject(ThemeService);
+  private readonly translations = inject(TranslationService);
   readonly userName = input('Ryan Ramos');
   readonly userEmail = input('ryan@example.com');
   readonly activeJobCount = input<number | null>(null);
@@ -47,8 +49,8 @@ export class AppShell {
   ];
 
   protected readonly userActions: readonly ActionMenuItem[] = [
-    { id: 'profile', label: 'Profile settings' },
-    { id: 'sign-out', label: 'Sign out', danger: true },
+    { id: 'profile', label: '', labelKey: 'shell.profileSettings' },
+    { id: 'sign-out', label: '', labelKey: 'shell.signOut', danger: true },
   ];
 
   submitSearch(event: SubmitEvent, searchInput: HTMLInputElement): void {
@@ -65,7 +67,9 @@ export class AppShell {
   }
 
   themeToggleLabel(): string {
-    return this.themes.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    return this.themes.theme() === 'dark'
+      ? this.translations.translate('shell.switchLight')
+      : this.translations.translate('shell.switchDark');
   }
 
   initials(): string {

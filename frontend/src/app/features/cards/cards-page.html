@@ -1,33 +1,37 @@
 <section class="cards-page">
   <header class="page-heading">
     <div>
-      <p class="eyebrow">Knowledge library</p>
-      <h1>Cards</h1>
-      <p>Edit what Loquela created, keep useful context close, and move cards between decks.</p>
+      <p class="eyebrow">{{ 'cards.eyebrow' | translate }}</p>
+      <h1>{{ 'cards.title' | translate }}</h1>
+      <p>{{ 'cards.description' | translate }}</p>
     </div>
     <div class="heading-actions">
       <button appButton type="button" (click)="newCard()">
-        <span aria-hidden="true">＋</span> New card
+        <span aria-hidden="true">＋</span> {{ 'cards.new' | translate }}
       </button>
     </div>
   </header>
 
   @if (error()) {
-    <app-ui-state kind="error" title="Cards need attention" [description]="error()" />
+    <app-ui-state kind="error" [title]="'cards.errorTitle' | translate" [description]="error()" />
   }
 
   @if (editorOpen()) {
     <section class="editor-card" aria-labelledby="card-editor-title">
       <div class="section-head">
         <div>
-          <p class="eyebrow">{{ selected() ? 'Card details' : 'Build a card' }}</p>
-          <h2 id="card-editor-title">{{ selected() ? 'Edit card' : 'New card' }}</h2>
+          <p class="eyebrow">{{ (selected() ? 'cards.details' : 'cards.build') | translate }}</p>
+          <h2 id="card-editor-title">
+            {{ (selected() ? 'cards.edit' : 'cards.new') | translate }}
+          </h2>
         </div>
-        <button appButton variant="ghost" type="button" (click)="closeEditor()">Close</button>
+        <button appButton variant="ghost" type="button" (click)="closeEditor()">
+          {{ 'common.close' | translate }}
+        </button>
       </div>
       <form [formGroup]="form" (ngSubmit)="save()">
         <label class="field">
-          <span>Deck</span>
+          <span>{{ 'cards.deck' | translate }}</span>
           <select formControlName="deckReference">
             @for (deck of decks(); track deck.reference) {
               <option [value]="deck.reference">{{ deck.name }}</option>
@@ -35,25 +39,25 @@
           </select>
         </label>
         <label class="field">
-          <span>Front</span>
+          <span>{{ 'cards.front' | translate }}</span>
           <input formControlName="term" />
         </label>
         <label class="field field--wide">
-          <span>Back</span>
+          <span>{{ 'cards.back' | translate }}</span>
           <textarea formControlName="definition" rows="3"></textarea>
         </label>
         <label class="field field--wide">
-          <span>Context (optional)</span>
+          <span>{{ 'cards.contextOptional' | translate }}</span>
           <textarea formControlName="exampleText" rows="2"></textarea>
         </label>
         <div class="editor-actions field--wide">
           @if (selected()) {
             <button appButton variant="danger" type="button" (click)="delete(selected()!)">
-              Delete card
+              {{ 'cards.delete' | translate }}
             </button>
           }
           <button appButton type="submit" [disabled]="form.invalid || !decks().length">
-            {{ selected() ? 'Save changes' : 'Save card' }}
+            {{ (selected() ? 'cards.saveChanges' : 'lookup.saveCard') | translate }}
           </button>
         </div>
       </form>
@@ -64,59 +68,65 @@
     <div class="toolbar-group">
       <label class="control search-control">
         <span aria-hidden="true">⌕</span>
-        <span class="visually-hidden">Search fronts, backs, and context</span>
+        <span class="visually-hidden">{{ 'cards.searchLabel' | translate }}</span>
         <input
           type="search"
           [formControl]="filter"
-          placeholder="Search fronts, backs, and context"
+          [placeholder]="'cards.searchLabel' | translate"
         />
       </label>
       <label class="control">
-        <span class="visually-hidden">Filter by deck</span>
+        <span class="visually-hidden">{{ 'cards.filterDeck' | translate }}</span>
         <select [formControl]="deckFilter" (change)="load()">
-          <option value="">All decks</option>
+          <option value="">{{ 'cards.allDecks' | translate }}</option>
           @for (deck of decks(); track deck.reference) {
             <option [value]="deck.reference">{{ deck.name }}</option>
           }
         </select>
       </label>
       <label class="control">
-        <span class="visually-hidden">Filter by note type</span>
+        <span class="visually-hidden">{{ 'cards.filterNoteType' | translate }}</span>
         <select [formControl]="noteTypeFilter" (change)="applyNoteTypeFilter()">
-          <option value="">All note types</option>
-          <option value="BASIC">Basic</option>
-          <option value="BASIC_CONTEXT">Basic + context</option>
+          <option value="">{{ 'cards.allNoteTypes' | translate }}</option>
+          <option value="BASIC">{{ 'cards.basic' | translate }}</option>
+          <option value="BASIC_CONTEXT">{{ 'cards.basicContext' | translate }}</option>
         </select>
       </label>
-      <button appButton variant="secondary" type="submit">Filter</button>
+      <button appButton variant="secondary" type="submit">{{ 'cards.filter' | translate }}</button>
     </div>
     <div class="toolbar-summary">
       <span
-        >{{ displayedCards().length }} {{ displayedCards().length === 1 ? 'card' : 'cards' }}</span
+        >{{ displayedCards().length }}
+        {{ (displayedCards().length === 1 ? 'common.card' : 'common.cards') | translate }}</span
       >
-      <span class="view-button" aria-label="Table view" title="Table view">☷</span>
+      <span
+        class="view-button"
+        [attr.aria-label]="'cards.tableView' | translate"
+        [title]="'cards.tableView' | translate"
+        >☷</span
+      >
     </div>
   </form>
 
-  <section class="table-card" aria-label="Card library">
+  <section class="table-card" [attr.aria-label]="'cards.library' | translate">
     <div class="table-row table-header cards-row">
       <span>
         <input
           type="checkbox"
-          aria-label="Select all visible cards"
+          [attr.aria-label]="'cards.selectAll' | translate"
           [checked]="allVisibleSelected()"
           (change)="toggleAllVisible()"
         />
       </span>
-      <span>Front</span>
-      <span>Back / context</span>
-      <span>Deck</span>
-      <span>Updated</span>
+      <span>{{ 'cards.front' | translate }}</span>
+      <span>{{ 'cards.back' | translate }} / {{ 'cards.contextOptional' | translate }}</span>
+      <span>{{ 'cards.deck' | translate }}</span>
+      <span>{{ 'common.updated' | translate }}</span>
       <span></span>
     </div>
 
     @if (loading()) {
-      <app-ui-state kind="loading" title="Loading cards" description="" />
+      <app-ui-state kind="loading" [title]="'cards.loading' | translate" description="" />
     } @else {
       @for (card of displayedCards(); track card.reference) {
         <article
@@ -134,7 +144,7 @@
           <button class="card-preview" type="button" (click)="edit(card)">
             <strong>{{ card.term }}</strong>
             <span class="pill pill--info">{{
-              card.noteType === 'BASIC_CONTEXT' ? 'Basic + context' : 'Basic'
+              (card.noteType === 'BASIC_CONTEXT' ? 'cards.basicContext' : 'cards.basic') | translate
             }}</span>
           </button>
           <button class="card-copy" type="button" (click)="edit(card)">
@@ -144,7 +154,7 @@
           <span class="pill pill--deck">{{ card.deckName }}</span>
           <span class="updated">{{ formatUpdatedAt(card.updatedAt) }}</span>
           <app-action-menu
-            [label]="'Actions for ' + card.term"
+            [label]="'common.actionsFor' | translate: { name: card.term ?? '' }"
             [items]="cardActions"
             (itemSelected)="cardAction(card, $event)"
           />
@@ -154,8 +164,8 @@
       @if (!displayedCards().length) {
         <app-ui-state
           kind="empty"
-          title="No cards found"
-          description="Try another filter or create a new card."
+          [title]="'cards.noCards' | translate"
+          [description]="'cards.noCardsDescription' | translate"
         />
       }
     }
@@ -164,19 +174,23 @@
   <section class="support-grid">
     <article class="support-card context-card">
       <div class="section-head">
-        <h2>Context search</h2>
-        <span class="pill pill--accent">Your sources</span>
+        <h2>{{ 'cards.contextSearch' | translate }}</h2>
+        <span class="pill pill--accent">{{ 'cards.yourSources' | translate }}</span>
       </div>
-      <p>Search all ready sources before making a card, then save the clearest passage.</p>
-      <a appButton variant="secondary" routerLink="/app/lookup">Search your sources</a>
+      <p>{{ 'cards.contextSearchDescription' | translate }}</p>
+      <a appButton variant="secondary" routerLink="/app/lookup">{{
+        'cards.searchSources' | translate
+      }}</a>
     </article>
     <article class="support-card selection-card">
       <div class="section-head">
-        <h2>Selection</h2>
+        <h2>{{ 'cards.selection' | translate }}</h2>
       </div>
       <strong class="selection-count">{{ selectedCount() }}</strong>
-      <p>Select cards to move, tag, export, or delete them together.</p>
-      <button appButton variant="secondary" type="button" disabled>Bulk actions</button>
+      <p>{{ 'cards.selectionDescription' | translate }}</p>
+      <button appButton variant="secondary" type="button" disabled>
+        {{ 'cards.bulkActions' | translate }}
+      </button>
     </article>
   </section>
 </section>

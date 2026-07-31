@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
@@ -8,6 +8,8 @@ import { ButtonDirective } from '@app/shared/components/button/button.directive'
 import { Skeleton } from '@app/shared/components/skeleton/skeleton';
 import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/status-badge';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 
 import { DashboardState } from './dashboard-state';
 
@@ -16,12 +18,12 @@ import { DashboardState } from './dashboard-state';
   imports: [
     Alert,
     ButtonDirective,
-    DatePipe,
     DecimalPipe,
     RouterLink,
     Skeleton,
     StatusBadge,
     UiState,
+    TranslatePipe,
   ],
   providers: [DashboardState],
   templateUrl: './dashboard-page.html',
@@ -30,6 +32,7 @@ import { DashboardState } from './dashboard-state';
 })
 export class DashboardPage {
   private readonly sessionFacade = inject(SessionFacade);
+  private readonly translations = inject(TranslationService);
 
   readonly state = inject(DashboardState);
   readonly session = this.sessionFacade.view;
@@ -73,6 +76,27 @@ export class DashboardPage {
     return `${formatted} ${units[unitIndex]}`;
   }
 
+  formatHeadingDate(value?: string): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat(this.translations.language(), {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    }).format(date);
+  }
+
+  formatActivityDate(value?: string): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat(this.translations.language(), {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date);
+  }
+
   statusTone(status: string): StatusTone {
     if (status === 'READY' || status === 'SUCCEEDED') {
       return 'success';
@@ -84,5 +108,19 @@ export class DashboardPage {
       return 'warning';
     }
     return 'info';
+  }
+
+  activityStatus(status: string): string {
+    const keys = {
+      READY: 'dashboard.statusReady',
+      SUCCEEDED: 'dashboard.statusSucceeded',
+      FAILED: 'dashboard.statusFailed',
+      DEAD: 'dashboard.statusDead',
+      RETRY_WAIT: 'dashboard.statusRetryWait',
+      RUNNING: 'dashboard.statusRunning',
+      QUEUED: 'dashboard.statusQueued',
+    } as const;
+    const key = keys[status as keyof typeof keys];
+    return key ? this.translations.translate(key) : status.replaceAll('_', ' ');
   }
 }

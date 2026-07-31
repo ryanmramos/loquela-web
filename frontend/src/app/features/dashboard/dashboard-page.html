@@ -1,6 +1,6 @@
 <div class="dashboard">
   @if (state.loadStatus() === 'loading' && !state.snapshot()) {
-    <div class="dashboard__loading" aria-label="Loading dashboard">
+    <div class="dashboard__loading" [attr.aria-label]="'dashboard.loading' | translate">
       <app-skeleton width="12rem" />
       <app-skeleton width="24rem" />
       <div class="stats-grid">
@@ -12,93 +12,106 @@
   } @else if (state.loadStatus() === 'error' && !state.snapshot()) {
     <app-ui-state
       kind="error"
-      title="Your overview is unavailable"
-      description="We could not load the dashboard. Your account and saved work are unaffected."
+      [title]="'dashboard.unavailableTitle' | translate"
+      [description]="'dashboard.unavailableDescription' | translate"
     >
-      <button appButton type="button" (click)="state.load()">Try again</button>
+      <button appButton type="button" (click)="state.load()">
+        {{ 'common.tryAgain' | translate }}
+      </button>
     </app-ui-state>
   } @else if (state.snapshot(); as dashboard) {
     @if (state.stale()) {
-      <app-alert title="Showing an older snapshot" tone="warning">
-        Some counts may have changed.
-        <button class="inline-action" type="button" (click)="state.load()">Refresh now</button>
+      <app-alert [title]="'dashboard.olderSnapshot' | translate" tone="warning">
+        {{ 'dashboard.olderSnapshotDescription' | translate }}
+        <button class="inline-action" type="button" (click)="state.load()">
+          {{ 'dashboard.refreshNow' | translate }}
+        </button>
       </app-alert>
     }
 
     <header class="page-heading">
       <div>
-        <p class="eyebrow">{{ dashboard.generatedAt | date: 'EEEE, MMMM d' }}</p>
+        <p class="eyebrow">{{ formatHeadingDate(dashboard.generatedAt) }}</p>
         <h1>
-          Welcome back,
-          {{ session().user?.displayName || 'learner' }}.
+          {{ 'dashboard.welcome' | translate }}
+          {{ session().user?.displayName || ('dashboard.learner' | translate) }}.
         </h1>
-        <p>Here’s what’s ready to learn from your personal corpus.</p>
+        <p>{{ 'dashboard.subtitle' | translate }}</p>
       </div>
       @if (dashboard.cards.status === 'AVAILABLE' && dashboard.cards.cardsToStudy; as count) {
         @if (count > 0) {
-          <a appButton routerLink="/app/study">Practice {{ count | number }} cards</a>
+          <a appButton routerLink="/app/study"
+            >{{ 'dashboard.practiceCards' | translate }} {{ count | number }}
+            {{ 'common.cards' | translate }}</a
+          >
         }
       }
     </header>
 
-    <section class="stats-grid" aria-label="Workspace summary">
+    <section class="stats-grid" [attr.aria-label]="'dashboard.workspaceSummary' | translate">
       <a class="stat-card" routerLink="/app/cards" [queryParams]="{ practice: 'unpracticed' }">
-        <span class="stat-card__label">Cards to study</span>
+        <span class="stat-card__label">{{ 'dashboard.cardsToStudy' | translate }}</span>
         @if (dashboard.cards.status === 'AVAILABLE') {
           <strong>{{ dashboard.cards.cardsToStudy ?? 0 | number }}</strong>
-          <span>Saved in Loquela, not yet practiced</span>
+          <span>{{ 'dashboard.cardsToStudyDescription' | translate }}</span>
         } @else {
-          <strong aria-label="Unavailable">—</strong>
-          <span>Count temporarily unavailable</span>
+          <strong [attr.aria-label]="'dashboard.unavailable' | translate">—</strong>
+          <span>{{ 'dashboard.countUnavailable' | translate }}</span>
         }
       </a>
       <a class="stat-card" routerLink="/app/cards">
-        <span class="stat-card__label">Total cards</span>
+        <span class="stat-card__label">{{ 'dashboard.totalCards' | translate }}</span>
         @if (dashboard.cards.status === 'AVAILABLE') {
           <strong>{{ dashboard.cards.totalCards ?? 0 | number }}</strong>
-          <span>{{ dashboard.cards.newCardsThisWeek ?? 0 | number }} added this week</span>
+          <span
+            >{{ dashboard.cards.newCardsThisWeek ?? 0 | number }}
+            {{ 'dashboard.addedThisWeek' | translate }}</span
+          >
         } @else {
-          <strong aria-label="Unavailable">—</strong>
-          <span>Count temporarily unavailable</span>
+          <strong [attr.aria-label]="'dashboard.unavailable' | translate">—</strong>
+          <span>{{ 'dashboard.countUnavailable' | translate }}</span>
         }
       </a>
       <a class="stat-card" routerLink="/app/sources" [queryParams]="{ status: 'READY' }">
-        <span class="stat-card__label">Ready sources</span>
+        <span class="stat-card__label">{{ 'dashboard.readySources' | translate }}</span>
         @if (dashboard.sources.status === 'AVAILABLE') {
           <strong>{{ dashboard.sources.readySources ?? 0 | number }}</strong>
           <span>
             {{ dashboard.sources.processingSources ?? 0 | number }}
-            processing now
+            {{ 'dashboard.processingNow' | translate }}
           </span>
         } @else {
-          <strong aria-label="Unavailable">—</strong>
-          <span>Count temporarily unavailable</span>
+          <strong [attr.aria-label]="'dashboard.unavailable' | translate">—</strong>
+          <span>{{ 'dashboard.countUnavailable' | translate }}</span>
         }
       </a>
       <a class="stat-card" routerLink="/app/activity" [queryParams]="{ state: 'active' }">
-        <span class="stat-card__label">Active jobs</span>
+        <span class="stat-card__label">{{ 'dashboard.activeJobs' | translate }}</span>
         @if (dashboard.jobs.status === 'AVAILABLE') {
           <strong>{{ dashboard.jobs.activeJobs ?? 0 | number }}</strong>
-          <span>Imports, lookups, exports, and cleanup</span>
+          <span>{{ 'dashboard.activeJobsDescription' | translate }}</span>
         } @else {
-          <strong aria-label="Unavailable">—</strong>
-          <span>Count temporarily unavailable</span>
+          <strong [attr.aria-label]="'dashboard.unavailable' | translate">—</strong>
+          <span>{{ 'dashboard.countUnavailable' | translate }}</span>
         }
       </a>
     </section>
 
     <section class="storage-balance" aria-labelledby="storage-balance-title">
       <div>
-        <p class="eyebrow">Corpus storage</p>
-        <h2 id="storage-balance-title">Storage balance</h2>
-        <p>Your corpus storage is unlimited.</p>
+        <p class="eyebrow">{{ 'dashboard.corpusStorage' | translate }}</p>
+        <h2 id="storage-balance-title">{{ 'dashboard.storageBalance' | translate }}</h2>
+        <p>{{ 'dashboard.storageUnlimited' | translate }}</p>
       </div>
       <div class="storage-balance__status">
-        <strong>Unlimited</strong>
+        <strong>{{ 'dashboard.unlimited' | translate }}</strong>
         @if (dashboard.storage.status === 'AVAILABLE') {
-          <span>{{ formatStorage(dashboard.storage.usedBytes ?? 0) }} used</span>
+          <span
+            >{{ formatStorage(dashboard.storage.usedBytes ?? 0) }}
+            {{ 'dashboard.storageUsed' | translate }}</span
+          >
         } @else {
-          <span>Usage temporarily unavailable</span>
+          <span>{{ 'dashboard.usageUnavailable' | translate }}</span>
         }
       </div>
     </section>
@@ -112,10 +125,8 @@
       <section class="empty-welcome" aria-labelledby="empty-welcome-title">
         <span aria-hidden="true">Aa</span>
         <div>
-          <h2 id="empty-welcome-title">Start with something worth remembering</h2>
-          <p>
-            Paste a short passage below. Loquela will turn it into a searchable personal source.
-          </p>
+          <h2 id="empty-welcome-title">{{ 'dashboard.emptyTitle' | translate }}</h2>
+          <p>{{ 'dashboard.emptyDescription' | translate }}</p>
         </div>
       </section>
     }
@@ -123,48 +134,57 @@
     <div class="dashboard-grid">
       <section class="panel learning-focus" aria-labelledby="learning-focus-title">
         <div class="section-heading">
-          <p class="eyebrow" id="learning-focus-title">Learning focus</p>
-          <a routerLink="/app/settings">Settings</a>
+          <p class="eyebrow" id="learning-focus-title">
+            {{ 'dashboard.learningFocus' | translate }}
+          </p>
+          <a routerLink="/app/settings">{{ 'navigation.settings' | translate }}</a>
         </div>
-        <div class="language-pair" aria-label="Language pair">
+        <div class="language-pair" [attr.aria-label]="'dashboard.languagePair' | translate">
           <strong>{{ languageName(dashboard.languagePair.sourceLanguage) }}</strong>
           <span class="language-pair__arrow" aria-hidden="true">→</span>
           <strong>{{ languageName(dashboard.languagePair.definitionLanguage) }}</strong>
         </div>
-        <p class="muted">Sources → definitions</p>
+        <p class="muted">{{ 'dashboard.sourcesDefinitions' | translate }}</p>
       </section>
 
       <section class="panel quick-capture" aria-labelledby="quick-capture-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Quick action</p>
-            <h2 id="quick-capture-title">Quick capture</h2>
+            <p class="eyebrow">{{ 'dashboard.quickAction' | translate }}</p>
+            <h2 id="quick-capture-title">{{ 'dashboard.quickCapture' | translate }}</h2>
           </div>
         </div>
-        <p class="muted">Paste text you want to search and learn from later.</p>
+        <p class="muted">{{ 'dashboard.quickCaptureDescription' | translate }}</p>
         <form (submit)="submitCapture($event, captureText)">
-          <label for="capture-text">Source text</label>
+          <label for="capture-text">{{ 'dashboard.sourceText' | translate }}</label>
           <textarea
             #captureText
             id="capture-text"
             rows="5"
             maxlength="2000000"
-            placeholder="Paste text in your source language…"
+            [placeholder]="'dashboard.sourcePlaceholder' | translate"
             [disabled]="state.captureStatus() === 'submitting'"
             required
           ></textarea>
           <button appButton type="submit" [disabled]="state.captureStatus() === 'submitting'">
-            {{ state.captureStatus() === 'submitting' ? 'Adding source…' : 'Add to sources' }}
+            {{
+              (state.captureStatus() === 'submitting'
+                ? 'dashboard.addingSource'
+                : 'dashboard.addToSources'
+              ) | translate
+            }}
           </button>
         </form>
         @if (state.captureStatus() === 'success' && state.acceptedSource(); as source) {
-          <app-alert title="Source accepted" tone="success">
-            Your text is being indexed.
-            <a [routerLink]="['/app/sources', source.reference]">View source activity</a>
+          <app-alert [title]="'dashboard.sourceAccepted' | translate" tone="success">
+            {{ 'dashboard.sourceIndexing' | translate }}
+            <a [routerLink]="['/app/sources', source.reference]">{{
+              'dashboard.viewSourceActivity' | translate
+            }}</a>
           </app-alert>
         } @else if (state.captureStatus() === 'error') {
-          <app-alert title="Could not add source" tone="danger">
-            Your text remains in the field. Try again when you’re ready.
+          <app-alert [title]="'dashboard.couldNotAddSource' | translate" tone="danger">
+            {{ 'dashboard.captureError' | translate }}
           </app-alert>
         }
       </section>
@@ -172,22 +192,22 @@
       <section class="panel recent-activity" aria-labelledby="recent-activity-title">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Workspace</p>
-            <h2 id="recent-activity-title">Recent activity</h2>
+            <p class="eyebrow">{{ 'dashboard.workspace' | translate }}</p>
+            <h2 id="recent-activity-title">{{ 'dashboard.recentActivity' | translate }}</h2>
           </div>
-          <a routerLink="/app/activity">View all</a>
+          <a routerLink="/app/activity">{{ 'common.viewAll' | translate }}</a>
         </div>
         @if (dashboard.activity.status === 'UNAVAILABLE') {
           <div class="section-unavailable">
-            <strong>Activity is temporarily unavailable.</strong>
-            <span>Other dashboard information is still current.</span>
+            <strong>{{ 'dashboard.activityUnavailable' | translate }}</strong>
+            <span>{{ 'dashboard.activityStillCurrent' | translate }}</span>
           </div>
         } @else if (dashboard.activity.items.length === 0) {
           <div class="activity-empty">
             <span aria-hidden="true">✦</span>
             <div>
-              <strong>No activity yet</strong>
-              <p>Your sources and background work will appear here.</p>
+              <strong>{{ 'dashboard.noActivity' | translate }}</strong>
+              <p>{{ 'dashboard.noActivityDescription' | translate }}</p>
             </div>
           </div>
         } @else {
@@ -199,10 +219,10 @@
                 </span>
                 <div>
                   <a [routerLink]="item.target">{{ item.title }}</a>
-                  <span>{{ item.detail }} · {{ item.occurredAt | date: 'medium' }}</span>
+                  <span>{{ item.detail }} · {{ formatActivityDate(item.occurredAt) }}</span>
                 </div>
                 <app-status-badge [tone]="statusTone(item.status)">
-                  {{ item.status.replaceAll('_', ' ') }}
+                  {{ activityStatus(item.status) }}
                 </app-status-badge>
               </li>
             }

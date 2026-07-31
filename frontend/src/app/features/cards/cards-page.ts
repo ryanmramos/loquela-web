@@ -6,9 +6,11 @@ import { BrowserDeckOptionDto, LookupApi } from '@api/api-adapters/lookup-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/action-menu';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
+import { TranslationService } from '@core/i18n/translation.service';
 @Component({
   selector: 'app-cards-page',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, ActionMenu, UiState],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, ActionMenu, UiState, TranslatePipe],
   templateUrl: './cards-page.html',
   styleUrl: './cards-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,6 +19,7 @@ export class CardsPage {
   private readonly api = inject(CardApi);
   private readonly lookupApi = inject(LookupApi);
   private readonly route = inject(ActivatedRoute);
+  private readonly translations = inject(TranslationService);
   readonly cards = signal<BrowserCardDto[]>([]);
   readonly decks = signal<BrowserDeckOptionDto[]>([]);
   readonly selected = signal<BrowserCardDto | null>(null);
@@ -41,8 +44,8 @@ export class CardsPage {
     );
   });
   readonly cardActions: readonly ActionMenuItem[] = [
-    { id: 'edit', label: 'Edit card' },
-    { id: 'delete', label: 'Delete card', danger: true },
+    { id: 'edit', label: '', labelKey: 'cards.edit' },
+    { id: 'delete', label: '', labelKey: 'cards.delete', danger: true },
   ];
   readonly form = new FormGroup({
     deckReference: new FormControl('', {
@@ -76,7 +79,7 @@ export class CardsPage {
           this.loading.set(false);
         },
         error: () => {
-          this.error.set('Cards could not be loaded.');
+          this.error.set(this.translations.translate('cards.loadError'));
           this.loading.set(false);
         },
       });
@@ -123,7 +126,7 @@ export class CardsPage {
         this.closeEditor();
         this.load();
       },
-      error: () => this.error.set('The card could not be saved. It may have changed elsewhere.'),
+      error: () => this.error.set(this.translations.translate('cards.saveError')),
     });
   }
   delete(card: BrowserCardDto): void {
@@ -138,7 +141,7 @@ export class CardsPage {
         });
         this.load();
       },
-      error: () => this.error.set('The card could not be deleted.'),
+      error: () => this.error.set(this.translations.translate('cards.deleteError')),
     });
   }
   cardAction(card: BrowserCardDto, action: string): void {
@@ -173,10 +176,13 @@ export class CardsPage {
     const updated = new Date(value);
     if (Number.isNaN(updated.getTime())) return '—';
     const elapsedMinutes = Math.floor((Date.now() - updated.getTime()) / 60_000);
-    if (elapsedMinutes < 1) return 'Just now';
+    if (elapsedMinutes < 1) return this.translations.translate('cards.justNow');
     if (elapsedMinutes < 60) return `${elapsedMinutes} min`;
     if (elapsedMinutes < 1_440) return `${Math.floor(elapsedMinutes / 60)} hr`;
-    if (elapsedMinutes < 2_880) return 'Yesterday';
-    return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(updated);
+    if (elapsedMinutes < 2_880) return this.translations.translate('cards.yesterday');
+    return new Intl.DateTimeFormat(this.translations.language(), {
+      month: 'short',
+      day: 'numeric',
+    }).format(updated);
   }
 }

@@ -1,36 +1,44 @@
 <section class="decks-page">
   <header class="page-heading">
     <div>
-      <p class="eyebrow">Learning collections</p>
-      <h1>Decks</h1>
-      <p>Group cards by goal, browse what you saved, or export a snapshot for Anki.</p>
+      <p class="eyebrow">{{ 'decks.eyebrow' | translate }}</p>
+      <h1>{{ 'decks.title' | translate }}</h1>
+      <p>{{ 'decks.description' | translate }}</p>
     </div>
     <div class="heading-actions">
-      <a appButton variant="secondary" href="#export-history">⇩ Exports</a>
-      <button appButton type="button" (click)="newDeck()">＋ New deck</button>
+      <a appButton variant="secondary" href="#export-history"
+        >⇩ {{ 'decks.exports' | translate }}</a
+      >
+      <button appButton type="button" (click)="newDeck()">＋ {{ 'decks.new' | translate }}</button>
     </div>
   </header>
 
   @if (error()) {
-    <app-ui-state kind="error" title="Decks need attention" [description]="error()" />
+    <app-ui-state kind="error" [title]="'decks.errorTitle' | translate" [description]="error()" />
   }
 
   @if (editorOpen()) {
     <section class="deck-editor" aria-labelledby="deck-editor-title">
       <div class="section-head">
         <div>
-          <p class="eyebrow">{{ selected() ? 'Deck details' : 'New collection' }}</p>
-          <h2 id="deck-editor-title">{{ selected() ? 'Edit deck' : 'Create a deck' }}</h2>
+          <p class="eyebrow">
+            {{ (selected() ? 'decks.details' : 'decks.newCollection') | translate }}
+          </p>
+          <h2 id="deck-editor-title">
+            {{ (selected() ? 'decks.edit' : 'decks.create') | translate }}
+          </h2>
         </div>
-        <button appButton variant="ghost" type="button" (click)="closeEditor()">Close</button>
+        <button appButton variant="ghost" type="button" (click)="closeEditor()">
+          {{ 'common.close' | translate }}
+        </button>
       </div>
       <form [formGroup]="form" (ngSubmit)="save()">
         <label class="field">
-          <span>Deck name</span>
+          <span>{{ 'decks.deckName' | translate }}</span>
           <input formControlName="name" maxlength="255" />
         </label>
         <fieldset>
-          <legend>Theme color</legend>
+          <legend>{{ 'decks.themeColor' | translate }}</legend>
           <div class="color-options">
             @for (color of colors; track color) {
               <label
@@ -44,22 +52,22 @@
           </div>
         </fieldset>
         <button appButton type="submit" [disabled]="form.invalid">
-          {{ selected() ? 'Save changes' : 'Create deck' }}
+          {{ (selected() ? 'cards.saveChanges' : 'decks.create') | translate }}
         </button>
       </form>
     </section>
   }
 
   @if (loading()) {
-    <app-ui-state kind="loading" title="Loading decks" description="" />
+    <app-ui-state kind="loading" [title]="'decks.loading' | translate" description="" />
   } @else if (!decks().length) {
     <app-ui-state
       kind="empty"
-      title="No decks yet"
-      description="Create a deck to organize your first cards."
+      [title]="'decks.emptyTitle' | translate"
+      [description]="'decks.emptyDescription' | translate"
     />
   } @else {
-    <div class="deck-scroll" aria-label="Your decks" tabindex="0">
+    <div class="deck-scroll" [attr.aria-label]="'decks.yourDecks' | translate" tabindex="0">
       @for (deck of decks(); track deck.reference) {
         <article class="deck-card">
           <div
@@ -69,9 +77,12 @@
             <span class="deck-symbol">{{ initials(deck.name) }}</span>
           </div>
           <div class="deck-body">
-            <span class="pill">Active deck</span>
+            <span class="pill">{{ 'decks.active' | translate }}</span>
             <h2>{{ deck.name }}</h2>
-            <p>{{ deck.cardCount ?? 0 }} {{ deck.cardCount === 1 ? 'card' : 'cards' }}</p>
+            <p>
+              {{ deck.cardCount ?? 0 }}
+              {{ (deck.cardCount === 1 ? 'common.card' : 'common.cards') | translate }}
+            </p>
             <div class="deck-actions">
               <a
                 appButton
@@ -79,7 +90,7 @@
                 routerLink="/app/cards"
                 [queryParams]="{ deckReference: deck.reference }"
               >
-                View cards
+                {{ 'common.viewCards' | translate }}
               </a>
               <a
                 appButton
@@ -87,11 +98,13 @@
                 routerLink="/app/study"
                 [attr.aria-disabled]="!deck.cardCount"
               >
-                Practice
+                {{ 'common.practice' | translate }}
               </a>
-              <button appButton type="button" (click)="requestExport(deck)">Export</button>
+              <button appButton type="button" (click)="requestExport(deck)">
+                {{ 'common.export' | translate }}
+              </button>
               <app-action-menu
-                [label]="'Actions for ' + deck.name"
+                [label]="'common.actionsFor' | translate: { name: deck.name ?? '' }"
                 [items]="deckActions"
                 (itemSelected)="action(deck, $event)"
               />
@@ -105,32 +118,42 @@
   <section id="export-history" class="export-card" aria-labelledby="exports-title" tabindex="0">
     <div class="section-head">
       <div>
-        <p class="eyebrow">Immutable snapshots</p>
-        <h2 id="exports-title">Recent exports</h2>
+        <p class="eyebrow">{{ 'decks.immutableSnapshots' | translate }}</p>
+        <h2 id="exports-title">{{ 'decks.recentExports' | translate }}</h2>
       </div>
       @if (hasPendingExports()) {
-        <span class="polling-note" aria-live="polite">Refreshing active exports…</span>
+        <span class="polling-note" aria-live="polite">{{ 'decks.refreshing' | translate }}</span>
       }
     </div>
     <div class="export-row export-row--header" aria-hidden="true">
-      <span>Deck snapshot</span><span>Cards</span><span>Status</span><span>Created</span
-      ><span>Expires</span><span></span>
+      <span>{{ 'decks.snapshot' | translate }}</span
+      ><span>{{ 'decks.cards' | translate }}</span
+      ><span>{{ 'common.status' | translate }}</span
+      ><span>{{ 'decks.created' | translate }}</span
+      ><span>{{ 'decks.expires' | translate }}</span
+      ><span></span>
     </div>
     @for (item of exports(); track item.reference) {
       <article class="export-row">
         <div>
           <strong>{{ item.deckName }}</strong>
           <span>{{
-            item.state === 'FAILED' ? item.errorCode || 'EXPORT_FAILED' : 'Anki package snapshot'
+            item.state === 'FAILED'
+              ? item.errorCode || 'EXPORT_FAILED'
+              : ('decks.ankiSnapshot' | translate)
           }}</span>
         </div>
         <span>{{ item.cardCount ?? 0 }}</span>
         <span class="status" [attr.data-state]="item.state">{{ statusLabel(item.state) }}</span>
         <span>{{ formatDate(item.createdAt) }}</span>
-        <span>{{ item.state === 'EXPIRED' ? 'Expired' : formatDate(item.expiresAt) }}</span>
+        <span>{{
+          item.state === 'EXPIRED' ? ('decks.expired' | translate) : formatDate(item.expiresAt)
+        }}</span>
         <span>
           @if (item.downloadAvailable && item.reference) {
-            <a appButton variant="secondary" [href]="api.downloadUrl(item.reference)">Download</a>
+            <a appButton variant="secondary" [href]="api.downloadUrl(item.reference)">{{
+              'common.download' | translate
+            }}</a>
           } @else if (item.state === 'FAILED' && item.deckReference) {
             <button
               appButton
@@ -144,7 +167,7 @@
                 })
               "
             >
-              Retry
+              {{ 'common.retry' | translate }}
             </button>
           } @else {
             <span class="muted">—</span>
@@ -155,8 +178,8 @@
     @if (!exports().length) {
       <app-ui-state
         kind="empty"
-        title="No exports yet"
-        description="Export a deck and its progress will appear here."
+        [title]="'decks.noExports' | translate"
+        [description]="'decks.noExportsDescription' | translate"
       />
     }
   </section>
