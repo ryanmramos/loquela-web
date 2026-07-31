@@ -13,6 +13,7 @@ import {
   timer,
 } from 'rxjs';
 import { BrowserDeckOptionDto, BrowserLookupDto, LookupApi } from '@api/api-adapters/lookup-api';
+import { CardApi } from '@api/api-adapters/card-api';
 import { SourceApi, SourceSummary } from '@api/api-adapters/source-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
@@ -34,6 +35,7 @@ interface HighlightSegment {
 })
 export class LookupPage {
   private readonly api = inject(LookupApi);
+  private readonly cardApi = inject(CardApi);
   private readonly sourceApi = inject(SourceApi);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -46,7 +48,7 @@ export class LookupPage {
   readonly error = signal('');
   readonly decks = signal<BrowserDeckOptionDto[]>([]);
   readonly sources = signal<SourceSummary[]>([]);
-  readonly selectedContext = signal<number | null>(null);
+  readonly selectedContext = signal<number | 'definition' | null>(null);
   readonly saving = signal(false);
   readonly form = new FormGroup({
     term: new FormControl('', {
@@ -110,6 +112,13 @@ export class LookupPage {
   }
   chooseContext(number: number): void {
     this.selectedContext.set(number);
+    this.loadDecks();
+  }
+  chooseDefinition(): void {
+    this.selectedContext.set('definition');
+    this.loadDecks();
+  }
+  private loadDecks(): void {
     this.api.decks().subscribe({
       next: (decks) => {
         this.decks.set(decks);
@@ -120,24 +129,62 @@ export class LookupPage {
   }
   save(): void {
     const lookup = this.lookup(),
-      context = this.selectedContext();
-    if (!lookup?.reference || !context || this.saveForm.invalid) return;
+      selection = this.selectedContext();
+    if (!lookup || selection === null || this.saveForm.invalid) return;
     this.saving.set(true);
-    this.api.save(lookup.reference, context, this.saveForm.getRawValue().deckReference).subscribe({
-      next: () => {
+    if (selection === 'definition') {
+      const definition = (lookup.senses ?? [])
+        .map((sense) => `${sense.partOfSpeech}: ${sense.definition}`)
+        .join('\n');
+      if (!lookup.term || !definition) {
         this.saving.set(false);
-        this.selectedContext.set(null);
-        this.toasts.show(
-          'Card saved',
-          'Your contextual card and source provenance were saved.',
-          'success',
-        );
-      },
-      error: () => {
-        this.saving.set(false);
-        this.error.set('This result can no longer be saved.');
-      },
-    });
+        this.error.set('This definition can no longer be saved.');
+        return;
+      }
+      this.cardApi
+        .create({
+          deckReference: this.saveForm.getRawValue().deckReference,
+          term: lookup.lemma ?? lookup.term,
+          definition,
+        })
+        .subscribe({
+          next: () => {
+            this.saving.set(false);
+            this.selectedContext.set(null);
+            this.toasts.show(
+              'Card saved',
+              'The definition was saved without a corpus context.',
+              'success',
+            );
+          },
+          error: () => {
+            this.saving.set(false);
+            this.error.set('This definition can no longer be saved.');
+          },
+        });
+      return;
+    }
+    if (!lookup.reference) {
+      this.saving.set(false);
+      return;
+    }
+    this.api
+      .save(lookup.reference, selection, this.saveForm.getRawValue().deckReference)
+      .subscribe({
+        next: () => {
+          this.saving.set(false);
+          this.selectedContext.set(null);
+          this.toasts.show(
+            'Card saved',
+            'Your contextual card and source provenance were saved.',
+            'success',
+          );
+        },
+        error: () => {
+          this.saving.set(false);
+          this.error.set('This result can no longer be saved.');
+        },
+      });
   }
   closeSave(): void {
     this.selectedContext.set(null);
@@ -220,6 +267,10 @@ export class LookupPage {
   }
   stateTitle(): string {
     if (this.error()) return 'Lookup needs attention';
+    if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND' && this.lookup()?.contexts?.length)
+      return 'Definition not found — contexts available';
+    if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND' && this.lookup()?.senses?.length)
+      return 'Contexts not found — definition available';
     if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND') return 'No definition found';
     if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND') return 'No matching contexts';
     if (this.lookup()?.status === 'FAILED') return 'Lookup needs attention';
@@ -228,10 +279,14 @@ export class LookupPage {
   }
   stateDescription(): string {
     if (this.error()) return this.error();
+    if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND' && this.lookup()?.contexts?.length)
+      return 'The dictionary did not return a definition, but matching contexts from your sources are shown below.';
+    if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND' && this.lookup()?.senses?.length)
+      return 'A definition was found, but none of your selected ready sources contained a matching context.';
     if (this.lookup()?.errorCode === 'DEFINITION_NOT_FOUND')
       return 'The dictionary did not return a definition for this term in your current language pair.';
     if (this.lookup()?.errorCode === 'CONTEXT_NOT_FOUND')
-      return 'A definition was found, but none of your selected ready sources contained a matching context.';
+      return 'No selected ready sources contained a matching context.';
     if (this.lookup()?.status === 'FAILED')
       return 'The dictionary could not complete this lookup. Your sources are safe.';
     if (this.lookup()?.status === 'EXPIRED')

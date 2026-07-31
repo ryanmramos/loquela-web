@@ -109,8 +109,8 @@ class LookupServiceImplTest {
                 eq(List.of("vivir", "vivo", "vive")),
                 eq(new CorpusSearchOptionsDto(new LanguageTag("es"), 5, 2))
         )).thenReturn(List.of(context));
-        when(lifecycleService.complete(
-                eq(userId), eq(sessionId), eq(entry), eq(List.of(context)), any(Instant.class)
+        when(lifecycleService.completePartial(
+                eq(userId), eq(sessionId), eq(entry), eq(List.of(context)), eq(null), any(Instant.class)
         )).thenReturn(true);
 
         LookupExecutionResultDto result = service.execute(userId, sessionId);
@@ -124,7 +124,7 @@ class LookupServiceImplTest {
     }
 
     @Test
-    void classifiesMissingDefinitionsAndContextAsPermanentWithoutCompletingSession() {
+    void preservesAPartialResultAndOnlyFailsWhenBothDefinitionAndContextAreMissing() {
         UserId userId = UserId.random();
         LookupSessionId sessionId = LookupSessionId.random();
         LanguagePairDto pair = new LanguagePairDto("es", "en");
@@ -132,22 +132,33 @@ class LookupServiceImplTest {
                 .thenReturn(preparation(sessionId, pair, false, false));
         when(providerSelector.activeProvider()).thenReturn(provider);
         when(provider.lookup(any(DictionaryLookupRequestDto.class))).thenReturn(Optional.empty());
+        when(corpusSearch.findExamples(any(), any(List.class), any())).thenReturn(List.of(context()));
+        when(lifecycleService.completePartial(
+                eq(userId), eq(sessionId), eq(null), any(List.class), eq("DEFINITION_NOT_FOUND"), any(Instant.class)
+        )).thenReturn(true);
 
+        LookupExecutionResultDto partialResult = service.execute(userId, sessionId);
+
+        assertThat(partialResult.outcome()).isEqualTo(LookupExecutionResultDto.Outcome.COMPLETED);
+        assertThat(partialResult.contextCount()).isEqualTo(1);
+
+        when(corpusSearch.findExamples(any(), any(List.class), any())).thenReturn(List.of());
         assertThatThrownBy(() -> service.execute(userId, sessionId))
                 .isInstanceOfSatisfying(LookupExecutionException.class, exception -> {
                     assertThat(exception.failureKind()).isEqualTo(BackgroundJobFailureKind.PERMANENT);
                     assertThat(exception.errorCode()).isEqualTo("DEFINITION_NOT_FOUND");
                 });
-        verify(lifecycleService, never()).complete(any(), any(), any(), any(), any());
-
         DictionaryEntryDto entry = entry(pair);
         when(provider.lookup(any(DictionaryLookupRequestDto.class))).thenReturn(Optional.of(entry));
         when(corpusSearch.findExamples(any(), any(List.class), any())).thenReturn(List.of());
-        assertThatThrownBy(() -> service.execute(userId, sessionId))
-                .isInstanceOfSatisfying(LookupExecutionException.class, exception -> {
-                    assertThat(exception.failureKind()).isEqualTo(BackgroundJobFailureKind.PERMANENT);
-                    assertThat(exception.errorCode()).isEqualTo("CONTEXT_NOT_FOUND");
-                });
+        when(lifecycleService.completePartial(
+                eq(userId), eq(sessionId), eq(entry), eq(List.of()), eq("CONTEXT_NOT_FOUND"), any(Instant.class)
+        )).thenReturn(true);
+
+        LookupExecutionResultDto definitionOnlyResult = service.execute(userId, sessionId);
+
+        assertThat(definitionOnlyResult.outcome()).isEqualTo(LookupExecutionResultDto.Outcome.COMPLETED);
+        assertThat(definitionOnlyResult.contextCount()).isZero();
     }
 
     @Test

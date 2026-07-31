@@ -49,13 +49,25 @@ summary:focus-visible {
 .filter-summary-copy small {
   color: var(--color-text-muted);
 }
-.filter-chevron {
+.filter-action {
   margin-left: auto;
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+.filter-chevron {
+  margin-left: var(--space-1);
   color: var(--color-text-muted);
   transition: transform var(--motion-fast) var(--ease-standard);
 }
 .source-filters[open] .filter-chevron {
   transform: rotate(180deg);
+}
+.source-filters[open] .filter-action {
+  background: var(--color-primary-strong);
 }
 .filter-panel {
   display: grid;

@@ -45,9 +45,8 @@ class LookupResultPayloadDtoTest {
     }
 
     @Test
-    void rejectsMissingOrNonConsecutiveContexts() {
-        assertThatThrownBy(() -> new LookupResultPayloadDto(1, entry(), List.of()))
-                .isInstanceOf(IllegalArgumentException.class);
+    void permitsDefinitionOnlyResultsButRejectsNonConsecutiveContexts() {
+        assertThat(new LookupResultPayloadDto(1, entry(), List.of()).contexts()).isEmpty();
         assertThatThrownBy(() -> new LookupResultPayloadDto(
                 1,
                 entry(),
@@ -71,10 +70,22 @@ class LookupResultPayloadDtoTest {
     }
 
     @Test
+    void reconstructsAContextOnlySnapshot() {
+        LookupResultPayloadDto original = LookupResultPayloadDto.create(
+                null, List.of(context(SourceDocumentEntity.Kind.PASTED_TEXT, Map.of()))
+        );
+
+        LookupResultPayloadDto reconstructed = LookupResultPayloadDto.fromMap(original.toMap());
+
+        assertThat(reconstructed.dictionaryEntry()).isNull();
+        assertThat(reconstructed.contexts()).hasSize(1);
+    }
+
+    @Test
     void rejectsMalformedPersistedSnapshot() {
-        assertThatThrownBy(() -> LookupResultPayloadDto.fromMap(Map.of("schemaVersion", 1)))
+        assertThatThrownBy(() -> LookupResultPayloadDto.fromMap(Map.of("schemaVersion", 1, "contexts", List.of())))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("dictionary");
+                .hasMessageContaining("definition or context");
     }
 
     private DictionaryEntryDto entry() {

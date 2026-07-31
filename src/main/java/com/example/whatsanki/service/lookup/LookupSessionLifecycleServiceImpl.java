@@ -178,9 +178,27 @@ public class LookupSessionLifecycleServiceImpl implements LookupSessionLifecycle
             List<ContextExampleDto> contexts,
             Instant now
     ) {
-        Objects.requireNonNull(entry, "entry must not be null");
+        return completePartial(userId, lookupSessionId, entry, contexts, null, now);
+    }
+
+    @Override
+    @Transactional
+    public boolean completePartial(
+            UserId userId,
+            LookupSessionId lookupSessionId,
+            DictionaryEntryDto entry,
+            List<ContextExampleDto> contexts,
+            String resultNotice,
+            Instant now
+    ) {
         Objects.requireNonNull(contexts, "contexts must not be null");
         Objects.requireNonNull(now, "now must not be null");
+        if (entry == null && contexts.isEmpty()) {
+            throw new IllegalArgumentException("A lookup result requires a definition or context");
+        }
+        if (resultNotice != null && !SAFE_ERROR_CODE.matcher(resultNotice).matches()) {
+            throw new IllegalArgumentException("resultNotice must be an uppercase safe diagnostic code");
+        }
         LookupSessionEntity session = ownedSession(userId, lookupSessionId);
         if (session.getStatus() == LookupSessionEntity.Status.READY) {
             if (session.getExpiresAt().isAfter(now)) {
@@ -200,7 +218,7 @@ public class LookupSessionLifecycleServiceImpl implements LookupSessionLifecycle
         LanguagePairDto snapshottedPair = new LanguagePairDto(
                 session.getSourceLanguage(), session.getDefinitionLanguage()
         );
-        if (!snapshottedPair.equals(entry.languagePair())) {
+        if (entry != null && !snapshottedPair.equals(entry.languagePair())) {
             throw LookupExecutionException.permanent("PROVIDER_LANGUAGE_MISMATCH");
         }
         if (contexts.stream().anyMatch(context -> !context.sourceLanguage().value()
@@ -212,7 +230,7 @@ public class LookupSessionLifecycleServiceImpl implements LookupSessionLifecycle
         // data is copied verbatim, so PDF page numbers and future video timestamps survive.
         session.setResultPayload(LookupResultPayloadDto.create(entry, contexts).toMap());
         session.setStatus(LookupSessionEntity.Status.READY);
-        session.setErrorCode(null);
+        session.setErrorCode(resultNotice);
         session.setUpdatedAt(now);
         lookupSessionRepository.save(session);
         // Browser lookups are rendered by the website polling endpoint. They must not attempt

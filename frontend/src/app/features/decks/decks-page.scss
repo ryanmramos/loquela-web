@@ -119,6 +119,8 @@
 }
 
 .deck-body {
+  display: grid;
+  min-width: 0;
   padding: var(--space-5);
 }
 
@@ -132,6 +134,20 @@
   margin: 0 0 var(--space-5);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
+}
+
+.deck-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.deck-actions > * {
+  flex: 0 0 auto;
+}
+
+.deck-actions app-action-menu {
+  margin-left: auto;
 }
 
 .pill,

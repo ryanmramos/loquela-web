@@ -178,6 +178,36 @@ class BrowserLookupServiceImplTest {
         });
     }
 
+    @Test
+    void returnsContextsWhenTheDictionaryDidNotFindADefinition() {
+        UserId userId = UserId.random();
+        LookupSessionEntity session = readyVideoLookup(userId);
+        session.setErrorCode("DEFINITION_NOT_FOUND");
+        ContextExampleDto context = new ContextExampleDto(
+                UUID.randomUUID(),
+                SourceId.random(),
+                SourceDocumentEntity.Kind.PASTED_TEXT,
+                "Personal notes",
+                new LanguageTag("es"),
+                1,
+                "Vivir con intención.",
+                Map.of()
+        );
+        session.setResultPayload(LookupResultPayloadDto.create(null, List.of(context)).toMap());
+        String reference = BrowserReferenceCodec.encode(session.getId());
+        stubUser(userId);
+        when(lookupSessionRepository.findByIdAndUserId(session.getId(), userId.value()))
+                .thenReturn(Optional.of(session));
+
+        var result = service.get("subject", reference);
+
+        assertThat(result.errorCode()).isEqualTo("DEFINITION_NOT_FOUND");
+        assertThat(result.lemma()).isNull();
+        assertThat(result.senses()).isEmpty();
+        assertThat(result.contexts()).singleElement()
+                .satisfies(item -> assertThat(item.displayText()).isEqualTo("Vivir con intención."));
+    }
+
     private void stubUser(UserId userId) {
         when(userIdentityService.findUserId(UserIdentityEntity.Provider.GOOGLE, "subject"))
                 .thenReturn(Optional.of(userId));

@@ -27,18 +27,24 @@ public class LookupResultMessageFormatterImpl implements LookupResultMessageForm
     @Override
     public List<String> format(Map<String, Object> resultPayload) {
         try {
-            Map<String, Object> dictionary = map(required(resultPayload, "dictionary"));
-            List<?> senses = list(required(dictionary, "senses"));
+            Map<String, Object> dictionary = resultPayload.containsKey("dictionary")
+                    ? map(required(resultPayload, "dictionary")) : null;
+            List<?> senses = dictionary == null ? List.of() : list(required(dictionary, "senses"));
             List<?> contexts = list(required(resultPayload, "contexts"));
-            if (senses.isEmpty() || contexts.isEmpty()) {
+            if (senses.isEmpty() && contexts.isEmpty()) {
                 throw new IllegalArgumentException("Lookup result has no definition or context");
             }
-            Pattern contextTermPattern = contextTermPattern(dictionary);
+            Pattern contextTermPattern = dictionary == null ? Pattern.compile("$^") : contextTermPattern(dictionary);
 
             List<String> blocks = new ArrayList<>();
-            blocks.add("Lookup: " + text(dictionary, "lemma") + " ("
-                    + text(dictionary, "sourceLanguage") + " → "
-                    + text(dictionary, "definitionLanguage") + ")");
+            if (dictionary != null) {
+                blocks.add("Lookup: " + text(dictionary, "lemma") + " ("
+                        + text(dictionary, "sourceLanguage") + " → "
+                        + text(dictionary, "definitionLanguage") + ")");
+            }
+            if (senses.isEmpty()) {
+                blocks.add("No dictionary definition was found. Matching corpus contexts are included below.");
+            }
             for (int index = 0; index < senses.size(); index++) {
                 Map<String, Object> sense = map(senses.get(index));
                 blocks.add("Definition " + (index + 1) + " [" + text(sense, "partOfSpeech")
@@ -48,9 +54,14 @@ public class LookupResultMessageFormatterImpl implements LookupResultMessageForm
                 Map<String, Object> context = map(contextValue);
                 blocks.add(formatContext(context, contextTermPattern));
             }
+            if (contexts.isEmpty()) {
+                blocks.add("No matching corpus contexts were found for this lookup.");
+            }
 
-            Map<String, Object> provenance = map(required(dictionary, "provenance"));
-            blocks.add("Dictionary attribution: " + text(provenance, "attributionText"));
+            if (dictionary != null) {
+                Map<String, Object> provenance = map(required(dictionary, "provenance"));
+                blocks.add("Dictionary attribution: " + text(provenance, "attributionText"));
+            }
             return pack(blocks);
         } catch (OutboundDeliveryException exception) {
             throw exception;

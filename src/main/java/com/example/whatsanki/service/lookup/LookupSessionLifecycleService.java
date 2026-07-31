@@ -40,6 +40,15 @@ public interface LookupSessionLifecycleService {
             Instant now
     );
 
+    boolean completePartial(
+            UserId userId,
+            LookupSessionId lookupSessionId,
+            DictionaryEntryDto entry,
+            List<ContextExampleDto> contexts,
+            String resultNotice,
+            Instant now
+    );
+
     void markExpired(UserId userId, LookupSessionId lookupSessionId, Instant now);
 
     void markFailed(UserId userId, LookupSessionId lookupSessionId, String errorCode, Instant now);

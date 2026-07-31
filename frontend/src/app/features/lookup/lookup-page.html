@@ -76,24 +76,39 @@
             <div class="section-head">
               <div>
                 <h2>Results for “{{ result.term }}”</h2>
-                <p>Dictionary attribution and context are stored in this lookup snapshot.</p>
+                <p>Available definitions and corpus contexts are shown independently.</p>
               </div>
               <span class="result-count">{{ (result.contexts ?? []).length }} examples</span>
             </div>
+            @if (result.senses?.length) {
+              <article class="lookup-result lookup-result--definition">
+                <div class="result-main">
+                  <span class="context-label">Dictionary definition</span>
+                  <h3>{{ result.lemma ?? result.term }}</h3>
+                  @for (sense of result.senses ?? []; track $index) {
+                    <p class="definition">
+                      <strong>{{ sense.partOfSpeech }}.</strong> {{ sense.definition }}
+                    </p>
+                  }
+                  <div class="definition-actions">
+                    <button appButton type="button" (click)="chooseDefinition()">
+                      ＋ Save card
+                    </button>
+                    <span>Save this definition without a corpus context.</span>
+                  </div>
+                </div>
+              </article>
+            } @else {
+              <div class="partial-result-notice">
+                <strong>Definition not found</strong>
+                <span>Matching contexts are still available below.</span>
+              </div>
+            }
             <div class="result-list">
-              @for (context of result.contexts ?? []; track context.number; let index = $index) {
+              @for (context of result.contexts ?? []; track context.number) {
                 <article class="lookup-result">
                   <div class="result-main">
-                    @if (result.senses?.[index] ?? result.senses?.[0]; as sense) {
-                      <span class="sense-pill"
-                        >{{ context.number }} · {{ sense.partOfSpeech }}</span
-                      >
-                      <h3>{{ result.lemma ?? result.term }}</h3>
-                      <p class="definition">{{ sense.definition }}</p>
-                    } @else {
-                      <span class="sense-pill">{{ context.number }} · Context</span>
-                      <h3>{{ result.term }}</h3>
-                    }
+                    <span class="sense-pill">{{ context.number }} · Context</span>
                     <span class="context-label">Context from your corpus</span>
                     <p class="context-copy">
                       @for (
@@ -148,9 +163,15 @@
                       </div>
                     }
                     <div class="result-actions">
-                      <button appButton type="button" (click)="chooseContext(context.number ?? 0)">
-                        ＋ Save card
-                      </button>
+                      @if (result.senses?.length) {
+                        <button
+                          appButton
+                          type="button"
+                          (click)="chooseContext(context.number ?? 0)"
+                        >
+                          ＋ Save card
+                        </button>
+                      }
                     </div>
                   </footer>
                 </article>
@@ -160,7 +181,7 @@
               <app-ui-state
                 kind="empty"
                 title="No matching contexts"
-                description="Try another term or broaden the source scope."
+                description="The definition is available above. Try another term or broaden the source scope."
               />
             }
             <aside class="why-notice">
@@ -205,10 +226,14 @@
       <div class="save-modal">
         <span class="ready-pill">Create card</span>
         <h2 id="save-title">Save “{{ lookup()?.term }}”</h2>
-        <p>
-          Choose where this contextual card should live. Its definition and source provenance are
-          saved with it.
-        </p>
+        @if (selectedContext() === 'definition') {
+          <p>Choose where this definition card should live.</p>
+        } @else {
+          <p>
+            Choose where this contextual card should live. Its definition and source provenance are
+            saved with it.
+          </p>
+        }
         <form [formGroup]="saveForm" (ngSubmit)="save()">
           <div class="deck-options">
             @for (deck of decks(); track deck.reference) {

@@ -66,7 +66,7 @@ public class BrowserLookupServiceImpl implements BrowserLookupService {
         List<BrowserLookupDto.ContextDto> contexts = snapshot == null
                 ? List.of()
                 : snapshot.contexts().stream().map(this::context).toList();
-        List<BrowserLookupDto.SenseDto> senses = snapshot == null
+        List<BrowserLookupDto.SenseDto> senses = snapshot == null || snapshot.dictionaryEntry() == null
                 ? List.of()
                 : snapshot.dictionaryEntry().senses().stream()
                 .map(sense -> new BrowserLookupDto.SenseDto(
@@ -81,7 +81,7 @@ public class BrowserLookupServiceImpl implements BrowserLookupService {
                 new LanguagePairDto(session.getSourceLanguage(), session.getDefinitionLanguage()),
                 session.getErrorCode(),
                 session.getExpiresAt(),
-                snapshot == null ? null : snapshot.dictionaryEntry().lemma(),
+                snapshot == null || snapshot.dictionaryEntry() == null ? null : snapshot.dictionaryEntry().lemma(),
                 senses,
                 contexts
         );

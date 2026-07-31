@@ -90,9 +90,12 @@ describe('SettingsPage', () => {
       'Export defaults',
       'Privacy & data',
     ]);
-    expect(providerIcons).toHaveLength(2);
+    expect(providerIcons).toHaveLength(1);
     expect(toggles).toHaveLength(2);
     expect([...toggles].every((toggle) => toggle.getAttribute('role') === 'switch')).toBe(true);
+    expect(element.textContent).not.toContain('WhatsApp');
+    expect(element.textContent).not.toContain('Daily study reminder');
+    expect(element.textContent).not.toContain('Export my data');
 
     sectionButtons[3]?.click();
     expect(setScrollOffset).toHaveBeenCalledWith([0, 88]);

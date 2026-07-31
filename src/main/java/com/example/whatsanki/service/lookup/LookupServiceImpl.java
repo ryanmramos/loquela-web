@@ -110,7 +110,7 @@ public class LookupServiceImpl implements LookupService {
         try {
             entry = provider.lookup(new DictionaryLookupRequestDto(
                     preparation.requestedTerm(), preparation.languagePair()
-            )).orElseThrow(() -> LookupExecutionException.permanent("DEFINITION_NOT_FOUND"));
+            )).orElse(null);
         } catch (UnsupportedDictionaryLanguagePairException exception) {
             throw new LookupExecutionException(
                     BackgroundJobFailureKind.PERMANENT,
@@ -131,13 +131,13 @@ public class LookupServiceImpl implements LookupService {
             );
             throw classified;
         }
-        if (!entry.languagePair().equals(preparation.languagePair())) {
+        if (entry != null && !entry.languagePair().equals(preparation.languagePair())) {
             throw LookupExecutionException.permanent("PROVIDER_LANGUAGE_MISMATCH");
         }
 
         List<ContextExampleDto> contexts = corpusSearch.findExamples(
                 userId,
-                entry.searchTerms(),
+                entry == null ? List.of(preparation.normalizedTerm()) : entry.searchTerms(),
                 new CorpusSearchOptionsDto(
                         new LanguageTag(preparation.languagePair().sourceLanguage()),
                         configuration.getSearch().getLookupResults(),
@@ -145,12 +145,15 @@ public class LookupServiceImpl implements LookupService {
                         preparation.filters().sourceIds(), preparation.filters().sourceKinds()
                 )
         );
-        if (contexts.isEmpty()) {
-            throw LookupExecutionException.permanent("CONTEXT_NOT_FOUND");
+        if (entry == null && contexts.isEmpty()) {
+            // Preserve the existing no-results outcome when neither search produces a value.
+            throw LookupExecutionException.permanent("DEFINITION_NOT_FOUND");
         }
 
-        boolean completed = lifecycleService.complete(
-                userId, lookupSessionId, entry, contexts, Instant.now()
+        String resultNotice = entry == null ? "DEFINITION_NOT_FOUND"
+                : contexts.isEmpty() ? "CONTEXT_NOT_FOUND" : null;
+        boolean completed = lifecycleService.completePartial(
+                userId, lookupSessionId, entry, contexts, resultNotice, Instant.now()
         );
         LookupExecutionResultDto.Outcome outcome = completed
                 ? LookupExecutionResultDto.Outcome.COMPLETED

@@ -19,11 +19,13 @@ public record LookupResultPayloadDto(
         if (schemaVersion != CURRENT_SCHEMA_VERSION) {
             throw new IllegalArgumentException("Unsupported lookup result schema version");
         }
-        Objects.requireNonNull(dictionaryEntry, "dictionaryEntry must not be null");
-        if (contexts == null || contexts.isEmpty() || contexts.stream().anyMatch(Objects::isNull)) {
-            throw new IllegalArgumentException("contexts must contain at least one non-null result");
+        if (contexts == null || contexts.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("contexts must not contain null results");
         }
         contexts = List.copyOf(contexts);
+        if (dictionaryEntry == null && contexts.isEmpty()) {
+            throw new IllegalArgumentException("lookup result must contain a definition or context");
+        }
         for (int index = 0; index < contexts.size(); index++) {
             if (contexts.get(index).number() != index + 1) {
                 throw new IllegalArgumentException("contexts must be numbered consecutively from one");
@@ -38,7 +40,9 @@ public record LookupResultPayloadDto(
     public Map<String, Object> toMap() {
         LinkedHashMap<String, Object> payload = new LinkedHashMap<>();
         payload.put("schemaVersion", schemaVersion);
-        payload.put("dictionary", dictionaryMap());
+        if (dictionaryEntry != null) {
+            payload.put("dictionary", dictionaryMap());
+        }
         payload.put("contexts", contexts.stream().map(this::contextMap).toList());
         return Map.copyOf(payload);
     }
@@ -102,23 +106,25 @@ public record LookupResultPayloadDto(
     public static LookupResultPayloadDto fromMap(Map<String, Object> payload) {
         Map<String, Object> root = requiredMap(payload, "lookup result");
         int schemaVersion = requiredInt(root.get("schemaVersion"), "schemaVersion");
-        Map<String, Object> dictionary = requiredMap(root.get("dictionary"), "dictionary");
-
-        LanguagePairDto languagePair = new LanguagePairDto(
-                requiredString(dictionary.get("sourceLanguage"), "sourceLanguage"),
-                requiredString(dictionary.get("definitionLanguage"), "definitionLanguage")
-        );
-        DictionaryProvenanceDto provenance = provenance(
-                requiredMap(dictionary.get("provenance"), "provenance")
-        );
-        DictionaryEntryDto entry = new DictionaryEntryDto(
-                requiredString(dictionary.get("requestedTerm"), "requestedTerm"),
-                requiredString(dictionary.get("lemma"), "lemma"),
-                stringList(dictionary.get("forms"), "forms"),
-                senses(dictionary.get("senses")),
-                languagePair,
-                provenance
-        );
+        DictionaryEntryDto entry = null;
+        if (root.containsKey("dictionary")) {
+            Map<String, Object> dictionary = requiredMap(root.get("dictionary"), "dictionary");
+            LanguagePairDto languagePair = new LanguagePairDto(
+                    requiredString(dictionary.get("sourceLanguage"), "sourceLanguage"),
+                    requiredString(dictionary.get("definitionLanguage"), "definitionLanguage")
+            );
+            DictionaryProvenanceDto provenance = provenance(
+                    requiredMap(dictionary.get("provenance"), "provenance")
+            );
+            entry = new DictionaryEntryDto(
+                    requiredString(dictionary.get("requestedTerm"), "requestedTerm"),
+                    requiredString(dictionary.get("lemma"), "lemma"),
+                    stringList(dictionary.get("forms"), "forms"),
+                    senses(dictionary.get("senses")),
+                    languagePair,
+                    provenance
+            );
+        }
 
         Object rawContexts = root.get("contexts");
         if (!(rawContexts instanceof List<?> contextValues)) {

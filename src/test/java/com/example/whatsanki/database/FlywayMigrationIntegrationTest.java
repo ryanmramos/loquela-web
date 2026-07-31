@@ -26,7 +26,7 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
     @Test
     void validatesAllMigrationsAgainstPostgreSql() {
         assertThatCode(flyway::validate).doesNotThrowAnyException();
-        assertThat(flyway.info().applied()).hasSize(27);
+        assertThat(flyway.info().applied()).hasSize(28);
     }
 
     @Test
@@ -148,6 +148,13 @@ class FlywayMigrationIntegrationTest extends PostgreSqlIntegrationTest {
                   and table_name = 'lookup_session'
                 """, String.class);
         assertThat(lookupColumns).contains("inbound_message_id", "status", "error_code", "updated_at");
+
+        String lookupResultStateConstraint = jdbcTemplate.queryForObject("""
+                select pg_get_constraintdef(oid)
+                from pg_constraint
+                where conname = 'ck_lookup_session_error_state'
+                """, String.class);
+        assertThat(lookupResultStateConstraint).contains("CONTEXT_NOT_FOUND", "DEFINITION_NOT_FOUND");
 
         List<String> cardColumns = jdbcTemplate.queryForList("""
                 select column_name

@@ -91,10 +91,10 @@
       <div>
         <p class="eyebrow">Corpus storage</p>
         <h2 id="storage-balance-title">Storage balance</h2>
-        <p>Storage limits are not active yet. Your corpus is currently unrestricted.</p>
+        <p>Your corpus storage is unlimited.</p>
       </div>
       <div class="storage-balance__status">
-        <strong>Unlimited for now</strong>
+        <strong>Unlimited</strong>
         @if (dashboard.storage.status === 'AVAILABLE') {
           <span>{{ formatStorage(dashboard.storage.usedBytes ?? 0) }} used</span>
         } @else {
