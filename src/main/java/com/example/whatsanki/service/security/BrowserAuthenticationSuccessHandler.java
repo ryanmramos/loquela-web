@@ -9,8 +9,11 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Instant;
 
 public final class BrowserAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+    public static final String RECENT_AUTHENTICATION_AT =
+            BrowserAuthenticationSuccessHandler.class.getName() + ".RECENT_AUTHENTICATION_AT";
 
     private final URI frontendBaseUrl;
 
@@ -30,6 +33,7 @@ public final class BrowserAuthenticationSuccessHandler implements Authentication
                 : session.getAttribute(BrowserReturnPath.SESSION_ATTRIBUTE);
         if (session != null) {
             session.removeAttribute(BrowserReturnPath.SESSION_ATTRIBUTE);
+            session.setAttribute(RECENT_AUTHENTICATION_AT, Instant.now().toEpochMilli());
         }
         String returnPath = BrowserReturnPath.validate(requested instanceof String path ? path : null);
         response.sendRedirect(frontendUrl(frontendBaseUrl, returnPath));

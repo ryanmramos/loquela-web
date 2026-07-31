@@ -34,13 +34,17 @@ public class YtDlpYouTubeSubtitleProvider implements YouTubeSubtitleProvider {
     private final WhatsAnkiConfigurationDto configuration;
 
     @Override
-    public YouTubeSubtitleResultDto fetch(String videoId, String sourceLanguage) {
+    public YouTubeSubtitleResultDto fetch(
+            String videoId,
+            String sourceLanguage,
+            boolean automaticCaptionFallback
+    ) {
         String canonicalUrl = "https://www.youtube.com/watch?v=" + videoId;
         Path directory = createTemporaryDirectory();
         try {
             String version = version(directory);
             JsonNode metadata = metadata(canonicalUrl, directory);
-            CaptionSelection selection = selectCaption(metadata, sourceLanguage);
+            CaptionSelection selection = selectCaption(metadata, sourceLanguage, automaticCaptionFallback);
             Path vtt = downloadCaption(canonicalUrl, selection, directory);
             long size = Files.size(vtt);
             if (size <= 0 || size > configuration.getYoutube().getMaxSubtitleBytes()) {
@@ -101,10 +105,15 @@ public class YtDlpYouTubeSubtitleProvider implements YouTubeSubtitleProvider {
         }
     }
 
-    private CaptionSelection selectCaption(JsonNode metadata, String sourceLanguage) {
+    private CaptionSelection selectCaption(
+            JsonNode metadata,
+            String sourceLanguage,
+            boolean automaticCaptionFallback
+    ) {
         String manual = compatibleLanguage(metadata.path("subtitles"), sourceLanguage);
         if (manual != null) return new CaptionSelection(manual, VideoSourceEntity.CaptionKind.MANUAL);
-        if (configuration.getYoutube().isAutomaticCaptionFallback()) {
+        // Deployment policy is the upper bound; a user may only further restrict it.
+        if (configuration.getYoutube().isAutomaticCaptionFallback() && automaticCaptionFallback) {
             String automatic = compatibleLanguage(metadata.path("automatic_captions"), sourceLanguage);
             if (automatic != null) return new CaptionSelection(automatic, VideoSourceEntity.CaptionKind.AUTOMATIC);
         }

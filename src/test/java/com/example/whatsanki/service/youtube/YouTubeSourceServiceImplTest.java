@@ -63,6 +63,7 @@ class YouTubeSourceServiceImplTest {
         user.setId(userId.value());
         user.setStatus(AppUserEntity.Status.ACTIVE);
         user.setSourceLanguage("es-MX");
+        user.setAutomaticCaptionFallback(false);
         JobId jobId = JobId.random();
 
         when(sourceDocumentRepository.findByUserIdAndInboundMessageId(userId.value(), inboundId.value()))
@@ -92,6 +93,8 @@ class YouTubeSourceServiceImplTest {
         assertThat(source.getValue().getKind()).isEqualTo(SourceDocumentEntity.Kind.YOUTUBE_VIDEO);
         assertThat(source.getValue().getStatus()).isEqualTo(SourceDocumentEntity.Status.RECEIVED);
         assertThat(source.getValue().getLanguage()).isEqualTo("es-MX");
+        assertThat(source.getValue().getMetadata())
+                .containsEntry("automaticCaptionFallback", false);
         assertThat(video.getValue().getProviderVideoId()).isEqualTo("dQw4w9WgXcQ");
         assertThat(video.getValue().getCaptionKind()).isEqualTo(VideoSourceEntity.CaptionKind.PENDING);
         assertThat(payload.getValue()).containsOnlyKeys("schemaVersion", "sourceId");

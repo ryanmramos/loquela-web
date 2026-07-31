@@ -1,6 +1,7 @@
 package com.example.whatsanki.service.export;
 
 import com.example.whatsanki.domain.BackgroundJobEntity;
+import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.CardEntity;
 import com.example.whatsanki.domain.ExportRequestEntity;
 import com.example.whatsanki.domain.ExportRequestId;
@@ -15,6 +16,7 @@ import com.example.whatsanki.dto.ExportedDeckDto;
 import com.example.whatsanki.dto.OutboundMessageDto;
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
 import com.example.whatsanki.repository.CardRepository;
+import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.DeckRepository;
 import com.example.whatsanki.repository.ExportRequestRepository;
 import com.example.whatsanki.service.UserIdentityService;
@@ -55,6 +57,7 @@ public class DeckExportServiceImpl implements DeckExportService {
 
     private final DeckRepository deckRepository;
     private final CardRepository cardRepository;
+    private final AppUserRepository appUserRepository;
     private final ExportRequestRepository exportRequestRepository;
     private final BackgroundJobService backgroundJobService;
     private final DeckExportLifecycleService lifecycleService;
@@ -80,9 +83,18 @@ public class DeckExportServiceImpl implements DeckExportService {
         if (cards.isEmpty()) {
             throw DeckExportException.permanent("DECK_EMPTY");
         }
+        AppUserEntity user = appUserRepository.findById(userId.value())
+                .orElseThrow(() -> DeckExportException.permanent("USER_NOT_FOUND"));
 
         ExportRequestId exportRequestId = ExportRequestId.random();
-        Map<String, Object> snapshot = snapshot(exportRequestId, deck.getId().toString(), deck.getName(), cards);
+        String exportedDeckName = user.getExportDeckPrefix() + deck.getName();
+        Map<String, Object> snapshot = snapshot(
+                exportRequestId,
+                deck.getId().toString(),
+                exportedDeckName,
+                cards,
+                user.isExportIncludeProvenance()
+        );
         byte[] snapshotSha256 = sha256(canonicalJson(snapshot));
 
         ExportRequestEntity export = new ExportRequestEntity();
@@ -148,7 +160,8 @@ public class DeckExportServiceImpl implements DeckExportService {
             ExportRequestId exportRequestId,
             String deckId,
             String deckName,
-            List<CardEntity> cards
+            List<CardEntity> cards,
+            boolean includeProvenance
     ) {
         List<Map<String, Object>> cardSnapshots = new ArrayList<>();
         for (CardEntity card : cards) {
@@ -159,7 +172,7 @@ public class DeckExportServiceImpl implements DeckExportService {
             if (!(ankiValue instanceof Map<?, ?> anki)) {
                 throw DeckExportException.permanent("CARD_SNAPSHOT_INVALID");
             }
-            cardSnapshots.add(cardSnapshot(card, anki));
+            cardSnapshots.add(cardSnapshot(card, anki, includeProvenance));
         }
         LinkedHashMap<String, Object> snapshot = new LinkedHashMap<>();
         snapshot.put("schemaVersion", SNAPSHOT_SCHEMA_VERSION);
@@ -170,7 +183,11 @@ public class DeckExportServiceImpl implements DeckExportService {
         return Collections.unmodifiableMap(snapshot);
     }
 
-    private Map<String, Object> cardSnapshot(CardEntity card, Map<?, ?> anki) {
+    private Map<String, Object> cardSnapshot(
+            CardEntity card,
+            Map<?, ?> anki,
+            boolean includeProvenance
+    ) {
         if (!(anki.get("schemaVersion") instanceof Number version) || version.intValue() != 1
                 || !AnkiCardFieldsDto.NOTE_TYPE_NAME.equals(anki.get("noteTypeName"))
                 || !TEMPLATE_VERSION.equals(anki.get("templateVersion"))
@@ -183,7 +200,12 @@ public class DeckExportServiceImpl implements DeckExportService {
             if (!(value instanceof String text)) {
                 throw DeckExportException.permanent("CARD_SNAPSHOT_INVALID");
             }
-            fields.put(field, text);
+            fields.put(
+                    field,
+                    !includeProvenance && ("SourceName".equals(field) || "SourceLocator".equals(field))
+                            ? ""
+                            : text
+            );
         }
         if (storedFields.size() != fields.size()) {
             throw DeckExportException.permanent("CARD_SNAPSHOT_INVALID");

@@ -592,6 +592,35 @@
         }
       }
     },
+    "/api/v1/account-deletion-requests" : {
+      "post" : {
+        "tags" : [ "browser-privacy-controller" ],
+        "summary" : "Queue recently reauthenticated account deletion",
+        "operationId" : "createBrowserAccountDeletion",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BrowserAccountDeletionRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserAccountDeletionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sources/{sourceReference}" : {
       "get" : {
         "tags" : [ "browser-source-controller" ],
@@ -672,6 +701,52 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/BrowserSourceSummaryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings" : {
+      "get" : {
+        "tags" : [ "browser-settings-controller" ],
+        "summary" : "Read Google metadata and user preferences",
+        "operationId" : "getBrowserSettings",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserSettingsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch" : {
+        "tags" : [ "browser-settings-controller" ],
+        "summary" : "Update future-work settings",
+        "operationId" : "updateBrowserSettings",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateBrowserSettingsRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserSettingsDto"
                 }
               }
             }
@@ -1162,6 +1237,14 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "name" : "reauthenticate",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
         } ],
         "responses" : {
           "302" : {
@@ -1612,6 +1695,30 @@
           }
         }
       },
+      "BrowserAccountDeletionRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "confirmationPhrase" : {
+            "type" : "string",
+            "pattern" : "DELETE MY ACCOUNT"
+          }
+        }
+      },
+      "BrowserAccountDeletionDto" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string"
+          },
+          "jobReference" : {
+            "type" : "string"
+          },
+          "acceptedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
       "RenameSourceRequestDto" : {
         "type" : "object",
         "properties" : {
@@ -1681,6 +1788,97 @@
         },
         "required" : [ "createdAt", "databaseSizeBytes", "displayName", "kind", "language", "reference", "retryable", "status", "updatedAt", "version" ]
       },
+      "UpdateBrowserSettingsRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "sourceLanguage" : {
+            "type" : "string",
+            "maxLength" : 35,
+            "minLength" : 0
+          },
+          "definitionLanguage" : {
+            "type" : "string",
+            "maxLength" : 35,
+            "minLength" : 0
+          },
+          "automaticCaptionFallback" : {
+            "type" : "boolean"
+          },
+          "exportDeckPrefix" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "exportIncludeProvenance" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "definitionLanguage", "sourceLanguage" ]
+      },
+      "BrowserSettingsDto" : {
+        "type" : "object",
+        "properties" : {
+          "profile" : {
+            "$ref" : "#/components/schemas/ProfileDto"
+          },
+          "linkedAccounts" : {
+            "$ref" : "#/components/schemas/LinkedAccountsDto"
+          },
+          "languagePair" : {
+            "$ref" : "#/components/schemas/LanguagePairDto"
+          },
+          "supportedPairs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LanguagePairDto"
+            }
+          },
+          "automaticCaptionFallback" : {
+            "type" : "boolean"
+          },
+          "exportDeckPrefix" : {
+            "type" : "string"
+          },
+          "exportIncludeProvenance" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "exportDeckPrefix", "languagePair", "linkedAccounts", "profile", "supportedPairs" ]
+      },
+      "LanguagePairDto" : {
+        "type" : "object",
+        "properties" : {
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "definitionLanguage" : {
+            "type" : "string"
+          }
+        }
+      },
+      "LinkedAccountsDto" : {
+        "type" : "object",
+        "properties" : {
+          "google" : {
+            "type" : "boolean"
+          },
+          "whatsapp" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "google", "whatsapp" ]
+      },
+      "ProfileDto" : {
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          }
+        }
+      },
       "UpdateLanguageSettingsRequestDto" : {
         "type" : "object",
         "properties" : {
@@ -1708,17 +1906,6 @@
             "items" : {
               "$ref" : "#/components/schemas/LanguagePairDto"
             }
-          }
-        }
-      },
-      "LanguagePairDto" : {
-        "type" : "object",
-        "properties" : {
-          "sourceLanguage" : {
-            "type" : "string"
-          },
-          "definitionLanguage" : {
-            "type" : "string"
           }
         }
       },
@@ -1762,18 +1949,6 @@
           }
         },
         "required" : [ "accountState", "definitionLanguage", "linkedAccounts", "sourceLanguage", "userId" ]
-      },
-      "LinkedAccountsDto" : {
-        "type" : "object",
-        "properties" : {
-          "google" : {
-            "type" : "boolean"
-          },
-          "whatsapp" : {
-            "type" : "boolean"
-          }
-        },
-        "required" : [ "google", "whatsapp" ]
       },
       "SourceListDto" : {
         "type" : "object",

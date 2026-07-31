@@ -6,6 +6,7 @@ import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.security.AuthenticationRateLimitFilter;
 import com.example.whatsanki.service.security.BrowserAuthenticationSuccessHandler;
 import com.example.whatsanki.service.security.CsrfCookieFilter;
+import com.example.whatsanki.service.security.ReauthenticationAuthorizationRequestResolver;
 import com.example.whatsanki.service.security.SpaCsrfTokenRequestHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
@@ -42,7 +44,10 @@ public class BrowserSecurityConfiguration {
     private final UserIdentityService userIdentityService;
 
     @Bean
-    SecurityFilterChain applicationSecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain applicationSecurityFilterChain(
+            HttpSecurity http,
+            ClientRegistrationRepository clientRegistrationRepository
+    ) throws Exception {
         CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepository.setCookieCustomizer(cookie -> cookie
                 .path("/")
@@ -99,6 +104,9 @@ public class BrowserSecurityConfiguration {
 
         if (configuration.getSecurity().isGoogleOauthEnabled()) {
             http.oauth2Login(oauth -> oauth
+                    .authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(
+                            new ReauthenticationAuthorizationRequestResolver(clientRegistrationRepository)
+                    ))
                     .userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService()))
                     .successHandler(new BrowserAuthenticationSuccessHandler(
                             configuration.getSecurity().getFrontendBaseUrl()

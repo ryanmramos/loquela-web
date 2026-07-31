@@ -6,5 +6,6 @@ public record YouTubeIngestionPreparationDto(
         SourceId sourceId,
         String videoId,
         String sourceLanguage,
+        boolean automaticCaptionFallback,
         boolean alreadyReady
 ) { }

@@ -41,9 +41,9 @@ public class BrowserSessionServiceImpl implements BrowserSessionService {
         byte[] subjectHash = identityProtectionService.hashSubject(googleSubject);
         UserIdentityEntity googleIdentity = userIdentityRepository.findByProviderAndProviderSubjectHash(
                 UserIdentityEntity.Provider.GOOGLE, subjectHash
-        ).orElseThrow(() -> new IllegalStateException("Authenticated Google identity is not linked"));
+        ).orElseThrow(() -> new BrowserAccountUnavailableException("ACCOUNT_DELETED"));
         AppUserEntity user = appUserRepository.findById(googleIdentity.getUserId())
-                .orElseThrow(() -> new IllegalStateException("Authenticated user does not exist"));
+                .orElseThrow(() -> new BrowserAccountUnavailableException("ACCOUNT_DELETED"));
         if (user.getStatus() == AppUserEntity.Status.DISABLED) {
             throw new BrowserAccountUnavailableException("ACCOUNT_DISABLED");
         }
@@ -53,7 +53,7 @@ public class BrowserSessionServiceImpl implements BrowserSessionService {
     private UserIdentityEntity findGoogleIdentity(String googleSubject) {
         return userIdentityRepository.findByProviderAndProviderSubjectHash(
                 UserIdentityEntity.Provider.GOOGLE, identityProtectionService.hashSubject(googleSubject)
-        ).orElseThrow(() -> new IllegalStateException("Authenticated Google identity is not linked"));
+        ).orElseThrow(() -> new BrowserAccountUnavailableException("ACCOUNT_DELETED"));
     }
 
     private BrowserSessionDto toSession(UserIdentityEntity googleIdentity, AppUserEntity user) {

@@ -64,7 +64,8 @@ class YouTubeCorpusIntegrationTest extends PostgreSqlIntegrationTest {
                 List.of(new TimedCaptionCueDto(8_000, 12_000, "Quiero vivir aquí."))
         );
         var ingestion = new YouTubeIngestionServiceImpl(
-                lifecycleService, (videoId, language) -> result, passageBuilder, configuration
+                lifecycleService, (videoId, language, automaticFallback) -> result,
+                passageBuilder, configuration
         );
 
         ingestion.fetchAndIndex(userId, sourceId);

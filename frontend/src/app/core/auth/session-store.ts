@@ -31,4 +31,14 @@ export class SessionStore {
       ...(notice ? { notice } : {}),
     });
   }
+
+  markDeleting(): void {
+    const current = this.mutableView();
+    if (current.user) {
+      this.mutableView.set({
+        status: 'deleting',
+        user: { ...current.user, accountState: 'DELETING' },
+      });
+    }
+  }
 }

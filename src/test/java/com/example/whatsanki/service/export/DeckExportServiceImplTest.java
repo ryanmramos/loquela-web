@@ -1,6 +1,7 @@
 package com.example.whatsanki.service.export;
 
 import com.example.whatsanki.domain.BackgroundJobEntity;
+import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.CardEntity;
 import com.example.whatsanki.domain.DeckEntity;
 import com.example.whatsanki.domain.ExportRequestEntity;
@@ -15,6 +16,7 @@ import com.example.whatsanki.dto.DeckExportPreparationDto;
 import com.example.whatsanki.dto.ExportedDeckDto;
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
 import com.example.whatsanki.repository.CardRepository;
+import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.DeckRepository;
 import com.example.whatsanki.repository.ExportRequestRepository;
 import com.example.whatsanki.service.UserIdentityService;
@@ -53,6 +55,7 @@ import static org.mockito.Mockito.when;
 class DeckExportServiceImplTest {
     @Mock private DeckRepository deckRepository;
     @Mock private CardRepository cardRepository;
+    @Mock private AppUserRepository appUserRepository;
     @Mock private ExportRequestRepository exportRequestRepository;
     @Mock private BackgroundJobService backgroundJobService;
     @Mock private DeckExportLifecycleService lifecycleService;
@@ -68,7 +71,7 @@ class DeckExportServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new DeckExportServiceImpl(
-                deckRepository, cardRepository, exportRequestRepository, backgroundJobService,
+                deckRepository, cardRepository, appUserRepository, exportRequestRepository, backgroundJobService,
                 lifecycleService, deckExporter, objectStore, new ObjectKeyFactory(),
                 userIdentityService, outboundMessenger, objectMapper
         );
@@ -84,6 +87,11 @@ class DeckExportServiceImplTest {
                 .thenReturn(Optional.of(deck));
         when(cardRepository.findAllByUserIdAndDeckIdOrderByCreatedAt(userId.value(), deck.getId()))
                 .thenReturn(java.util.List.of(card));
+        AppUserEntity user = new AppUserEntity();
+        user.setId(userId.value());
+        user.setExportDeckPrefix("Loquela — ");
+        user.setExportIncludeProvenance(true);
+        when(appUserRepository.findById(userId.value())).thenReturn(Optional.of(user));
         when(backgroundJobService.enqueue(eq(userId), eq(BackgroundJobEntity.Type.EXPORT_DECK), any()))
                 .thenReturn(jobId);
 
@@ -104,6 +112,10 @@ class DeckExportServiceImplTest {
         Map<String, String> fields = (Map<String, String>) anki.get("fields");
         assertThat(fields.keySet()).containsExactlyElementsOf(AnkiCardFieldsDto.FIELD_ORDER);
         assertThat(fields.get("ContextBefore")).isEqualTo("Quiero ");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> snapshotDeck =
+                (Map<String, Object>) export.getValue().getSnapshotPayload().get("deck");
+        assertThat(snapshotDeck.get("name")).isEqualTo("Loquela — Spanish Reading");
         verify(backgroundJobService).enqueue(
                 eq(userId), eq(BackgroundJobEntity.Type.EXPORT_DECK),
                 eq(Map.of("schemaVersion", 1, "exportRequestId", accepted.exportRequestId().value().toString()))

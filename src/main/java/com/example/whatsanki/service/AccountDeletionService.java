@@ -10,6 +10,8 @@ public interface AccountDeletionService {
 
     AccountDeletionConfirmationResultDto confirm(UserId userId, String confirmationCode);
 
+    AccountDeletionConfirmationResultDto confirmBrowser(UserId userId);
+
     boolean isDeletionInProgress(UserId userId);
 
     void delete(UserId userId, JobId deletionJobId);

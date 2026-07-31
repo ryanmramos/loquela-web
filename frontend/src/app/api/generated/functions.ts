@@ -73,6 +73,12 @@ export type { Delete$Params as Delete$Params } from './fn/browser-card-controlle
 export { delete$ as delete$ } from './fn/browser-card-controller/delete';
 export type { UpdateBrowserCard$Params as UpdateBrowserCard$Params } from './fn/browser-card-controller/update-browser-card';
 export { updateBrowserCard as updateBrowserCard } from './fn/browser-card-controller/update-browser-card';
+export type { CreateBrowserAccountDeletion$Params as CreateBrowserAccountDeletion$Params } from './fn/browser-privacy-controller/create-browser-account-deletion';
+export { createBrowserAccountDeletion as createBrowserAccountDeletion } from './fn/browser-privacy-controller/create-browser-account-deletion';
+export type { GetBrowserSettings$Params as GetBrowserSettings$Params } from './fn/browser-settings-controller/get-browser-settings';
+export { getBrowserSettings as getBrowserSettings } from './fn/browser-settings-controller/get-browser-settings';
+export type { UpdateBrowserSettings$Params as UpdateBrowserSettings$Params } from './fn/browser-settings-controller/update-browser-settings';
+export { updateBrowserSettings as updateBrowserSettings } from './fn/browser-settings-controller/update-browser-settings';
 export type { GetBrowserLanguageSettings$Params as GetBrowserLanguageSettings$Params } from './fn/browser-language-settings-controller/get-browser-language-settings';
 export { getBrowserLanguageSettings as getBrowserLanguageSettings } from './fn/browser-language-settings-controller/get-browser-language-settings';
 export type { UpdateBrowserLanguageSettings$Params as UpdateBrowserLanguageSettings$Params } from './fn/browser-language-settings-controller/update-browser-language-settings';

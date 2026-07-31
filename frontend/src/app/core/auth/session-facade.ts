@@ -47,6 +47,30 @@ export class SessionFacade {
     return this.loadRequest;
   }
 
+  refresh(): Observable<SessionView> {
+    return this.api.getCurrent().pipe(
+      tap((session) => this.store.setAuthenticated(session)),
+      map(() => this.view()),
+      catchError((error: unknown) => {
+        if (error instanceof ApiProblemError && error.problem.status === 401) {
+          this.store.setAnonymous();
+          return of(this.view());
+        }
+        if (
+          error instanceof ApiProblemError &&
+          error.problem.status === 403 &&
+          (error.problem.code === 'ACCOUNT_DISABLED' || error.problem.code === 'ACCOUNT_DELETED')
+        ) {
+          this.store.setAnonymous(
+            error.problem.code === 'ACCOUNT_DISABLED' ? 'account-disabled' : undefined,
+          );
+          return of(this.view());
+        }
+        return throwError(() => error);
+      }),
+    );
+  }
+
   loginLocally(accountId: LocalAccountId): Observable<SessionView> {
     return this.api.localLogin(accountId).pipe(
       tap((session) => this.store.setAuthenticated(session)),
@@ -64,5 +88,9 @@ export class SessionFacade {
       tap((session) => this.store.setAuthenticated(session)),
       map(() => undefined),
     );
+  }
+
+  markDeleting(): void {
+    this.store.markDeleting();
   }
 }

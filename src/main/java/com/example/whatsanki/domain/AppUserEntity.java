@@ -34,6 +34,15 @@ public class AppUserEntity {
     @Column(name = "interface_language", length = 2)
     private String interfaceLanguage;
 
+    @Column(name = "automatic_caption_fallback", nullable = false)
+    private boolean automaticCaptionFallback = true;
+
+    @Column(name = "export_deck_prefix", nullable = false, length = 100)
+    private String exportDeckPrefix = "Loquela — ";
+
+    @Column(name = "export_include_provenance", nullable = false)
+    private boolean exportIncludeProvenance = true;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 24)
     private Status status;

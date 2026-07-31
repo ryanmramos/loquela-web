@@ -95,7 +95,12 @@ public class YouTubeSourceServiceImpl implements YouTubeSourceService {
         source.setDisplayName("YouTube · " + reference.videoId());
         source.setStatus(SourceDocumentEntity.Status.RECEIVED);
         source.setLanguage(language);
-        source.setMetadata(new LinkedHashMap<>(Map.of("origin", origin)));
+        // Snapshot the preference at acceptance so changing Settings cannot alter
+        // an already queued or retried ingestion.
+        source.setMetadata(new LinkedHashMap<>(Map.of(
+                "origin", origin,
+                "automaticCaptionFallback", user.isAutomaticCaptionFallback()
+        )));
         sourceDocumentRepository.save(source);
 
         VideoSourceEntity video = new VideoSourceEntity();

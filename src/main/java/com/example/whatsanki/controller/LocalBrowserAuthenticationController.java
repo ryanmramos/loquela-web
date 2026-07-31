@@ -3,6 +3,7 @@ package com.example.whatsanki.controller;
 import com.example.whatsanki.dto.BrowserSessionDto;
 import com.example.whatsanki.dto.LocalLoginRequestDto;
 import com.example.whatsanki.service.BrowserSessionService;
+import com.example.whatsanki.service.security.BrowserAuthenticationSuccessHandler;
 import com.example.whatsanki.service.UserIdentityService;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
+import java.time.Instant;
 
 /**
  * Creates normal server-side sessions for fixed, non-secret local accounts.
@@ -67,6 +69,10 @@ public class LocalBrowserAuthenticationController {
         );
         request.getSession();
         request.changeSessionId();
+        request.getSession().setAttribute(
+                BrowserAuthenticationSuccessHandler.RECENT_AUTHENTICATION_AT,
+                Instant.now().toEpochMilli()
+        );
 
         UsernamePasswordAuthenticationToken authentication =
                 UsernamePasswordAuthenticationToken.authenticated(

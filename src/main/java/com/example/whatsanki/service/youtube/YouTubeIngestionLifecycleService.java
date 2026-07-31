@@ -38,7 +38,10 @@ public class YouTubeIngestionLifecycleService {
         if (source.getKind() != SourceDocumentEntity.Kind.YOUTUBE_VIDEO) throw permanent("INVALID_YOUTUBE_SOURCE");
         if (source.getStatus() == SourceDocumentEntity.Status.READY) {
             VideoSourceEntity video = video(userId, sourceId);
-            return new YouTubeIngestionPreparationDto(sourceId, video.getProviderVideoId(), source.getLanguage(), true);
+            return new YouTubeIngestionPreparationDto(
+                    sourceId, video.getProviderVideoId(), source.getLanguage(),
+                    automaticCaptionFallback(source), true
+            );
         }
         if (source.getStatus() == SourceDocumentEntity.Status.DELETING) throw permanent("YOUTUBE_SOURCE_DELETING");
         if (source.getStatus() != SourceDocumentEntity.Status.RECEIVED
@@ -50,7 +53,10 @@ public class YouTubeIngestionLifecycleService {
         source.setErrorDetailSafe(null);
         sourceDocumentRepository.save(source);
         VideoSourceEntity video = video(userId, sourceId);
-        return new YouTubeIngestionPreparationDto(sourceId, video.getProviderVideoId(), source.getLanguage(), false);
+        return new YouTubeIngestionPreparationDto(
+                sourceId, video.getProviderVideoId(), source.getLanguage(),
+                automaticCaptionFallback(source), false
+        );
     }
 
     @Transactional
@@ -123,6 +129,13 @@ public class YouTubeIngestionLifecycleService {
     private VideoSourceEntity video(UserId userId, SourceId sourceId) {
         return videoSourceRepository.findBySourceIdAndUserId(sourceId.value(), userId.value())
                 .orElseThrow(() -> permanent("YOUTUBE_VIDEO_METADATA_NOT_FOUND"));
+    }
+
+    private boolean automaticCaptionFallback(SourceDocumentEntity source) {
+        Object value = source.getMetadata().get("automaticCaptionFallback");
+        // Sources accepted before the per-user preference existed retain the
+        // historical default instead of changing behavior during migration.
+        return !(value instanceof Boolean enabled) || enabled;
     }
 
     private YouTubeSubtitleException permanent(String code) {

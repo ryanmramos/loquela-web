@@ -5,6 +5,7 @@ import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.service.exception.BrowserAccountUnavailableException;
 import com.example.whatsanki.service.exception.BrowserDeckException;
 import com.example.whatsanki.service.exception.BrowserPracticeException;
+import com.example.whatsanki.service.exception.BrowserPrivacyException;
 import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.exception.BrowserSourceNotFoundException;
 import com.example.whatsanki.service.exception.BrowserSourceValidationException;
@@ -42,6 +43,22 @@ public class GlobalExceptionHandler {
                 exception.getProblemCode(),
                 "Practice session could not be completed",
                 "Refresh the practice page or start a new session.",
+                request
+        );
+    }
+
+    @ExceptionHandler(BrowserPrivacyException.class)
+    public ResponseEntity<ApiProblemDto> handlePrivacy(
+            BrowserPrivacyException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                exception.status(),
+                exception.problemCode(),
+                "Privacy request could not be completed",
+                exception.problemCode().equals("RECENT_AUTHENTICATION_REQUIRED")
+                        ? "Sign in with Google again before deleting the account."
+                        : "Review the confirmation and try again.",
                 request
         );
     }

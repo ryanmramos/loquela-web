@@ -10,12 +10,14 @@ import { RequestBuilder } from '../../request-builder';
 
 export interface StartGoogleLogin$Params {
   returnTo?: string;
+  reauthenticate?: boolean;
 }
 
 export function startGoogleLogin(http: HttpClient, rootUrl: string, params?: StartGoogleLogin$Params, context?: HttpContext): Observable<StrictHttpResponse<void>> {
   const rb = new RequestBuilder(rootUrl, startGoogleLogin.PATH, 'get');
   if (params) {
     rb.query('returnTo', params.returnTo, {});
+    rb.query('reauthenticate', params.reauthenticate, {});
   }
 
   return http.request(

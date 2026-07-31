@@ -44,7 +44,7 @@ class YtDlpYouTubeSubtitleProviderTest {
                  "automatic_captions":{"es":[{"url":"https://captions/auto"}]}}
                 """);
 
-        var result = provider.fetch("dQw4w9WgXcQ", "es");
+        var result = provider.fetch("dQw4w9WgXcQ", "es", true);
 
         assertThat(result.captionKind()).isEqualTo(VideoSourceEntity.CaptionKind.MANUAL);
         assertThat(result.captionLanguage()).isEqualTo("es");
@@ -60,10 +60,24 @@ class YtDlpYouTubeSubtitleProviderTest {
                  "automatic_captions":{"es-419":[{"url":"https://captions/auto"}]}}
                 """);
 
-        var result = provider.fetch("dQw4w9WgXcQ", "es");
+        var result = provider.fetch("dQw4w9WgXcQ", "es", true);
 
         assertThat(result.captionKind()).isEqualTo(VideoSourceEntity.CaptionKind.AUTOMATIC);
         assertThat(result.captionLanguage()).isEqualTo("es-419");
+    }
+
+    @Test
+    void userCanDisableAutomaticFallbackEvenWhenDeploymentAllowsIt() {
+        when(processRunner.run(any(), any(), any(), anyInt(), anyInt()))
+                .thenReturn(ok("2026.07.20"))
+                .thenReturn(ok("""
+                        {"title":"Spanish lesson","subtitles":{},
+                         "automatic_captions":{"es":[{"url":"https://captions/auto"}]}}
+                        """));
+
+        assertThatThrownBy(() -> provider.fetch("dQw4w9WgXcQ", "es", false))
+                .isInstanceOfSatisfying(YouTubeSubtitleException.class, exception ->
+                        assertThat(exception.errorCode()).isEqualTo("YOUTUBE_CAPTIONS_NOT_FOUND"));
     }
 
     @Test
@@ -72,7 +86,7 @@ class YtDlpYouTubeSubtitleProviderTest {
                 .thenReturn(ok("2026.07.20"))
                 .thenReturn(ok("{\"title\":\"No Spanish\",\"subtitles\":{},\"automatic_captions\":{}}"));
 
-        assertThatThrownBy(() -> provider.fetch("dQw4w9WgXcQ", "es"))
+        assertThatThrownBy(() -> provider.fetch("dQw4w9WgXcQ", "es", true))
                 .isInstanceOfSatisfying(YouTubeSubtitleException.class, exception -> {
                     assertThat(exception.failureKind()).isEqualTo(BackgroundJobFailureKind.PERMANENT);
                     assertThat(exception.errorCode()).isEqualTo("YOUTUBE_CAPTIONS_NOT_FOUND");
@@ -87,7 +101,7 @@ class YtDlpYouTubeSubtitleProviderTest {
                  "automatic_captions":{}}
                 """);
 
-        var result = provider.fetch("dQw4w9WgXcQ", "es-MX");
+        var result = provider.fetch("dQw4w9WgXcQ", "es-MX", true);
 
         assertThat(result.captionKind()).isEqualTo(VideoSourceEntity.CaptionKind.MANUAL);
         assertThat(result.captionLanguage()).isEqualTo("es");

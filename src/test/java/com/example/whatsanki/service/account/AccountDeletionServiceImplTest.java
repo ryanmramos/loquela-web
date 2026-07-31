@@ -110,6 +110,21 @@ class AccountDeletionServiceImplTest {
         verify(backgroundJobService, never()).enqueue(any(), any(), any());
     }
 
+    @Test
+    void browserConfirmationQueuesDeletionWithoutIssuingAWhatsAppCode() {
+        UserId userId = UserId.random();
+        AppUserEntity user = activeUser(userId);
+        when(appUserRepository.findById(userId.value())).thenReturn(Optional.of(user));
+        when(backgroundJobService.enqueue(eq(userId), eq(BackgroundJobEntity.Type.DELETE_USER_DATA), any()))
+                .thenReturn(JobId.random());
+
+        AccountDeletionConfirmationResultDto result = service.confirmBrowser(userId);
+
+        assertThat(result.outcome()).isEqualTo(AccountDeletionConfirmationResultDto.Outcome.QUEUED);
+        assertThat(user.getStatus()).isEqualTo(AppUserEntity.Status.DELETING);
+        verify(accountDeletionRequestRepository, never()).save(any());
+    }
+
     private AppUserEntity activeUser(UserId userId) {
         AppUserEntity user = new AppUserEntity();
         user.setId(userId.value());

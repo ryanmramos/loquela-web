@@ -26,11 +26,13 @@ public class BrowserAuthenticationController {
     @ApiResponse(responseCode = "302", description = "Redirect to Spring Security's Google authorization endpoint")
     public ResponseEntity<Void> google(
             @RequestParam(required = false) String returnTo,
+            @RequestParam(defaultValue = "false") boolean reauthenticate,
             HttpSession session
     ) {
         session.setAttribute(BrowserReturnPath.SESSION_ATTRIBUTE, BrowserReturnPath.validate(returnTo));
+        String location = "/oauth2/authorization/google" + (reauthenticate ? "?prompt=login" : "");
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, URI.create("/oauth2/authorization/google").toString())
+                .header(HttpHeaders.LOCATION, URI.create(location).toString())
                 .build();
     }
 }

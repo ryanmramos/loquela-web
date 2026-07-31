@@ -29,6 +29,9 @@ class BrowserAuthenticationSuccessHandlerTest {
 
         assertThat(response.getRedirectedUrl()).isEqualTo("http://localhost:4200/app/cards");
         assertThat(request.getSession().getAttribute(BrowserReturnPath.SESSION_ATTRIBUTE)).isNull();
+        assertThat(request.getSession().getAttribute(
+                BrowserAuthenticationSuccessHandler.RECENT_AUTHENTICATION_AT
+        )).isInstanceOf(Long.class);
     }
 
     @Test

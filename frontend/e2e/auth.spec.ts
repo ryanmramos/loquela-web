@@ -579,6 +579,81 @@ test('pasted-text intake navigates to the accepted durable source URL', async ({
   await expect(page.getByRole('heading', { name: 'Browser text' })).toBeVisible();
 });
 
+test('settings keeps forms independent and presents guarded account deletion', async ({ page }) => {
+  await mockAuthentication(page, true);
+  const settings = {
+    profile: { displayName: 'Local Learner', email: 'learner@local.loquela.test' },
+    linkedAccounts: {
+      google: true,
+      googleLinkedAt: '2026-07-18T00:00:00Z',
+      whatsapp: false,
+    },
+    languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
+    supportedPairs: [
+      { sourceLanguage: 'es', definitionLanguage: 'en' },
+      { sourceLanguage: 'es', definitionLanguage: 'es' },
+    ],
+    automaticCaptionFallback: true,
+    exportDeckPrefix: 'Loquela — ',
+    exportIncludeProvenance: true,
+  };
+  await page.route('**/api/v1/settings', async (route: Route) => {
+    if (route.request().method() === 'PATCH') {
+      Object.assign(settings, route.request().postDataJSON());
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(settings),
+    });
+  });
+
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page.goto('/app/settings');
+
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+  await expect(page.locator('output').filter({ hasText: 'Local Learner' })).toBeVisible();
+  const providerCenters = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('.provider-mark')).map((element) => {
+      const mark = element.getBoundingClientRect();
+      const icon = element.querySelector('svg')?.getBoundingClientRect();
+      return icon
+        ? {
+            x: Math.abs(mark.x + mark.width / 2 - (icon.x + icon.width / 2)),
+            y: Math.abs(mark.y + mark.height / 2 - (icon.y + icon.height / 2)),
+          }
+        : { x: Number.POSITIVE_INFINITY, y: Number.POSITIVE_INFINITY };
+    }),
+  );
+  expect(providerCenters).toHaveLength(2);
+  for (const center of providerCenters) {
+    expect(center.x).toBeLessThan(1);
+    expect(center.y).toBeLessThan(1);
+  }
+  await page.getByRole('button', { name: 'Delivery', exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/settings$/u);
+  await expect(page.locator('#delivery')).toBeInViewport();
+  expect(
+    await page.locator('#delivery').evaluate((element) => element.getBoundingClientRect().top),
+  ).toBeGreaterThanOrEqual(72);
+  await page.getByLabel('Automatic captions').uncheck();
+  await expect(page.getByRole('button', { name: 'Save caption preference' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Save languages' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Save caption preference' }).click();
+  await expect(page.getByText('Saved', { exact: true }).last()).toBeVisible();
+
+  await expect(page.getByRole('button', { name: 'Delete account permanently' })).toBeDisabled();
+  await page.getByLabel(/Type DELETE MY ACCOUNT/u).fill('DELETE MY ACCOUNT');
+  await expect(page.getByRole('button', { name: 'Delete account permanently' })).toBeEnabled();
+  await expect(page.getByRole('link', { name: 'Reauthenticate with Google' })).toHaveAttribute(
+    'href',
+    /reauthenticate=true/u,
+  );
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
 async function mockAuthentication(
   page: Page,
   initiallyAuthenticated = false,

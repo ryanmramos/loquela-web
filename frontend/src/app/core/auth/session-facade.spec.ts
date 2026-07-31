@@ -107,4 +107,27 @@ describe('SessionFacade', () => {
     await firstValueFrom(facade.logout());
     expect(facade.view().status).toBe('anonymous');
   });
+
+  it('clears stale deletion state when backend cleanup removes the account', async () => {
+    api.getCurrent
+      .mockReturnValueOnce(of({ ...activeSession, accountState: 'DELETING' }))
+      .mockReturnValueOnce(
+        throwError(
+          () =>
+            new ApiProblemError({
+              type: 'about:blank',
+              title: 'Account unavailable',
+              status: 403,
+              code: 'ACCOUNT_DELETED',
+              correlationId: 'test',
+            }),
+        ),
+      );
+    const facade = TestBed.inject(SessionFacade);
+
+    await firstValueFrom(facade.ensureLoaded());
+    await expect(firstValueFrom(facade.refresh())).resolves.toMatchObject({
+      status: 'anonymous',
+    });
+  });
 });

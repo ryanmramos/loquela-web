@@ -1,29 +1,81 @@
 .settings-page {
-  width: min(100%, 68rem);
+  width: min(100%, 76rem);
   margin: 0 auto;
   padding: var(--space-8);
 }
 
-h1,
-h2 {
+.page-heading {
+  margin-bottom: var(--space-8);
+}
+
+.page-heading h1,
+h2,
+h3 {
   font-family: var(--font-family-display);
 }
 
-h1 {
-  margin-bottom: var(--space-8);
+.page-heading h1 {
+  margin: 0;
   font-size: var(--font-size-2xl);
 }
 
-h2 {
-  margin-top: 0;
+.page-heading p:last-child,
+.settings-card > p,
+.delete-form > p {
+  color: var(--color-text-muted);
 }
 
 .eyebrow {
+  margin-bottom: var(--space-2);
   color: var(--color-primary);
   font-size: var(--font-size-xs);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.loading,
+.settings-layout {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.settings-nav,
+.settings-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-nav {
+  position: sticky;
+  top: var(--space-6);
+  display: grid;
+  padding: var(--space-2);
+}
+
+.settings-nav button {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-min-size);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-nav button:hover,
+.settings-nav button.active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
 }
 
 .settings-sections {
@@ -32,34 +84,41 @@ h2 {
 }
 
 .settings-card {
-  max-width: 46rem;
   padding: var(--space-6);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-panel);
+  scroll-margin-top: 5.5rem;
 }
 
-.settings-card > p {
-  max-width: 42rem;
-  color: var(--color-text-muted);
+.settings-card h2 {
+  margin: 0;
 }
 
-label {
+.settings-row {
   display: grid;
-  gap: var(--space-2);
-  font-weight: 700;
+  grid-template-columns: minmax(12rem, 0.8fr) minmax(15rem, 1.2fr);
+  gap: var(--space-6);
+  align-items: center;
+  padding: var(--space-5) 0;
+  border-top: 1px solid var(--color-border);
 }
 
-small {
+.settings-row strong,
+.settings-row span,
+.settings-row label {
+  display: block;
+}
+
+.settings-row div > span,
+.settings-row label > span,
+.account-chip small {
   color: var(--color-text-muted);
-  font-weight: 400;
-  line-height: 1.5;
+  font-size: var(--font-size-sm);
 }
 
-select {
+select,
+input[type='text'] {
   width: 100%;
-  max-width: 20rem;
-  padding: var(--space-3);
+  min-height: var(--control-min-size);
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface-raised);
@@ -67,71 +126,255 @@ select {
   font: inherit;
 }
 
-select:focus-visible {
+select:focus-visible,
+input:focus-visible,
+.settings-nav button:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
-.language-fields {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: var(--space-4);
+.pills,
+.form-actions {
+  display: flex;
+  gap: var(--space-3);
   align-items: center;
-  margin: var(--space-6) 0;
+  flex-wrap: wrap;
 }
 
-.language-arrow {
-  margin-top: var(--space-2);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xl);
-}
-
-.language-loading {
+.account-chip {
   display: grid;
-  gap: var(--space-5);
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.account-chip > .pill,
+.account-chip > .loquela-button {
+  grid-column: 2;
+  justify-self: start;
+}
+
+.account-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.account-details small {
+  display: block;
+}
+
+.provider-mark {
+  position: relative;
+  display: block;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-surface-subtle);
+  overflow: hidden;
+  line-height: 0;
+}
+
+.provider-mark svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: translate(-50%, -50%);
+}
+
+.account-chip > .provider-mark--google {
+  color: #4285f4;
+}
+
+.provider-mark--google svg {
+  fill: #4285f4;
+}
+
+.account-chip > .provider-mark--whatsapp {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+.provider-mark--whatsapp svg {
+  stroke: var(--color-primary-strong);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pill {
+  display: inline-flex;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 750;
+}
+
+.success-pill {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+.delete-form {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.sub-form {
+  margin-top: var(--space-5);
+  padding: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.sub-form .settings-row {
   padding: var(--space-5) 0;
+  border-top: 0;
+}
+
+.sub-form .form-actions {
+  margin-top: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.toggle-control {
+  position: relative;
+  display: inline-flex;
+  width: 3.25rem;
+  min-height: var(--control-min-size);
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+.toggle-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.toggle-track {
+  position: relative;
+  display: block;
+  width: 3.25rem;
+  height: 1.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-subtle);
+  transition:
+    background var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 0.1875rem;
+  left: 0.1875rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  box-shadow: var(--shadow-sm);
+  transition:
+    background var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.toggle-input:checked + .toggle-track {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.toggle-input:checked + .toggle-track .toggle-thumb {
+  background: var(--color-surface-panel);
+  transform: translateX(1.5rem);
+}
+
+.toggle-input:focus-visible + .toggle-track {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.toggle-input:disabled + .toggle-track {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .form-actions {
-  display: flex;
-  gap: var(--space-4);
-  align-items: center;
-  margin-top: var(--space-5);
+  margin-top: var(--space-4);
 }
 
 .save-status {
-  display: block;
   min-height: 1.5rem;
   margin-top: var(--space-2);
-  color: var(--color-text-muted);
-}
-
-.form-actions .save-status {
-  margin-top: 0;
 }
 
 .success {
   color: var(--color-primary);
 }
 
-.error {
+.error,
+.privacy h3 {
   color: var(--color-danger);
 }
 
-@media (max-width: 44rem) {
+.deferred {
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.delete-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.delete-form h3,
+.delete-form p {
+  margin: 0;
+}
+
+.delete-form .loquela-button {
+  justify-self: start;
+}
+
+@media (max-width: 52rem) {
   .settings-page {
     padding: var(--space-5);
   }
 
-  .settings-card {
-    padding: var(--space-5);
-  }
-
-  .language-fields {
+  .loading,
+  .settings-layout {
     grid-template-columns: 1fr;
   }
 
-  .language-arrow {
-    display: none;
+  .settings-nav {
+    position: static;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    overflow-x: auto;
+  }
+
+  .settings-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .account-chip .pill,
+  .account-chip .loquela-button {
+    justify-self: start;
   }
 }

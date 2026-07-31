@@ -26,7 +26,8 @@ public class YouTubeIngestionServiceImpl implements YouTubeIngestionService {
         YouTubeIngestionPreparationDto preparation = lifecycleService.prepare(userId, sourceId);
         if (preparation.alreadyReady()) return;
         YouTubeSubtitleResultDto result = subtitleProvider.fetch(
-                preparation.videoId(), preparation.sourceLanguage()
+                preparation.videoId(), preparation.sourceLanguage(),
+                preparation.automaticCaptionFallback()
         );
         List<PassageDraftDto> passages = passageBuilder.build(
                 preparation.videoId(), result.channelName(), result.cues()

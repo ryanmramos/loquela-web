@@ -88,19 +88,17 @@ public class AccountDeletionServiceImpl implements AccountDeletionService {
             return AccountDeletionConfirmationResultDto.invalidOrExpired();
         }
 
-        user.setStatus(AppUserEntity.Status.DELETING);
-        appUserRepository.save(user);
-        int cancelledJobs = backgroundJobRepository.cancelPendingForUser(userId.value(), null, now);
-        JobId jobId = backgroundJobService.enqueue(
-                userId,
-                BackgroundJobEntity.Type.DELETE_USER_DATA,
-                DeleteUserDataJobPayloadDto.create(userId).toMap()
-        );
-        log.info(
-                "Queued confirmed account deletion userId={} jobId={} cancelledJobCount={}",
-                userId.value(), jobId.value(), cancelledJobs
-        );
-        return AccountDeletionConfirmationResultDto.queued(jobId);
+        return queueDeletion(userId, user, now);
+    }
+
+    @Override
+    @Transactional
+    public AccountDeletionConfirmationResultDto confirmBrowser(UserId userId) {
+        AppUserEntity user = findUser(userId);
+        if (user.getStatus() == AppUserEntity.Status.DELETING) {
+            return AccountDeletionConfirmationResultDto.deletionInProgress();
+        }
+        return queueDeletion(userId, user, Instant.now());
     }
 
     @Override
@@ -134,6 +132,26 @@ public class AccountDeletionServiceImpl implements AccountDeletionService {
     private AppUserEntity findUser(UserId userId) {
         return appUserRepository.findById(userId.value())
                 .orElseThrow(() -> new AccountDeletionException(BackgroundJobFailureKind.PERMANENT, "USER_NOT_FOUND"));
+    }
+
+    private AccountDeletionConfirmationResultDto queueDeletion(
+            UserId userId,
+            AppUserEntity user,
+            Instant now
+    ) {
+        user.setStatus(AppUserEntity.Status.DELETING);
+        appUserRepository.save(user);
+        int cancelledJobs = backgroundJobRepository.cancelPendingForUser(userId.value(), null, now);
+        JobId jobId = backgroundJobService.enqueue(
+                userId,
+                BackgroundJobEntity.Type.DELETE_USER_DATA,
+                DeleteUserDataJobPayloadDto.create(userId).toMap()
+        );
+        log.info(
+                "Queued confirmed account deletion userId={} jobId={} cancelledJobCount={}",
+                userId.value(), jobId.value(), cancelledJobs
+        );
+        return AccountDeletionConfirmationResultDto.queued(jobId);
     }
 
     private String generateConfirmationCode() {

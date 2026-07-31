@@ -79,4 +79,52 @@ describe('SettingsApi', () => {
       languagePair: { sourceLanguage: 'en', definitionLanguage: 'es' },
     });
   });
+
+  it('loads and updates independent settings preferences', async () => {
+    const loaded = firstValueFrom(api.get());
+    const getRequest = httpTesting.expectOne('/api/v1/settings');
+    expect(getRequest.request.method).toBe('GET');
+    getRequest.flush({
+      profile: { displayName: 'Ryan', email: 'ryan@example.com' },
+      linkedAccounts: { google: true, googleLinkedAt: '2026-07-18T00:00:00Z', whatsapp: false },
+      languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
+      supportedPairs: [{ sourceLanguage: 'es', definitionLanguage: 'en' }],
+      automaticCaptionFallback: true,
+      exportDeckPrefix: 'Loquela — ',
+      exportIncludeProvenance: true,
+    });
+    await expect(loaded).resolves.toMatchObject({
+      profile: { displayName: 'Ryan' },
+      automaticCaptionFallback: true,
+    });
+
+    const updated = firstValueFrom(
+      api.update({
+        sourceLanguage: 'es',
+        definitionLanguage: 'en',
+        automaticCaptionFallback: false,
+        exportDeckPrefix: 'Mine — ',
+        exportIncludeProvenance: false,
+      }),
+    );
+    const patchRequest = httpTesting.expectOne('/api/v1/settings');
+    expect(patchRequest.request.method).toBe('PATCH');
+    patchRequest.flush({
+      languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
+      supportedPairs: [{ sourceLanguage: 'es', definitionLanguage: 'en' }],
+      automaticCaptionFallback: false,
+      exportDeckPrefix: 'Mine — ',
+      exportIncludeProvenance: false,
+    });
+    await expect(updated).resolves.toMatchObject({ automaticCaptionFallback: false });
+  });
+
+  it('submits the account-deletion phrase without a client-selected user', async () => {
+    const response = firstValueFrom(api.deleteAccount('DELETE MY ACCOUNT'));
+    const request = httpTesting.expectOne('/api/v1/account-deletion-requests');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ confirmationPhrase: 'DELETE MY ACCOUNT' });
+    request.flush({ status: 'DELETING' });
+    await expect(response).resolves.toBeUndefined();
+  });
 });
