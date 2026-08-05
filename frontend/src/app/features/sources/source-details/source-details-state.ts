@@ -4,6 +4,7 @@ import { filter, Observable, Subscription, switchMap, takeWhile, timer } from 'r
 
 import { SourceApi, SourceDetails } from '@api/api-adapters/source-api';
 import { ApiProblemError } from '@core/errors/api-problem';
+import { ActivityMonitor } from '@core/activity/activity-monitor';
 
 type LoadStatus = 'loading' | 'success' | 'not-found' | 'error';
 type MutationStatus = 'idle' | 'submitting' | 'error';
@@ -13,6 +14,7 @@ export class SourceDetailsState {
   private static readonly POLL_INTERVAL_MS = 3_000;
   private readonly sourceApi = inject(SourceApi);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly activityMonitor = inject(ActivityMonitor);
   private readonly loadStatusState = signal<LoadStatus>('loading');
   private readonly mutationStatusState = signal<MutationStatus>('idle');
   private readonly sourceState = signal<SourceDetails | null>(null);
@@ -92,6 +94,7 @@ export class SourceDetailsState {
     this.mutationSubscription = request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.mutationStatusState.set('idle');
+        if (resumePolling) this.activityMonitor.refreshBaseline();
         if (resumePolling) {
           this.startPolling();
         } else {

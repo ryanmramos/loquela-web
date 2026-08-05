@@ -10,6 +10,7 @@ import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/sta
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import { ActivityItem } from '@api/api-adapters/activity-api';
 
 import { DashboardState } from './dashboard-state';
 
@@ -97,30 +98,31 @@ export class DashboardPage {
     }).format(date);
   }
 
-  statusTone(status: string): StatusTone {
-    if (status === 'READY' || status === 'SUCCEEDED') {
+  statusTone(lifecycle: ActivityItem['lifecycle']): StatusTone {
+    if (lifecycle === 'COMPLETED') {
       return 'success';
     }
-    if (status === 'FAILED' || status === 'DEAD') {
+    if (lifecycle === 'FAILED') {
       return 'danger';
-    }
-    if (status === 'RETRY_WAIT') {
-      return 'warning';
     }
     return 'info';
   }
 
-  activityStatus(status: string): string {
-    const keys = {
-      READY: 'dashboard.statusReady',
-      SUCCEEDED: 'dashboard.statusSucceeded',
-      FAILED: 'dashboard.statusFailed',
-      DEAD: 'dashboard.statusDead',
-      RETRY_WAIT: 'dashboard.statusRetryWait',
-      RUNNING: 'dashboard.statusRunning',
-      QUEUED: 'dashboard.statusQueued',
-    } as const;
-    const key = keys[status as keyof typeof keys];
-    return key ? this.translations.translate(key) : status.replaceAll('_', ' ');
+  activityTitle(item: ActivityItem): string {
+    return (
+      item.resourceLabel ??
+      this.translations.translate(`activity.operation.${item.operation}` as never)
+    );
+  }
+
+  activityDetail(item: ActivityItem): string {
+    const status = this.translations.translate(`activity.status.${item.status}` as never);
+    return item.deliveryStatus
+      ? `${status} · ${this.translations.translate(`activity.delivery.${item.deliveryStatus}` as never)}`
+      : status;
+  }
+
+  activityStatus(lifecycle: ActivityItem['lifecycle']): string {
+    return this.translations.translate(`activity.lifecycle.${lifecycle}` as never);
   }
 }

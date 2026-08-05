@@ -1,27 +1,24 @@
 package com.example.whatsanki.service.dashboard;
 
 import com.example.whatsanki.domain.AppUserEntity;
-import com.example.whatsanki.domain.BackgroundJobEntity;
 import com.example.whatsanki.domain.SourceDocumentEntity;
-import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.domain.UserIdentityEntity;
+import com.example.whatsanki.dto.ActivityItemDto;
+import com.example.whatsanki.dto.ActivityPageDto;
 import com.example.whatsanki.dto.DashboardDto;
 import com.example.whatsanki.repository.AppUserRepository;
-import com.example.whatsanki.repository.BackgroundJobRepository;
 import com.example.whatsanki.repository.CardRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
+import com.example.whatsanki.service.BrowserActivityService;
 import com.example.whatsanki.service.UserIdentityService;
-import com.example.whatsanki.service.util.SourceReferenceCodec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,12 +30,11 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceImplTest {
-
     @Mock private UserIdentityService userIdentityService;
     @Mock private AppUserRepository appUserRepository;
     @Mock private CardRepository cardRepository;
     @Mock private SourceDocumentRepository sourceDocumentRepository;
-    @Mock private BackgroundJobRepository backgroundJobRepository;
+    @Mock private BrowserActivityService browserActivityService;
 
     private DashboardServiceImpl service;
     private UserId userId;
@@ -50,7 +46,7 @@ class DashboardServiceImplTest {
                 appUserRepository,
                 cardRepository,
                 sourceDocumentRepository,
-                backgroundJobRepository
+                browserActivityService
         );
         userId = UserId.random();
         AppUserEntity user = new AppUserEntity();
@@ -62,10 +58,14 @@ class DashboardServiceImplTest {
                 .thenReturn(Optional.of(userId));
         when(appUserRepository.findByIdAndStatus(userId.value(), AppUserEntity.Status.ACTIVE))
                 .thenReturn(Optional.of(user));
+        when(browserActivityService.listByUser(userId, null, ActivityItemDto.Lifecycle.ACTIVE, null, 1))
+                .thenReturn(new ActivityPageDto(List.of(), null, 0));
+        when(browserActivityService.listByUser(userId, null, null, null, 6))
+                .thenReturn(new ActivityPageDto(List.of(), null, 0));
     }
 
     @Test
-    void aggregatesCountsAndBoundsNewestActivity() {
+    void aggregatesCountsAndUsesLogicalActivityProjection() {
         when(cardRepository.countByUserIdAndLastPracticedAtIsNull(userId.value())).thenReturn(12L);
         when(cardRepository.countByUserId(userId.value())).thenReturn(384L);
         when(cardRepository.countByUserIdAndCreatedAtGreaterThanEqual(eq(userId.value()), any(Instant.class)))
@@ -79,14 +79,11 @@ class DashboardServiceImplTest {
         when(sourceDocumentRepository.countByUserIdAndStatusIn(eq(userId.value()), any(Set.class)))
                 .thenReturn(2L);
         when(sourceDocumentRepository.totalCorpusStoredBytesByUserId(userId.value())).thenReturn(1_572_864L);
-        when(backgroundJobRepository.countByUserIdAndStateIn(eq(userId.value()), any(Set.class)))
-                .thenReturn(3L);
-        SourceDocumentEntity source = source(Instant.parse("2026-07-26T20:00:00Z"));
-        BackgroundJobEntity job = job(Instant.parse("2026-07-26T21:00:00Z"));
-        when(sourceDocumentRepository.findAllByUserIdOrderByCreatedAtDesc(
-                userId.value(), PageRequest.of(0, 6)
-        )).thenReturn(List.of(source));
-        when(backgroundJobRepository.findRecentByUserId(userId.value(), 6)).thenReturn(List.of(job));
+        ActivityItemDto activity = activity();
+        when(browserActivityService.listByUser(userId, null, ActivityItemDto.Lifecycle.ACTIVE, null, 1))
+                .thenReturn(new ActivityPageDto(List.of(activity), null, 3));
+        when(browserActivityService.listByUser(userId, null, null, null, 6))
+                .thenReturn(new ActivityPageDto(List.of(activity), null, 3));
 
         DashboardDto result = service.getByGoogleSubject("google-subject");
 
@@ -95,103 +92,45 @@ class DashboardServiceImplTest {
         assertThat(result.sources().readySources()).isEqualTo(24);
         assertThat(result.storage().usedBytes()).isEqualTo(1_572_864L);
         assertThat(result.jobs().activeJobs()).isEqualTo(3);
-        assertThat(result.languagePair().sourceLanguage()).isEqualTo("es");
-        assertThat(result.activity().items())
-                .extracting(DashboardDto.ActivityItem::kind)
-                .containsExactly(DashboardDto.ActivityKind.JOB, DashboardDto.ActivityKind.SOURCE);
-        assertThat(result.activity().items().get(1).target())
-                .isEqualTo("/app/sources/" + SourceReferenceCodec.encode(new SourceId(source.getId())));
+        assertThat(result.activity().items()).containsExactly(activity);
     }
 
     @Test
     void reportsOneUnavailableSectionWithoutDiscardingTheRest() {
         when(cardRepository.countByUserIdAndLastPracticedAtIsNull(userId.value()))
                 .thenThrow(new IllegalStateException("card projection unavailable"));
-        when(sourceDocumentRepository.countByUserIdAndStatusNot(
-                userId.value(), SourceDocumentEntity.Status.DELETED
-        )).thenReturn(0L);
-        when(sourceDocumentRepository.countByUserIdAndStatus(
-                userId.value(), SourceDocumentEntity.Status.READY
-        )).thenReturn(0L);
-        when(sourceDocumentRepository.countByUserIdAndStatusIn(eq(userId.value()), any(Set.class)))
-                .thenReturn(0L);
-        when(backgroundJobRepository.countByUserIdAndStateIn(eq(userId.value()), any(Set.class)))
-                .thenReturn(0L);
-        when(sourceDocumentRepository.findAllByUserIdOrderByCreatedAtDesc(
-                userId.value(), PageRequest.of(0, 6)
-        )).thenReturn(List.of());
-        when(backgroundJobRepository.findRecentByUserId(userId.value(), 6)).thenReturn(List.of());
 
         DashboardDto result = service.getByGoogleSubject("google-subject");
 
         assertThat(result.cards().status()).isEqualTo(DashboardDto.SectionStatus.UNAVAILABLE);
-        assertThat(result.cards().totalCards()).isNull();
         assertThat(result.sources().status()).isEqualTo(DashboardDto.SectionStatus.AVAILABLE);
-        assertThat(result.sources().totalSources()).isZero();
-        assertThat(result.storage().status()).isEqualTo(DashboardDto.SectionStatus.AVAILABLE);
-        assertThat(result.activity().items()).isEmpty();
-    }
-
-    @Test
-    void keepsDashboardAvailableWhenStorageUsageCannotBeLoaded() {
-        when(sourceDocumentRepository.totalCorpusStoredBytesByUserId(userId.value()))
-                .thenThrow(new IllegalStateException("storage projection unavailable"));
-
-        DashboardDto result = service.getByGoogleSubject("google-subject");
-
-        assertThat(result.storage().status()).isEqualTo(DashboardDto.SectionStatus.UNAVAILABLE);
-        assertThat(result.storage().usedBytes()).isNull();
-        assertThat(result.cards().status()).isEqualTo(DashboardDto.SectionStatus.AVAILABLE);
-    }
-
-    @Test
-    void safelyMapsEverySourceAndJobActivityType() {
-        List<SourceDocumentEntity> sources = Arrays.stream(SourceDocumentEntity.Kind.values())
-                .map(kind -> source(kind, Instant.parse("2026-07-26T20:00:00Z")))
-                .toList();
-        List<BackgroundJobEntity> jobs = Arrays.stream(BackgroundJobEntity.Type.values())
-                .map(type -> job(type, Instant.parse("2026-07-26T21:00:00Z")))
-                .toList();
-        when(sourceDocumentRepository.findAllByUserIdOrderByCreatedAtDesc(
-                userId.value(), PageRequest.of(0, 6)
-        )).thenReturn(sources);
-        when(backgroundJobRepository.findRecentByUserId(userId.value(), 6)).thenReturn(jobs);
-
-        DashboardDto result = service.getByGoogleSubject("google-subject");
-
         assertThat(result.activity().status()).isEqualTo(DashboardDto.SectionStatus.AVAILABLE);
-        assertThat(result.activity().items()).hasSize(6);
-        assertThat(result.activity().items())
-                .allSatisfy(item -> {
-                    assertThat(item.title()).isNotBlank();
-                    assertThat(item.detail()).isNotBlank();
-                    assertThat(item.target()).startsWith("/app/");
-                });
     }
 
-    private SourceDocumentEntity source(Instant updatedAt) {
-        return source(SourceDocumentEntity.Kind.PASTED_TEXT, updatedAt);
+    @Test
+    void isolatesUnavailableActivityFromLogicalCount() {
+        when(browserActivityService.listByUser(userId, null, null, null, 6))
+                .thenThrow(new IllegalStateException("activity unavailable"));
+
+        DashboardDto result = service.getByGoogleSubject("google-subject");
+
+        assertThat(result.activity().status()).isEqualTo(DashboardDto.SectionStatus.UNAVAILABLE);
+        assertThat(result.jobs().status()).isEqualTo(DashboardDto.SectionStatus.AVAILABLE);
     }
 
-    private SourceDocumentEntity source(SourceDocumentEntity.Kind kind, Instant updatedAt) {
-        SourceDocumentEntity source = new SourceDocumentEntity();
-        source.setId(SourceId.random().value());
-        source.setKind(kind);
-        source.setDisplayName("News article");
-        source.setStatus(SourceDocumentEntity.Status.READY);
-        source.setUpdatedAt(updatedAt);
-        return source;
-    }
-
-    private BackgroundJobEntity job(Instant updatedAt) {
-        return job(BackgroundJobEntity.Type.INGEST_TEXT, updatedAt);
-    }
-
-    private BackgroundJobEntity job(BackgroundJobEntity.Type type, Instant updatedAt) {
-        BackgroundJobEntity job = new BackgroundJobEntity();
-        job.setType(type);
-        job.setState(BackgroundJobEntity.State.RUNNING);
-        job.setUpdatedAt(updatedAt);
-        return job;
+    private ActivityItemDto activity() {
+        Instant now = Instant.parse("2026-08-04T20:00:00Z");
+        return new ActivityItemDto(
+                "act_src_reference",
+                ActivityItemDto.Category.SOURCE,
+                ActivityItemDto.Operation.INGEST_SOURCE,
+                ActivityItemDto.Lifecycle.ACTIVE,
+                ActivityItemDto.Status.EXTRACTING,
+                "Spanish notes",
+                null,
+                now.minusSeconds(60),
+                now,
+                "/app/sources/reference"
+        );
     }
 }

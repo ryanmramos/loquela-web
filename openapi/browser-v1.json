@@ -592,6 +592,35 @@
         }
       }
     },
+    "/api/v1/activity/status-query" : {
+      "post" : {
+        "tags" : [ "browser-activity-controller" ],
+        "summary" : "Batch query owned activity statuses",
+        "operationId" : "queryBrowserActivityStatuses",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ActivityStatusQueryRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ActivityStatusQueryResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/account-deletion-requests" : {
       "post" : {
         "tags" : [ "browser-privacy-controller" ],
@@ -1252,6 +1281,81 @@
           }
         }
       }
+    },
+    "/api/v1/activity" : {
+      "get" : {
+        "tags" : [ "browser-activity-controller" ],
+        "summary" : "List logical activity for the authenticated user",
+        "operationId" : "listBrowserActivity",
+        "parameters" : [ {
+          "name" : "category",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "SOURCE", "LOOKUP", "EXPORT" ]
+          }
+        }, {
+          "name" : "lifecycle",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "COMPLETED", "FAILED" ]
+          }
+        }, {
+          "name" : "cursor",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 160,
+            "minLength" : 0
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20,
+            "maximum" : 50,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ActivityPageDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account-deletion-requests/current" : {
+      "get" : {
+        "tags" : [ "browser-privacy-controller" ],
+        "summary" : "Read current account deletion state",
+        "operationId" : "getCurrentBrowserAccountDeletion",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BrowserAccountDeletionStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components" : {
@@ -1694,6 +1798,81 @@
             "format" : "date-time"
           }
         }
+      },
+      "ActivityStatusQueryRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "references" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "maxLength" : 64,
+              "minLength" : 0
+            },
+            "maxItems" : 50,
+            "minItems" : 1
+          }
+        },
+        "required" : [ "references" ]
+      },
+      "ActivityItemDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "category" : {
+            "type" : "string",
+            "enum" : [ "SOURCE", "LOOKUP", "EXPORT" ]
+          },
+          "operation" : {
+            "type" : "string",
+            "enum" : [ "INGEST_SOURCE", "DELETE_SOURCE", "LOOKUP", "EXPORT_DECK" ]
+          },
+          "lifecycle" : {
+            "type" : "string",
+            "enum" : [ "ACTIVE", "COMPLETED", "FAILED" ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED", "PENDING", "EXPIRED", "QUEUED", "RUNNING" ]
+          },
+          "resourceLabel" : {
+            "type" : "string"
+          },
+          "deliveryStatus" : {
+            "type" : "string",
+            "enum" : [ "NOT_APPLICABLE", "PENDING", "PROVIDER_ACCEPTED", "FAILED" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "target" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "category", "createdAt", "lifecycle", "operation", "reference", "status", "updatedAt" ]
+      },
+      "ActivityStatusQueryResponseDto" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ActivityItemDto"
+            }
+          },
+          "activeCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "activeCount", "items" ]
       },
       "BrowserAccountDeletionRequestDto" : {
         "type" : "object",
@@ -2200,32 +2379,6 @@
           }
         }
       },
-      "ActivityItem" : {
-        "type" : "object",
-        "properties" : {
-          "kind" : {
-            "type" : "string",
-            "enum" : [ "SOURCE", "JOB" ]
-          },
-          "title" : {
-            "type" : "string"
-          },
-          "detail" : {
-            "type" : "string"
-          },
-          "status" : {
-            "type" : "string"
-          },
-          "occurredAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          },
-          "target" : {
-            "type" : "string"
-          }
-        },
-        "required" : [ "detail", "kind", "occurredAt", "status", "target", "title" ]
-      },
       "ActivitySummary" : {
         "type" : "object",
         "properties" : {
@@ -2236,7 +2389,7 @@
           "items" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/ActivityItem"
+              "$ref" : "#/components/schemas/ActivityItemDto"
             }
           }
         },
@@ -2380,6 +2533,42 @@
             "format" : "int32"
           }
         }
+      },
+      "ActivityPageDto" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ActivityItemDto"
+            }
+          },
+          "nextCursor" : {
+            "type" : "string"
+          },
+          "activeCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "activeCount", "items" ]
+      },
+      "BrowserAccountDeletionStatusDto" : {
+        "type" : "object",
+        "properties" : {
+          "status" : {
+            "type" : "string",
+            "enum" : [ "QUEUED", "IN_PROGRESS", "NEEDS_ATTENTION" ]
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "supportCode" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "status", "updatedAt" ]
       }
     },
     "securitySchemes" : {

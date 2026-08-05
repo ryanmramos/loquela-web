@@ -75,6 +75,83 @@ test('dashboard renders aggregate counts, filtered links, activity, and quick ca
   expect(results.violations).toEqual([]);
 });
 
+test('activity reconstructs, filters, paginates, and announces terminal batches safely', async ({
+  page,
+}) => {
+  await mockAuthentication(page, true);
+  const active = {
+    reference: 'act_src_private',
+    category: 'SOURCE',
+    operation: 'INGEST_SOURCE',
+    lifecycle: 'ACTIVE',
+    status: 'EXTRACTING',
+    resourceLabel: 'Private source title',
+    createdAt: '2026-08-04T20:00:00Z',
+    updatedAt: '2026-08-04T20:01:00Z',
+    target: '/app/sources/src_spanish',
+  };
+  await page.route('**/api/v1/activity**', async (route: Route) => {
+    const request = route.request();
+    if (request.method() === 'POST') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          activeCount: 0,
+          items: [{ ...active, lifecycle: 'COMPLETED', status: 'READY' }],
+        }),
+      });
+      return;
+    }
+    const url = new URL(request.url());
+    const cursor = url.searchParams.get('cursor');
+    const lifecycle = url.searchParams.get('lifecycle');
+    const items = cursor
+      ? [
+          {
+            reference: 'act_lkp_failed',
+            category: 'LOOKUP',
+            operation: 'LOOKUP',
+            lifecycle: 'FAILED',
+            status: 'FAILED',
+            deliveryStatus: 'FAILED',
+            resourceLabel: 'sobremesa',
+            createdAt: '2026-08-03T20:00:00Z',
+            updatedAt: '2026-08-03T20:01:00Z',
+            target: '/app/lookup?reference=lookup_ref',
+          },
+        ]
+      : [active];
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        items,
+        activeCount: lifecycle === 'ACTIVE' ? 1 : 1,
+        ...(!cursor && lifecycle !== 'ACTIVE' ? { nextCursor: 'opaque_cursor' } : {}),
+      }),
+    });
+  });
+
+  await page.goto('/app/activity');
+  await expect(page.getByRole('heading', { name: 'Activity', exact: true })).toBeVisible();
+  await expect(page.getByText('Private source title')).toBeVisible();
+  await page.getByRole('button', { name: 'Load more activity' }).click();
+  await expect(page.getByText('sobremesa')).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/activity$/u);
+
+  await page.getByRole('button', { name: 'In progress' }).click();
+  await expect(page).toHaveURL(/lifecycle=ACTIVE/u);
+  await expect(page.getByText('Private source title')).toBeVisible();
+
+  const notification = page.getByRole('region', { name: 'Notifications' });
+  await expect(notification).toContainText('Activity updated');
+  await expect(notification).not.toContainText('Private source title');
+  await expect(notification).not.toContainText('sobremesa');
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
 test('dashboard renders the zero-data onboarding state', async ({ page }) => {
   await mockAuthentication(page, true, {
     ...dashboardSnapshot,
@@ -562,7 +639,7 @@ test('source management keeps filters in the URL and resumes source details', as
   await page.getByRole('link', { name: 'Easy Spanish transcript' }).first().click();
   await expect(page).toHaveURL(/\/app\/sources\/src_spanish$/u);
   await expect(page.getByRole('heading', { name: 'Easy Spanish transcript' })).toBeVisible();
-  await expect(page.getByText('ready', { exact: true })).toBeVisible();
+  await expect(page.getByText('Ready', { exact: true })).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
@@ -625,7 +702,8 @@ test('settings keeps forms independent and presents guarded account deletion', a
         : { x: Number.POSITIVE_INFINITY, y: Number.POSITIVE_INFINITY };
     }),
   );
-  expect(providerCenters).toHaveLength(2);
+  // WhatsApp linking is intentionally deferred, so Google is the sole provider row.
+  expect(providerCenters).toHaveLength(1);
   for (const center of providerCenters) {
     expect(center.x).toBeLessThan(1);
     expect(center.y).toBeLessThan(1);
@@ -706,6 +784,14 @@ async function mockAuthentication(
     });
   });
 
+  await page.route('**/api/v1/activity**', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ items: [], activeCount: 0 }),
+    });
+  });
+
   await page.route('**/api/v1/sources', async (route: Route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
@@ -782,11 +868,14 @@ const dashboardSnapshot = {
     status: 'AVAILABLE',
     items: [
       {
-        kind: 'SOURCE',
-        title: 'Easy Spanish transcript',
-        detail: 'YouTube source',
+        reference: 'act_src_spanish',
+        category: 'SOURCE',
+        operation: 'INGEST_SOURCE',
+        lifecycle: 'COMPLETED',
         status: 'READY',
-        occurredAt: new Date().toISOString(),
+        resourceLabel: 'Easy Spanish transcript',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         target: '/app/sources/src_spanish',
       },
     ],

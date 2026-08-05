@@ -94,7 +94,7 @@ public record DashboardDto(
 
     public record ActivitySummary(
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED) SectionStatus status,
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<ActivityItem> items
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<ActivityItemDto> items
     ) {
         public ActivitySummary {
             items = items == null ? List.of() : List.copyOf(items);
@@ -105,37 +105,9 @@ public record DashboardDto(
         }
     }
 
-    public record ActivityItem(
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            ActivityKind kind,
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String title,
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String detail,
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String status,
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            Instant occurredAt,
-            @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-            String target
-    ) {
-        public ActivityItem {
-            Objects.requireNonNull(kind, "kind must not be null");
-            Objects.requireNonNull(title, "title must not be null");
-            Objects.requireNonNull(detail, "detail must not be null");
-            Objects.requireNonNull(status, "status must not be null");
-            Objects.requireNonNull(occurredAt, "occurredAt must not be null");
-            Objects.requireNonNull(target, "target must not be null");
-        }
-    }
-
     public enum SectionStatus {
         AVAILABLE,
         UNAVAILABLE
     }
 
-    public enum ActivityKind {
-        SOURCE,
-        JOB
-    }
 }

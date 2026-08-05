@@ -6,6 +6,7 @@ import org.springframework.data.repository.Repository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Set;
 
 public interface OutboundMessageRepository extends Repository<OutboundMessageEntity, UUID> {
     OutboundMessageEntity save(OutboundMessageEntity outboundMessage);
@@ -14,5 +15,6 @@ public interface OutboundMessageRepository extends Repository<OutboundMessageEnt
             UUID userId,
             UUID lookupSessionId
     );
+    List<OutboundMessageEntity> findAllByUserIdAndLookupSessionIdIn(UUID userId, Set<UUID> lookupSessionIds);
     Optional<OutboundMessageEntity> findByIdAndUserId(UUID id, UUID userId);
 }

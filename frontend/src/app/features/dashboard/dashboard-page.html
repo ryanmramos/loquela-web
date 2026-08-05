@@ -212,17 +212,21 @@
           </div>
         } @else {
           <ul class="activity-list">
-            @for (item of dashboard.activity.items; track item.occurredAt + item.title) {
+            @for (item of dashboard.activity.items; track item.reference) {
               <li>
                 <span class="activity-icon" aria-hidden="true">
-                  {{ item.kind === 'SOURCE' ? 'T' : '↻' }}
+                  {{ item.category === 'SOURCE' ? 'T' : item.category === 'LOOKUP' ? '⌕' : '⇩' }}
                 </span>
                 <div>
-                  <a [routerLink]="item.target">{{ item.title }}</a>
-                  <span>{{ item.detail }} · {{ formatActivityDate(item.occurredAt) }}</span>
+                  @if (item.target) {
+                    <a [href]="item.target">{{ activityTitle(item) }}</a>
+                  } @else {
+                    <strong>{{ activityTitle(item) }}</strong>
+                  }
+                  <span>{{ activityDetail(item) }} · {{ formatActivityDate(item.updatedAt) }}</span>
                 </div>
-                <app-status-badge [tone]="statusTone(item.status)">
-                  {{ activityStatus(item.status) }}
+                <app-status-badge [tone]="statusTone(item.lifecycle)">
+                  {{ activityStatus(item.lifecycle) }}
                 </app-status-badge>
               </li>
             }

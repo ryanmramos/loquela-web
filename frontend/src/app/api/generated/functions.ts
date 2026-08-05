@@ -73,8 +73,14 @@ export type { Delete$Params as Delete$Params } from './fn/browser-card-controlle
 export { delete$ as delete$ } from './fn/browser-card-controller/delete';
 export type { UpdateBrowserCard$Params as UpdateBrowserCard$Params } from './fn/browser-card-controller/update-browser-card';
 export { updateBrowserCard as updateBrowserCard } from './fn/browser-card-controller/update-browser-card';
+export type { QueryBrowserActivityStatuses$Params as QueryBrowserActivityStatuses$Params } from './fn/browser-activity-controller/query-browser-activity-statuses';
+export { queryBrowserActivityStatuses as queryBrowserActivityStatuses } from './fn/browser-activity-controller/query-browser-activity-statuses';
+export type { ListBrowserActivity$Params as ListBrowserActivity$Params } from './fn/browser-activity-controller/list-browser-activity';
+export { listBrowserActivity as listBrowserActivity } from './fn/browser-activity-controller/list-browser-activity';
 export type { CreateBrowserAccountDeletion$Params as CreateBrowserAccountDeletion$Params } from './fn/browser-privacy-controller/create-browser-account-deletion';
 export { createBrowserAccountDeletion as createBrowserAccountDeletion } from './fn/browser-privacy-controller/create-browser-account-deletion';
+export type { GetCurrentBrowserAccountDeletion$Params as GetCurrentBrowserAccountDeletion$Params } from './fn/browser-privacy-controller/get-current-browser-account-deletion';
+export { getCurrentBrowserAccountDeletion as getCurrentBrowserAccountDeletion } from './fn/browser-privacy-controller/get-current-browser-account-deletion';
 export type { GetBrowserSettings$Params as GetBrowserSettings$Params } from './fn/browser-settings-controller/get-browser-settings';
 export { getBrowserSettings as getBrowserSettings } from './fn/browser-settings-controller/get-browser-settings';
 export type { UpdateBrowserSettings$Params as UpdateBrowserSettings$Params } from './fn/browser-settings-controller/update-browser-settings';

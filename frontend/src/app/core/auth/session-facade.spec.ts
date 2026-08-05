@@ -128,6 +128,7 @@ describe('SessionFacade', () => {
     await firstValueFrom(facade.ensureLoaded());
     await expect(firstValueFrom(facade.refresh())).resolves.toMatchObject({
       status: 'anonymous',
+      notice: 'account-deleted',
     });
   });
 });

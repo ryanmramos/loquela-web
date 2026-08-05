@@ -6,6 +6,7 @@ import com.example.whatsanki.service.exception.BrowserAccountUnavailableExceptio
 import com.example.whatsanki.service.exception.BrowserDeckException;
 import com.example.whatsanki.service.exception.BrowserPracticeException;
 import com.example.whatsanki.service.exception.BrowserPrivacyException;
+import com.example.whatsanki.service.exception.BrowserActivityException;
 import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.exception.BrowserSourceNotFoundException;
 import com.example.whatsanki.service.exception.BrowserSourceValidationException;
@@ -32,6 +33,20 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BrowserActivityException.class)
+    public ResponseEntity<ApiProblemDto> handleActivity(
+            BrowserActivityException exception,
+            HttpServletRequest request
+    ) {
+        return problem(
+                exception.status(),
+                exception.problemCode(),
+                "Activity could not be loaded",
+                "Reset the activity filters and try again.",
+                request
+        );
+    }
 
     @ExceptionHandler(BrowserPracticeException.class)
     public ResponseEntity<ApiProblemDto> handlePractice(

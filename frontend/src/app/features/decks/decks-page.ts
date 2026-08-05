@@ -17,6 +17,7 @@ import { ButtonDirective } from '@app/shared/components/button/button.directive'
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import { ActivityMonitor } from '@core/activity/activity-monitor';
 
 type ThemeColor = NonNullable<Deck['themeColor']>;
 
@@ -31,6 +32,7 @@ export class DecksPage {
   readonly api = inject(DeckApi);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translations = inject(TranslationService);
+  private readonly activityMonitor = inject(ActivityMonitor);
 
   readonly decks = signal<Deck[]>([]);
   readonly exports = signal<DeckExport[]>([]);
@@ -137,6 +139,7 @@ export class DecksPage {
     this.api.export(deck.reference).subscribe({
       next: (item) => {
         this.exports.update((items) => [item, ...items]);
+        this.activityMonitor.refreshBaseline();
         const history = document.querySelector('#export-history');
         if (history && 'scrollIntoView' in history) {
           history.scrollIntoView({ behavior: 'smooth' });

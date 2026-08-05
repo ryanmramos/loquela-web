@@ -74,17 +74,8 @@ export const routes: Routes = [
       {
         path: 'activity',
         title: 'Activity',
-        data: {
-          featureKey: 'activity',
-          eyebrow: 'Background work',
-          heading: 'Activity',
-          description:
-            'The full resumable activity center arrives in Step 14. Dashboard filters are preserved in this route.',
-        },
         loadComponent: () =>
-          import('@app/features/placeholder/feature-placeholder-page').then(
-            (module) => module.FeaturePlaceholderPage,
-          ),
+          import('@app/features/activity/activity-page').then((module) => module.ActivityPage),
       },
       {
         path: 'lookup',

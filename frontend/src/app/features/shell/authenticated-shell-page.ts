@@ -6,6 +6,7 @@ import { SessionFacade } from '@core/auth/session-facade';
 import { AppShell } from '@core/layout/app-shell';
 import { ShellDashboardStore } from '@core/layout/shell-dashboard-store';
 import { Alert } from '@app/shared/components/alert/alert';
+import { ActivityMonitor } from '@core/activity/activity-monitor';
 
 @Component({
   selector: 'app-authenticated-shell-page',
@@ -15,7 +16,7 @@ import { Alert } from '@app/shared/components/alert/alert';
       <app-shell
         [userName]="user.displayName || 'Loquela learner'"
         [userEmail]="user.email || 'Google account'"
-        [activeJobCount]="shellDashboard.activeJobs()"
+        [activeJobCount]="shellDashboard.activeActivity()"
         [cardsToStudy]="shellDashboard.cardsToStudy()"
         (searchSubmitted)="openLookup($event)"
         (userActionSelected)="handleUserAction($event)"
@@ -48,6 +49,7 @@ export class AuthenticatedShellPage {
   private readonly facade = inject(SessionFacade);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly activityMonitor = inject(ActivityMonitor);
 
   readonly shellDashboard = inject(ShellDashboardStore);
   readonly session = this.facade.view;
@@ -56,6 +58,8 @@ export class AuthenticatedShellPage {
   constructor() {
     // Counts belong to the current authenticated user and must never survive a user change.
     this.shellDashboard.reset();
+    this.activityMonitor.start();
+    this.destroyRef.onDestroy(() => this.activityMonitor.stop());
   }
 
   openLookup(query: string): void {
@@ -78,6 +82,7 @@ export class AuthenticatedShellPage {
       .subscribe({
         next: () => {
           this.shellDashboard.reset();
+          this.activityMonitor.stop();
           void this.router.navigate(['/login'], { replaceUrl: true });
         },
         error: () => {

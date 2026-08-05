@@ -11,6 +11,7 @@ import { FormField } from '@app/shared/components/form-field/form-field';
 import { ApiProblemError } from '@core/errors/api-problem';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import { ActivityMonitor } from '@core/activity/activity-monitor';
 
 type IntakeStatus = 'idle' | 'submitting' | 'error';
 
@@ -27,6 +28,7 @@ export class SourceIntake {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translations = inject(TranslationService);
+  private readonly activityMonitor = inject(ActivityMonitor);
 
   readonly status = signal<IntakeStatus>('idle');
   readonly errorMessage = signal<string | null>(null);
@@ -109,7 +111,10 @@ export class SourceIntake {
         }),
       )
       .subscribe({
-        next: (source) => void this.router.navigate(['/app/sources', source.reference]),
+        next: (source) => {
+          this.activityMonitor.refreshBaseline();
+          void this.router.navigate(['/app/sources', source.reference]);
+        },
         error: (error: unknown) => {
           this.status.set('error');
           this.errorMessage.set(

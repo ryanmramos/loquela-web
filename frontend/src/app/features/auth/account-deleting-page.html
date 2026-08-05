@@ -7,8 +7,21 @@
       Product activity is unavailable while deletion is in progress. Your session will stop working
       when cleanup completes.
     </p>
+    @if (deletion(); as current) {
+      <div class="deletion-status" role="status">
+        <strong>{{ statusLabel(current.status) }}</strong>
+        <span>Last updated {{ current.updatedAt | date: 'medium' }}</span>
+        @if (current.supportCode) {
+          <span
+            >Support code: <code>{{ current.supportCode }}</code></span
+          >
+        }
+      </div>
+    }
     @if (failed()) {
-      <app-alert title="Sign out failed" tone="danger">Try again in a moment.</app-alert>
+      <app-alert title="Status temporarily unavailable" tone="danger"
+        >The last known account state is unchanged. Try again in a moment.</app-alert
+      >
     }
     <button appButton type="button" (click)="signOut()">Sign out</button>
   </section>

@@ -2,6 +2,7 @@ package com.example.whatsanki.controller;
 
 import com.example.whatsanki.dto.BrowserAccountDeletionDto;
 import com.example.whatsanki.dto.BrowserAccountDeletionRequestDto;
+import com.example.whatsanki.dto.BrowserAccountDeletionStatusDto;
 import com.example.whatsanki.service.BrowserPrivacyService;
 import com.example.whatsanki.service.exception.BrowserPrivacyException;
 import com.example.whatsanki.service.security.BrowserAuthenticationSuccessHandler;
@@ -56,6 +57,22 @@ class BrowserPrivacyControllerTest {
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().status()).isEqualTo("DELETING");
         verify(privacyService).deleteAccount("google-subject");
+    }
+
+    @Test
+    void readsCurrentDeletionForAuthenticatedPrincipal() {
+        var status = new BrowserAccountDeletionStatusDto(
+                BrowserAccountDeletionStatusDto.Status.IN_PROGRESS,
+                Instant.now(),
+                null
+        );
+        when(privacyService.currentDeletion("google-subject")).thenReturn(status);
+
+        var response = controller.current(authentication());
+
+        assertThat(response.getBody()).isEqualTo(status);
+        assertThat(response.getHeaders().getCacheControl()).isEqualTo("no-store");
+        verify(privacyService).currentDeletion("google-subject");
     }
 
     private UsernamePasswordAuthenticationToken authentication() {

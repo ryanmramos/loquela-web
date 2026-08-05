@@ -6,6 +6,8 @@ import { Api } from '@api/generated/api';
 import { getBrowserLanguageSettings } from '@api/generated/fn/browser-language-settings-controller/get-browser-language-settings';
 import { updateBrowserLanguageSettings } from '@api/generated/fn/browser-language-settings-controller/update-browser-language-settings';
 import { BrowserLanguageSettingsDto } from '@api/generated/models/browser-language-settings-dto';
+import { getCurrentBrowserAccountDeletion } from '@api/generated/fn/browser-privacy-controller/get-current-browser-account-deletion';
+import { BrowserAccountDeletionStatusDto } from '@api/generated/models/browser-account-deletion-status-dto';
 
 export interface LanguagePair {
   readonly sourceLanguage: string;
@@ -40,6 +42,8 @@ export interface SettingsPreferences {
   readonly exportIncludeProvenance: boolean;
 }
 
+export type AccountDeletionStatus = Readonly<BrowserAccountDeletionStatusDto>;
+
 @Injectable({ providedIn: 'root' })
 export class SettingsApi {
   private readonly api = inject(Api);
@@ -59,6 +63,10 @@ export class SettingsApi {
     return this.http
       .post('/api/v1/account-deletion-requests', { confirmationPhrase })
       .pipe(map(() => undefined));
+  }
+
+  currentDeletion(): Observable<AccountDeletionStatus> {
+    return this.api.invoke(getCurrentBrowserAccountDeletion).pipe(map((status) => ({ ...status })));
   }
 
   getLanguages(): Observable<LanguageSettings> {

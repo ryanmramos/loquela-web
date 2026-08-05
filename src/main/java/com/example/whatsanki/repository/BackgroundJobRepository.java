@@ -17,6 +17,10 @@ public interface BackgroundJobRepository extends Repository<BackgroundJobEntity,
     long countByUserIdAndStateIn(UUID userId, Set<BackgroundJobEntity.State> states);
 
     Optional<BackgroundJobEntity> findByIdAndUserId(UUID id, UUID userId);
+    Optional<BackgroundJobEntity> findFirstByUserIdAndTypeOrderByCreatedAtDesc(
+            UUID userId,
+            BackgroundJobEntity.Type type
+    );
 
     @Query(value = """
             select *

@@ -4,7 +4,7 @@ import { BrowserSession } from '@api/api-adapters/session-api';
 
 export type SessionStatus = 'unknown' | 'anonymous' | 'authenticated' | 'deleting' | 'disabled';
 
-export type SessionNotice = 'session-expired' | 'account-disabled';
+export type SessionNotice = 'session-expired' | 'account-disabled' | 'account-deleted';
 
 export interface SessionView {
   readonly status: SessionStatus;

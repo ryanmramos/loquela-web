@@ -5,6 +5,19 @@
   padding: var(--space-6);
 }
 
+.deletion-status {
+  background: var(--color-surface-subtle);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: var(--space-1);
+  margin-block: var(--space-5);
+  padding: var(--space-4);
+}
+
+.deletion-status span {
+  color: var(--color-text-muted);
+}
+
 .account-state section {
   width: min(100%, 38rem);
   padding: var(--space-8);

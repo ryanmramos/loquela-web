@@ -1,0 +1,102 @@
+<div class="activity-page">
+  <header class="page-heading">
+    <p class="eyebrow">{{ 'activity.eyebrow' | translate }}</p>
+    <h1>{{ 'activity.title' | translate }}</h1>
+    <p>{{ 'activity.description' | translate }}</p>
+  </header>
+
+  <section class="filters" [attr.aria-label]="'activity.filters' | translate">
+    <div class="filter-set" role="group" [attr.aria-label]="'activity.lifecycleFilter' | translate">
+      @for (option of ['', 'ACTIVE', 'COMPLETED', 'FAILED']; track option) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.filter-chip--active]="lifecycle === option"
+          [attr.aria-pressed]="lifecycle === option"
+          (click)="setLifecycle(option)"
+        >
+          {{ filterLabel(option) }}
+        </button>
+      }
+    </div>
+    <label>
+      {{ 'activity.categoryFilter' | translate }}
+      <select #categorySelect [value]="category" (change)="setCategory(categorySelect.value)">
+        <option value="">{{ 'activity.category.ALL' | translate }}</option>
+        <option value="SOURCE">{{ 'activity.category.SOURCE' | translate }}</option>
+        <option value="LOOKUP">{{ 'activity.category.LOOKUP' | translate }}</option>
+        <option value="EXPORT">{{ 'activity.category.EXPORT' | translate }}</option>
+      </select>
+    </label>
+  </section>
+
+  <p class="refresh-note" role="status">
+    <span aria-hidden="true">↻</span>
+    {{ (state.paused() ? 'activity.refreshPaused' : 'activity.refreshActive') | translate }}
+  </p>
+
+  @if (state.loadStatus() === 'loading') {
+    <app-ui-state
+      kind="loading"
+      [title]="'activity.loadingTitle' | translate"
+      [description]="'activity.loadingDescription' | translate"
+    />
+  } @else if (state.loadStatus() === 'error') {
+    <app-ui-state
+      kind="error"
+      [title]="'activity.errorTitle' | translate"
+      [description]="'activity.errorDescription' | translate"
+    />
+    <button appButton type="button" (click)="retry()">{{ 'common.tryAgain' | translate }}</button>
+  } @else if (state.items().length === 0) {
+    <app-ui-state
+      kind="empty"
+      [title]="'activity.emptyTitle' | translate"
+      [description]="'activity.emptyDescription' | translate"
+    />
+  } @else {
+    <section class="feed" aria-labelledby="activity-feed-title">
+      <h2 id="activity-feed-title" class="visually-hidden">
+        {{ 'activity.feedTitle' | translate }}
+      </h2>
+      @for (item of state.items(); track item.reference) {
+        <article class="feed-item" [class.feed-item--failed]="item.lifecycle === 'FAILED'">
+          <span class="type-icon" aria-hidden="true">{{ icon(item.category) }}</span>
+          <div class="feed-copy">
+            <div class="feed-heading">
+              <div>
+                <span class="activity-kind">{{ categoryLabel(item.category) }}</span>
+                <h3>{{ title(item) }}</h3>
+              </div>
+              <app-status-badge [tone]="lifecycleTone(item.lifecycle)">{{
+                lifecycleLabel(item.lifecycle)
+              }}</app-status-badge>
+            </div>
+            <p>{{ detail(item) }}</p>
+            <time [attr.datetime]="item.updatedAt"
+              >{{ 'activity.updated' | translate }} {{ formatDate(item.updatedAt) }}</time
+            >
+          </div>
+          @if (item.target) {
+            <a appButton variant="secondary" [href]="item.target">{{
+              'activity.view' | translate
+            }}</a>
+          }
+        </article>
+      }
+    </section>
+    @if (state.nextCursor()) {
+      <div class="load-more">
+        <button
+          appButton
+          variant="secondary"
+          type="button"
+          [disabled]="state.loadingMore()"
+          (click)="state.loadMore()"
+        >
+          {{ (state.loadingMore() ? 'activity.loadingMore' : 'activity.loadMore') | translate }}
+        </button>
+      </div>
+    }
+  }
+</div>

@@ -70,6 +70,54 @@ export function validateBrowserOpenApi(contract) {
     );
   }
 
+  const activityList = contract.paths?.['/api/v1/activity']?.get;
+  if (!isRecord(activityList) || activityList.operationId !== 'listBrowserActivity') {
+    errors.push('GET /api/v1/activity must keep operationId "listBrowserActivity".');
+  } else {
+    requireSchemaReference(
+      activityList,
+      '200',
+      'application/json',
+      '#/components/schemas/ActivityPageDto',
+      errors,
+    );
+  }
+  const activityStatuses = contract.paths?.['/api/v1/activity/status-query']?.post;
+  if (
+    !isRecord(activityStatuses) ||
+    activityStatuses.operationId !== 'queryBrowserActivityStatuses'
+  ) {
+    errors.push(
+      'POST /api/v1/activity/status-query must keep operationId "queryBrowserActivityStatuses".',
+    );
+  } else {
+    requireSchemaReference(
+      activityStatuses,
+      '200',
+      'application/json',
+      '#/components/schemas/ActivityStatusQueryResponseDto',
+      errors,
+    );
+  }
+
+  const deletionStatus = contract.paths?.['/api/v1/account-deletion-requests/current']?.get;
+  if (
+    !isRecord(deletionStatus) ||
+    deletionStatus.operationId !== 'getCurrentBrowserAccountDeletion'
+  ) {
+    errors.push(
+      'GET /api/v1/account-deletion-requests/current must keep operationId "getCurrentBrowserAccountDeletion".',
+    );
+  } else {
+    requireSchemaReference(
+      deletionStatus,
+      '200',
+      'application/json',
+      '#/components/schemas/BrowserAccountDeletionStatusDto',
+      errors,
+    );
+  }
+
   const pastedTextCreate = contract.paths?.['/api/v1/sources']?.post;
   if (!isRecord(pastedTextCreate) || pastedTextCreate.operationId !== 'createPastedTextSource') {
     errors.push('POST /api/v1/sources must keep operationId "createPastedTextSource".');
@@ -174,9 +222,28 @@ export function validateBrowserOpenApi(contract) {
   requireFields(schemas?.JobSummary, ['status', 'activeJobs'], 'JobSummary', errors);
   requireFields(schemas?.ActivitySummary, ['status', 'items'], 'ActivitySummary', errors);
   requireFields(
-    schemas?.ActivityItem,
-    ['kind', 'title', 'detail', 'status', 'occurredAt', 'target'],
-    'ActivityItem',
+    schemas?.ActivityItemDto,
+    ['reference', 'category', 'operation', 'lifecycle', 'status', 'createdAt', 'updatedAt'],
+    'ActivityItemDto',
+    errors,
+  );
+  requireFields(schemas?.ActivityPageDto, ['items', 'activeCount'], 'ActivityPageDto', errors);
+  requireFields(
+    schemas?.ActivityStatusQueryRequestDto,
+    ['references'],
+    'ActivityStatusQueryRequestDto',
+    errors,
+  );
+  requireFields(
+    schemas?.ActivityStatusQueryResponseDto,
+    ['items', 'activeCount'],
+    'ActivityStatusQueryResponseDto',
+    errors,
+  );
+  requireFields(
+    schemas?.BrowserAccountDeletionStatusDto,
+    ['status', 'updatedAt'],
+    'BrowserAccountDeletionStatusDto',
     errors,
   );
   requireFields(

@@ -8,6 +8,8 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,6 +37,7 @@ public interface LookupSessionRepository extends Repository<LookupSessionEntity,
             @Param("now") Instant now
     );
     Optional<LookupSessionEntity> findByIdAndUserId(UUID id, UUID userId);
+    List<LookupSessionEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select session from LookupSessionEntity session where session.id = :id and session.userId = :userId")
     Optional<LookupSessionEntity> findByIdAndUserIdForUpdate(@Param("id") UUID id, @Param("userId") UUID userId);

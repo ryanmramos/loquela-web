@@ -21,6 +21,7 @@ import { ToastService } from '@app/shared/components/toast/toast.service';
 import { SessionFacade } from '@core/auth/session-facade';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import { ActivityMonitor } from '@core/activity/activity-monitor';
 import { LookupSourceFilters } from './source-filters/lookup-source-filters';
 
 interface HighlightSegment {
@@ -52,6 +53,7 @@ export class LookupPage {
   private readonly toasts = inject(ToastService);
   private readonly sessionFacade = inject(SessionFacade);
   private readonly translations = inject(TranslationService);
+  private readonly activityMonitor = inject(ActivityMonitor);
   readonly session = this.sessionFacade.view;
   readonly lookup = signal<BrowserLookupDto | null>(null);
   readonly loading = signal(false);
@@ -109,11 +111,13 @@ export class LookupPage {
     this.error.set('');
     const v = this.form.getRawValue();
     this.api.create(v.term.trim(), v.sourceReferences, v.sourceKinds).subscribe({
-      next: (a) =>
+      next: (a) => {
+        this.activityMonitor.refreshBaseline();
         void this.router.navigate([], {
           relativeTo: this.route,
           queryParams: { lookup: a.reference },
-        }),
+        });
+      },
       error: () => {
         this.loading.set(false);
         this.error.set(this.translations.translate('lookup.startError'));

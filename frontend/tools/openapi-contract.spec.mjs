@@ -33,3 +33,14 @@ test('rejects absolute API origins and persistence entities', () => {
   assert.ok(errors.some((error) => error.includes('same-origin')));
   assert.ok(errors.some((error) => error.includes('JPA schema')));
 });
+
+test('rejects activity contract drift', () => {
+  const incompatible = structuredClone(validContract);
+  delete incompatible.paths['/api/v1/activity/status-query'];
+
+  assert.ok(
+    validateBrowserOpenApi(incompatible).some((error) =>
+      error.includes('POST /api/v1/activity/status-query'),
+    ),
+  );
+});

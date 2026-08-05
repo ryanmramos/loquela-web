@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import { Api } from '@api/generated/api';
 import { getDashboard } from '@api/generated/fn/dashboard-controller/get-dashboard';
 import { DashboardDto } from '@api/generated/models/dashboard-dto';
+import { ActivityItem } from './activity-api';
 
 export interface DashboardSnapshot {
   readonly generatedAt: string;
@@ -37,14 +38,7 @@ export interface DashboardSnapshot {
   };
 }
 
-export interface DashboardActivity {
-  readonly kind: 'SOURCE' | 'JOB';
-  readonly title: string;
-  readonly detail: string;
-  readonly status: string;
-  readonly occurredAt: string;
-  readonly target: string;
-}
+export type DashboardActivity = ActivityItem;
 
 export type DashboardSectionStatus = 'AVAILABLE' | 'UNAVAILABLE';
 

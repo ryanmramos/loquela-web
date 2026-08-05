@@ -27,7 +27,11 @@ export class LoginPage {
   readonly localLoginEnabled = this.config.localLoginEnabled;
   readonly pendingAccount = signal<LocalAccountId | null>(null);
   readonly loginFailed = signal(false);
-  readonly reason = this.route.snapshot.queryParamMap.get('reason');
+  // Completion is navigation-only so refreshing or sharing the URL cannot replay the message.
+  readonly reason =
+    this.router.getCurrentNavigation()?.extras.state?.['accountDeleted'] === true
+      ? 'account-deleted'
+      : this.route.snapshot.queryParamMap.get('reason');
   readonly returnUrl = safeAuthenticatedReturnUrl(
     this.route.snapshot.queryParamMap.get('returnUrl'),
   );

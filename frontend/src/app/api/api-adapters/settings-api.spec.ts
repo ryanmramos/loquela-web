@@ -127,4 +127,20 @@ describe('SettingsApi', () => {
     request.flush({ status: 'DELETING' });
     await expect(response).resolves.toBeUndefined();
   });
+
+  it('loads the safe account-deletion projection', async () => {
+    const response = firstValueFrom(api.currentDeletion());
+    const request = httpTesting.expectOne('/api/v1/account-deletion-requests/current');
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      status: 'NEEDS_ATTENTION',
+      updatedAt: '2026-08-04T20:00:00Z',
+      supportCode: 'opaque_support_code',
+    });
+    await expect(response).resolves.toEqual({
+      status: 'NEEDS_ATTENTION',
+      updatedAt: '2026-08-04T20:00:00Z',
+      supportCode: 'opaque_support_code',
+    });
+  });
 });

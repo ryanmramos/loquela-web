@@ -5,6 +5,7 @@ import { Subscription, timer } from 'rxjs';
 import { DashboardApi, DashboardSnapshot } from '@api/api-adapters/dashboard-api';
 import { AcceptedPastedTextSource, SourceApi } from '@api/api-adapters/source-api';
 import { ShellDashboardStore } from '@core/layout/shell-dashboard-store';
+import { ActivityMonitor } from '@core/activity/activity-monitor';
 
 type LoadStatus = 'idle' | 'loading' | 'success' | 'error';
 type CaptureStatus = 'idle' | 'submitting' | 'success' | 'error';
@@ -16,6 +17,7 @@ export class DashboardState {
   private readonly dashboardApi = inject(DashboardApi);
   private readonly sourceApi = inject(SourceApi);
   private readonly shellDashboard = inject(ShellDashboardStore);
+  private readonly activityMonitor = inject(ActivityMonitor);
   private readonly destroyRef = inject(DestroyRef);
   private readonly loadStatusState = signal<LoadStatus>('idle');
   private readonly snapshotState = signal<DashboardSnapshot | null>(null);
@@ -87,6 +89,7 @@ export class DashboardState {
         next: (source) => {
           this.acceptedSourceState.set(source);
           this.captureStatusState.set('success');
+          this.activityMonitor.refreshBaseline();
           this.load();
         },
         error: () => this.captureStatusState.set('error'),

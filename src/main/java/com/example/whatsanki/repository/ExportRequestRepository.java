@@ -11,11 +11,13 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 public interface ExportRequestRepository extends Repository<ExportRequestEntity, UUID> {
     ExportRequestEntity save(ExportRequestEntity exportRequest);
     Optional<ExportRequestEntity> findByIdAndUserId(UUID id, UUID userId);
+    List<ExportRequestEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     List<ExportRequestEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
     long countByUserIdAndDeckId(UUID userId, UUID deckId);
     boolean existsByUserIdAndDeckIdAndStateIn(

@@ -10,11 +10,13 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
+import java.util.Set;
 
 public interface DeckRepository extends Repository<DeckEntity, UUID> {
     DeckEntity save(DeckEntity deck);
     DeckEntity saveAndFlush(DeckEntity deck);
     Optional<DeckEntity> findByIdAndUserId(UUID id, UUID userId);
+    List<DeckEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     Optional<DeckEntity> findByUserIdAndNormalizedName(UUID userId, String normalizedName);
     List<DeckEntity> findAllByUserIdAndStatusOrderByName(UUID userId, DeckEntity.Status status);
     void delete(DeckEntity deck);

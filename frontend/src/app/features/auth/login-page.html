@@ -21,6 +21,10 @@
         <app-alert title="Account unavailable" tone="danger">
           This account cannot access Loquela. Contact support if you believe this is a mistake.
         </app-alert>
+      } @else if (reason === 'account-deleted') {
+        <app-alert title="Account deleted" tone="success">
+          Your account and its Loquela data have been deleted.
+        </app-alert>
       } @else if (reason === 'oauth-error') {
         <app-alert title="Google sign-in was not completed" tone="warning">
           Try again. If the problem continues, contact support.

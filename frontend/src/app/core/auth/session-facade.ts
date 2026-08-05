@@ -62,7 +62,7 @@ export class SessionFacade {
           (error.problem.code === 'ACCOUNT_DISABLED' || error.problem.code === 'ACCOUNT_DELETED')
         ) {
           this.store.setAnonymous(
-            error.problem.code === 'ACCOUNT_DISABLED' ? 'account-disabled' : undefined,
+            error.problem.code === 'ACCOUNT_DISABLED' ? 'account-disabled' : 'account-deleted',
           );
           return of(this.view());
         }
