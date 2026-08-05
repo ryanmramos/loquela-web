@@ -1,6 +1,12 @@
 import { Injectable, computed, signal } from '@angular/core';
 
-export type InterfaceLanguage = 'en' | 'es';
+export const INTERFACE_LANGUAGES = ['en', 'es'] as const;
+export type InterfaceLanguage = (typeof INTERFACE_LANGUAGES)[number];
+
+export const INTERFACE_LANGUAGE_OPTIONS = [
+  { code: 'en', label: 'settings.english' },
+  { code: 'es', label: 'settings.spanish' },
+] as const satisfies readonly { code: InterfaceLanguage; label: string }[];
 
 const translations = {
   en: {
@@ -83,6 +89,11 @@ const translations = {
     'common.card': 'card',
     'common.noCardsYet': 'No cards yet',
     'common.noResults': 'No results found',
+    'common.pagination': 'Pagination',
+    'common.search': 'Search',
+    'common.previous': 'Previous',
+    'common.next': 'Next',
+    'common.pageOf': 'Page {page} of {total}',
     'dashboard.loading': 'Loading dashboard',
     'dashboard.unavailableTitle': 'Your overview is unavailable',
     'dashboard.unavailableDescription':
@@ -336,6 +347,7 @@ const translations = {
     'decks.emptyTitle': 'No decks yet',
     'decks.emptyDescription': 'Create a deck to organize your first cards.',
     'decks.yourDecks': 'Your decks',
+    'decks.searchLabel': 'Search decks',
     'decks.active': 'Active deck',
     'decks.immutableSnapshots': 'Immutable snapshots',
     'decks.recentExports': 'Recent exports',
@@ -708,6 +720,11 @@ const translations = {
     'common.card': 'tarjeta',
     'common.noCardsYet': 'Aún no hay tarjetas',
     'common.noResults': 'No se encontraron resultados',
+    'common.pagination': 'Paginación',
+    'common.search': 'Buscar',
+    'common.previous': 'Anterior',
+    'common.next': 'Siguiente',
+    'common.pageOf': 'Página {page} de {total}',
     'dashboard.loading': 'Cargando el resumen',
     'dashboard.unavailableTitle': 'El resumen no está disponible',
     'dashboard.unavailableDescription':
@@ -966,6 +983,7 @@ const translations = {
     'decks.emptyTitle': 'Aún no hay mazos',
     'decks.emptyDescription': 'Crea un mazo para organizar tus primeras tarjetas.',
     'decks.yourDecks': 'Tus mazos',
+    'decks.searchLabel': 'Buscar mazos',
     'decks.active': 'Mazo activo',
     'decks.immutableSnapshots': 'Copias inmutables',
     'decks.recentExports': 'Exportaciones recientes',

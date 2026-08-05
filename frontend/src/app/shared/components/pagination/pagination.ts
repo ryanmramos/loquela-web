@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { ButtonDirective } from '../button/button.directive';
+import { TranslatePipe } from '@core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-pagination',
-  imports: [ButtonDirective],
+  imports: [ButtonDirective, TranslatePipe],
   templateUrl: './pagination.html',
   styleUrl: './pagination.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

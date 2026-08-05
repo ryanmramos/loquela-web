@@ -14,8 +14,11 @@ export type { BrowserAccountDeletionStatusDto } from './models/browser-account-d
 export type { BrowserCardDto } from './models/browser-card-dto';
 export type { BrowserCardListDto } from './models/browser-card-list-dto';
 export type { BrowserDeckDto } from './models/browser-deck-dto';
+export type { BrowserDeckListDto } from './models/browser-deck-list-dto';
 export type { BrowserDeckOptionDto } from './models/browser-deck-option-dto';
+export type { BrowserDeckOptionListDto } from './models/browser-deck-option-list-dto';
 export type { BrowserExportDto } from './models/browser-export-dto';
+export type { BrowserExportListDto } from './models/browser-export-list-dto';
 export type { BrowserLanguageSettingsDto } from './models/browser-language-settings-dto';
 export type { BrowserLookupAcceptedDto } from './models/browser-lookup-accepted-dto';
 export type { BrowserLookupDto } from './models/browser-lookup-dto';

@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -19,6 +21,9 @@ public interface DeckRepository extends Repository<DeckEntity, UUID> {
     List<DeckEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     Optional<DeckEntity> findByUserIdAndNormalizedName(UUID userId, String normalizedName);
     List<DeckEntity> findAllByUserIdAndStatusOrderByName(UUID userId, DeckEntity.Status status);
+    Page<DeckEntity> findAllByUserIdAndStatusAndNormalizedNameContaining(
+            UUID userId, DeckEntity.Status status, String normalizedName, Pageable pageable
+    );
     void delete(DeckEntity deck);
 
     @Modifying

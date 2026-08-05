@@ -5,7 +5,9 @@ import com.example.whatsanki.domain.ExportRequestEntity;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.domain.UserIdentityEntity;
 import com.example.whatsanki.dto.BrowserDeckDto;
+import com.example.whatsanki.dto.BrowserDeckListDto;
 import com.example.whatsanki.dto.BrowserExportDto;
+import com.example.whatsanki.dto.BrowserExportListDto;
 import com.example.whatsanki.dto.DeckMutationRequestDto;
 import com.example.whatsanki.repository.CardRepository;
 import com.example.whatsanki.repository.DeckRepository;
@@ -24,6 +26,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.net.URI;
 import java.time.Duration;
@@ -36,7 +40,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BrowserDeckServiceImpl implements BrowserDeckService {
     private static final Duration DOWNLOAD_LINK_LIFETIME = Duration.ofMinutes(5);
-    private static final int EXPORT_HISTORY_LIMIT = 50;
     private static final List<ExportRequestEntity.State> ACTIVE_EXPORT_STATES =
             List.of(ExportRequestEntity.State.QUEUED, ExportRequestEntity.State.RUNNING);
 
@@ -51,10 +54,17 @@ public class BrowserDeckServiceImpl implements BrowserDeckService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BrowserDeckDto> list(String subject) {
+    public BrowserDeckListDto list(String subject, String search, int page, int pageSize) {
         UserId userId = user(subject);
-        return deckRepository.findAllByUserIdAndStatusOrderByName(userId.value(), DeckEntity.Status.ACTIVE)
-                .stream().map(deck -> toDeck(deck, userId)).toList();
+        String normalizedSearch = textNormalizer.normalizeForSearch(search == null ? "" : search);
+        var result = deckRepository.findAllByUserIdAndStatusAndNormalizedNameContaining(
+                userId.value(), DeckEntity.Status.ACTIVE, normalizedSearch,
+                PageRequest.of(page, pageSize, Sort.by("name").ascending().and(Sort.by("id")))
+        );
+        return new BrowserDeckListDto(
+                result.getContent().stream().map(deck -> toDeck(deck, userId)).toList(),
+                result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages()
+        );
     }
 
     @Override
@@ -140,12 +150,18 @@ public class BrowserDeckServiceImpl implements BrowserDeckService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BrowserExportDto> exports(String subject) {
+    public BrowserExportListDto exports(String subject, int page, int pageSize) {
         UserId userId = user(subject);
-        return exportRequestRepository.findAllByUserIdOrderByCreatedAtDesc(userId.value()).stream()
-                .limit(EXPORT_HISTORY_LIMIT)
-                .map(export -> toExport(export, ownedDeck(userId, export.getDeckId())))
-                .toList();
+        var result = exportRequestRepository.findAllByUserId(
+                userId.value(),
+                PageRequest.of(page, pageSize, Sort.by("createdAt").descending().and(Sort.by("id").descending()))
+        );
+        return new BrowserExportListDto(
+                result.getContent().stream()
+                        .map(export -> toExport(export, ownedDeck(userId, export.getDeckId())))
+                        .toList(),
+                result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages()
+        );
     }
 
     @Override

@@ -28,12 +28,23 @@
     </scm>
     <properties>
         <java.version>17</java.version>
+        <!--
+          Patch-level security overrides keep the application on Spring Boot 4.1.0
+          while advancing vulnerable transitive dependencies to fixed releases.
+        -->
+        <httpcore5.version>5.4.3</httpcore5.version>
+        <netty.version>4.2.16.Final</netty.version>
+        <postgresql.version>42.7.13</postgresql.version>
+        <tomcat.version>11.0.24</tomcat.version>
+        <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
+        <log4j2.version>2.25.5</log4j2.version>
         <twilio.version>12.1.1</twilio.version>
         <aws.sdk.version>2.31.77</aws.sdk.version>
         <archunit.version>1.4.2</archunit.version>
         <testcontainers.version>1.21.4</testcontainers.version>
         <pdfbox.version>3.0.8</pdfbox.version>
         <springdoc.version>3.0.3</springdoc.version>
+        <dependency-check.version>12.2.2</dependency-check.version>
     </properties>
     <dependencies>
         <dependency>
@@ -187,6 +198,18 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${dependency-check.version}</version>
+                <configuration>
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <failOnError>true</failOnError>
+                    <suppressionFiles>
+                        <suppressionFile>${project.basedir}/dependency-check-suppressions.xml</suppressionFile>
+                    </suppressionFiles>
+                </configuration>
             </plugin>
         </plugins>
     </build>

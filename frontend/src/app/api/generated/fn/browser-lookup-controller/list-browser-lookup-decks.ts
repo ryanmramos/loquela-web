@@ -7,14 +7,20 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { BrowserDeckOptionDto } from '../../models/browser-deck-option-dto';
+import { BrowserDeckOptionListDto } from '../../models/browser-deck-option-list-dto';
 
 export interface ListBrowserLookupDecks$Params {
+  search?: string;
+  page?: number;
+  pageSize?: number;
 }
 
-export function listBrowserLookupDecks(http: HttpClient, rootUrl: string, params?: ListBrowserLookupDecks$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<BrowserDeckOptionDto>>> {
+export function listBrowserLookupDecks(http: HttpClient, rootUrl: string, params?: ListBrowserLookupDecks$Params, context?: HttpContext): Observable<StrictHttpResponse<BrowserDeckOptionListDto>> {
   const rb = new RequestBuilder(rootUrl, listBrowserLookupDecks.PATH, 'get');
   if (params) {
+    rb.query('search', params.search, {});
+    rb.query('page', params.page, {});
+    rb.query('pageSize', params.pageSize, {});
   }
 
   return http.request(
@@ -22,7 +28,7 @@ export function listBrowserLookupDecks(http: HttpClient, rootUrl: string, params
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<BrowserDeckOptionDto>>;
+      return r as StrictHttpResponse<BrowserDeckOptionListDto>;
     })
   );
 }

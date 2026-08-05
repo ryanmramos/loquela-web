@@ -20,11 +20,12 @@ test('shell and component foundation have no detectable accessibility violations
   expect(results.violations).toEqual([]);
 });
 
-test('skip link moves keyboard focus to main content', async ({ page }) => {
+test('skip link moves keyboard focus to main content', async ({ page, browserName }) => {
   await page.goto('/foundation');
   await expect(page.getByRole('heading', { name: 'Your language workspace' })).toBeVisible();
 
-  await page.keyboard.press('Tab');
+  // WebKit on macOS models Safari's default Option+Tab link-navigation preference.
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab');
   const skipLink = page.getByRole('link', { name: 'Skip to main content' });
   await expect(skipLink).toBeFocused();
   await page.keyboard.press('Enter');
@@ -36,7 +37,8 @@ test('dialog traps focus, closes with Escape, and restores the trigger', async (
   await page.goto('/foundation');
 
   const trigger = page.getByRole('button', { name: 'Add a source' });
-  await trigger.click();
+  await trigger.focus();
+  await trigger.press('Enter');
 
   await expect(page.getByRole('dialog', { name: 'Confirm source' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Cancel' })).toBeFocused();
@@ -108,6 +110,21 @@ test('reduced motion removes nonessential animation', async ({ page }) => {
 
   await expect(page.locator('app-skeleton .skeleton').first()).toHaveCSS('animation-name', 'none');
   await expect(page.locator('.state__spinner')).toHaveCSS('animation-name', 'none');
+});
+
+test('content remains operable at 200 percent zoom', async ({ page }) => {
+  await page.setViewportSize({ width: 640, height: 900 });
+  await page.goto('/foundation');
+  await page.locator('body').evaluate((body) => {
+    body.style.zoom = '2';
+  });
+
+  const layout = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
+  await expect(page.getByRole('button', { name: 'Add a source' })).toBeVisible();
 });
 
 test('fails safely when runtime configuration is unavailable', async ({ page }) => {

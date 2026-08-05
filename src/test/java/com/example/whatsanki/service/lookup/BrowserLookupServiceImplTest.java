@@ -29,12 +29,16 @@ import com.example.whatsanki.service.card.CardSaveService;
 import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.util.BrowserReferenceCodec;
 import com.example.whatsanki.service.util.SourceReferenceCodec;
+import com.example.whatsanki.service.util.TextNormalizer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
@@ -60,7 +64,39 @@ class BrowserLookupServiceImplTest {
     @Mock private SourceDocumentRepository sourceDocumentRepository;
     @Mock private DeckRepository deckRepository;
     @Mock private CardSaveService cardSaveService;
+    @Mock private TextNormalizer textNormalizer;
     @InjectMocks private BrowserLookupServiceImpl service;
+
+    @Test
+    void returnsOnlyTheRequestedPageOfSearchableDeckOptions() {
+        UserId userId = UserId.random();
+        DeckEntity deck = new DeckEntity();
+        deck.setId(UUID.randomUUID());
+        deck.setName("Travel");
+        stubUser(userId);
+        when(textNormalizer.normalizeForSearch("Trav")).thenReturn("trav");
+        when(deckRepository.findAllByUserIdAndStatusAndNormalizedNameContaining(
+                org.mockito.ArgumentMatchers.eq(userId.value()),
+                org.mockito.ArgumentMatchers.eq(DeckEntity.Status.ACTIVE),
+                org.mockito.ArgumentMatchers.eq("trav"),
+                any(Pageable.class)
+        )).thenReturn(new PageImpl<>(List.of(deck), PageRequest.of(0, 20), 1_001));
+
+        var result = service.decks("subject", "Trav", 0, 20);
+
+        assertThat(result.items()).singleElement().satisfies(option -> {
+            assertThat(option.name()).isEqualTo("Travel");
+            assertThat(option.reference()).isEqualTo(BrowserReferenceCodec.encode(deck.getId()));
+        });
+        assertThat(result.totalItems()).isEqualTo(1_001);
+        assertThat(result.totalPages()).isEqualTo(51);
+        verify(deckRepository).findAllByUserIdAndStatusAndNormalizedNameContaining(
+                org.mockito.ArgumentMatchers.eq(userId.value()),
+                org.mockito.ArgumentMatchers.eq(DeckEntity.Status.ACTIVE),
+                org.mockito.ArgumentMatchers.eq("trav"),
+                org.mockito.ArgumentMatchers.argThat(pageable -> pageable.getPageSize() == 20)
+        );
+    }
 
     @Test
     void capturesValidatedSourceAndKindFiltersWhenCreatingALookup() {

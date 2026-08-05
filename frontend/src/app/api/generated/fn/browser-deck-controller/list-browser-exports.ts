@@ -7,14 +7,18 @@ import { filter, map } from 'rxjs/operators';
 import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
-import { BrowserExportDto } from '../../models/browser-export-dto';
+import { BrowserExportListDto } from '../../models/browser-export-list-dto';
 
 export interface ListBrowserExports$Params {
+  page?: number;
+  pageSize?: number;
 }
 
-export function listBrowserExports(http: HttpClient, rootUrl: string, params?: ListBrowserExports$Params, context?: HttpContext): Observable<StrictHttpResponse<Array<BrowserExportDto>>> {
+export function listBrowserExports(http: HttpClient, rootUrl: string, params?: ListBrowserExports$Params, context?: HttpContext): Observable<StrictHttpResponse<BrowserExportListDto>> {
   const rb = new RequestBuilder(rootUrl, listBrowserExports.PATH, 'get');
   if (params) {
+    rb.query('page', params.page, {});
+    rb.query('pageSize', params.pageSize, {});
   }
 
   return http.request(
@@ -22,7 +26,7 @@ export function listBrowserExports(http: HttpClient, rootUrl: string, params?: L
   ).pipe(
     filter((r: any): r is HttpResponse<any> => r instanceof HttpResponse),
     map((r: HttpResponse<any>) => {
-      return r as StrictHttpResponse<Array<BrowserExportDto>>;
+      return r as StrictHttpResponse<BrowserExportListDto>;
     })
   );
 }

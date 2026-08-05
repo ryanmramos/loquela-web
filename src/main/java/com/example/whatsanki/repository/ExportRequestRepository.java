@@ -3,6 +3,7 @@ package com.example.whatsanki.repository;
 import com.example.whatsanki.domain.ExportRequestEntity;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -19,6 +20,7 @@ public interface ExportRequestRepository extends Repository<ExportRequestEntity,
     Optional<ExportRequestEntity> findByIdAndUserId(UUID id, UUID userId);
     List<ExportRequestEntity> findAllByUserIdAndIdIn(UUID userId, Set<UUID> ids);
     List<ExportRequestEntity> findAllByUserIdOrderByCreatedAtDesc(UUID userId);
+    Page<ExportRequestEntity> findAllByUserId(UUID userId, Pageable pageable);
     long countByUserIdAndDeckId(UUID userId, UUID deckId);
     boolean existsByUserIdAndDeckIdAndStateIn(
             UUID userId, UUID deckId, List<ExportRequestEntity.State> states

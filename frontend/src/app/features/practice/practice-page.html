@@ -160,6 +160,14 @@
       />
     }
 
+    <form class="deck-search" role="search" (ngSubmit)="loadDecks()">
+      <label class="field">
+        <span>{{ 'decks.searchLabel' | translate }}</span>
+        <input [formControl]="deckSearch" maxlength="256" type="search" />
+      </label>
+      <button appButton variant="secondary" type="submit">{{ 'common.search' | translate }}</button>
+    </form>
+
     @if (!decks().length) {
       <app-ui-state
         kind="empty"

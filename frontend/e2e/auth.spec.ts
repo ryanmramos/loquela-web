@@ -203,6 +203,59 @@ test('dashboard survives partial and large representative sections', async ({ pa
   await expect(page.getByRole('heading', { name: 'Quick capture' })).toBeVisible();
 });
 
+const accessibleRoutes = [
+  '/app',
+  '/app/activity',
+  '/app/sources',
+  '/app/sources/new',
+  '/app/sources/src_spanish',
+  '/app/lookup',
+  '/app/cards',
+  '/app/decks',
+  '/app/study',
+  '/app/settings',
+] as const;
+
+test('English route matrix passes Axe and 320 CSS-pixel reflow', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await mockAuthentication(page, true);
+  await mockBoundedFeatureCollections(page);
+
+  for (const route of accessibleRoutes) {
+    await page.goto(route);
+    await expect(page.locator('main h1').first()).toBeVisible();
+    const layout = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(layout.scrollWidth, `${route} must reflow at 320 CSS pixels`).toBeLessThanOrEqual(
+      layout.clientWidth,
+    );
+    expect((await new AxeBuilder({ page }).analyze()).violations, route).toEqual([]);
+  }
+});
+
+test('configured Spanish locale covers every route and a complete capture workflow', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'language', { configurable: true, get: () => 'es' });
+  });
+  await mockAuthentication(page, true);
+  await mockBoundedFeatureCollections(page);
+
+  for (const route of accessibleRoutes) {
+    await page.goto(route);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+    await expect(page.locator('main h1').first()).toBeVisible();
+  }
+
+  await page.goto('/app');
+  await page.getByLabel('Texto de origen').fill('Una frase completa para el flujo en español.');
+  await page.getByRole('button', { name: 'Añadir a fuentes' }).click();
+  await expect(page.getByText('Tu texto se está indexando.')).toBeVisible();
+});
+
 test('mobile dashboard navigation and global lookup are keyboard operable', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await mockAuthentication(page, true);
@@ -358,11 +411,17 @@ test('card management preserves versioned edits and confirms permanent deletion'
     },
   ];
 
-  await page.route('**/api/v1/lookups/decks', async (route: Route) => {
+  await page.route('**/api/v1/lookups/decks**', async (route: Route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify([{ reference: deckReference, name: 'Vocabulary' }]),
+      body: JSON.stringify({
+        items: [{ reference: deckReference, name: 'Vocabulary' }],
+        page: 0,
+        pageSize: 20,
+        totalItems: 1,
+        totalPages: 1,
+      }),
     });
   });
   await page.route('**/api/v1/cards?*', async (route: Route) => {
@@ -446,12 +505,18 @@ test('deck shelf scrolls, persists visual edits, opens cards, and resumes export
     },
   ];
 
-  await page.route('**/api/v1/decks', async (route: Route) => {
+  await page.route('**/api/v1/decks**', async (route: Route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(decks),
+        body: JSON.stringify({
+          items: decks,
+          page: 0,
+          pageSize: 20,
+          totalItems: decks.length,
+          totalPages: 1,
+        }),
       });
       return;
     }
@@ -483,11 +548,17 @@ test('deck shelf scrolls, persists visual edits, opens cards, and resumes export
       body: JSON.stringify(queued),
     });
   });
-  await page.route('**/api/v1/exports', async (route: Route) => {
+  await page.route('**/api/v1/exports**', async (route: Route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(exports),
+      body: JSON.stringify({
+        items: exports,
+        page: 0,
+        pageSize: 20,
+        totalItems: exports.length,
+        totalPages: 1,
+      }),
     });
   });
 
@@ -539,13 +610,19 @@ test('practice hides answers, resumes after refresh, and supports reduced-motion
     videoStartSeconds: 522,
   };
 
-  await page.route('**/api/v1/decks', async (route: Route) => {
+  await page.route('**/api/v1/decks**', async (route: Route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify([
-        { reference: deckReference, name: 'Spanish Core', themeColor: 'GREEN', cardCount: 2 },
-      ]),
+      body: JSON.stringify({
+        items: [
+          { reference: deckReference, name: 'Spanish Core', themeColor: 'GREEN', cardCount: 2 },
+        ],
+        page: 0,
+        pageSize: 20,
+        totalItems: 1,
+        totalPages: 1,
+      }),
     });
   });
   await page.route('**/api/v1/practice-sessions/active', async (route: Route) => {
@@ -845,6 +922,47 @@ async function mockAuthentication(
   });
 
   return { isAuthenticated: () => authenticated };
+}
+
+async function mockBoundedFeatureCollections(page: Page): Promise<void> {
+  const emptyPage = { items: [], page: 0, pageSize: 20, totalItems: 0, totalPages: 0 };
+  await page.route('**/api/v1/decks**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(emptyPage),
+    }),
+  );
+  await page.route('**/api/v1/exports**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(emptyPage),
+    }),
+  );
+  await page.route('**/api/v1/cards**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(emptyPage),
+    }),
+  );
+  await page.route('**/api/v1/practice-sessions/active', (route) => route.fulfill({ status: 204 }));
+  await page.route('**/api/v1/settings', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        profile: { displayName: 'Local Learner', email: 'learner@local.loquela.test' },
+        linkedAccounts: { google: true, whatsapp: false },
+        languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
+        supportedPairs: [{ sourceLanguage: 'es', definitionLanguage: 'en' }],
+        automaticCaptionFallback: true,
+        exportDeckPrefix: 'Loquela — ',
+        exportIncludeProvenance: true,
+      }),
+    }),
+  );
 }
 
 const dashboardSnapshot = {

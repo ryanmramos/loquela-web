@@ -75,8 +75,9 @@
                 [disabled]="interfaceSaving()"
                 (change)="changeInterfaceLanguage($event)"
               >
-                <option value="en">{{ 'settings.english' | translate }}</option>
-                <option value="es">{{ 'settings.spanish' | translate }}</option>
+                @for (language of interfaceLanguages; track language.code) {
+                  <option [value]="language.code">{{ language.label | translate }}</option>
+                }
               </select>
               <span class="save-status" aria-live="polite">
                 @if (interfaceSaving()) {

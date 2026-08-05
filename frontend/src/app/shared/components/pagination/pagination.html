@@ -1,4 +1,4 @@
-<nav class="pagination" aria-label="Pagination">
+<nav class="pagination" [attr.aria-label]="'common.pagination' | translate">
   <button
     appButton
     variant="secondary"
@@ -6,9 +6,11 @@
     [disabled]="!canGoBack()"
     (click)="goTo(currentPage() - 1)"
   >
-    Previous
+    {{ 'common.previous' | translate }}
   </button>
-  <p aria-live="polite">Page {{ currentPage() }} of {{ totalPages() }}</p>
+  <p aria-live="polite">
+    {{ 'common.pageOf' | translate: { page: currentPage(), total: totalPages() } }}
+  </p>
   <button
     appButton
     variant="secondary"
@@ -16,6 +18,6 @@
     [disabled]="!canGoForward()"
     (click)="goTo(currentPage() + 1)"
   >
-    Next
+    {{ 'common.next' | translate }}
   </button>
 </nav>

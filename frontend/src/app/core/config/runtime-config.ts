@@ -15,6 +15,7 @@ export interface RuntimeConfig {
   readonly supportUrl: string;
   readonly environmentName: EnvironmentName;
   readonly telemetryEnabled: boolean;
+  readonly releaseId?: string;
 }
 
 export const RUNTIME_CONFIG = new InjectionToken<RuntimeConfig>('RUNTIME_CONFIG');

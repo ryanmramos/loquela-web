@@ -2,6 +2,8 @@
 @use 'styles/reset';
 @use 'styles/controls';
 @use 'styles/utilities';
+@use 'app/core/layout/app-shell';
+@use 'styles/feature-budget-overflow';
 
 .bootstrap-error {
   max-width: 42rem;

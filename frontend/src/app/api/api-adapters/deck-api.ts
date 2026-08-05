@@ -9,18 +9,26 @@ import { getBrowserExport } from '@api/generated/fn/browser-deck-controller/get-
 import { listBrowserDecks } from '@api/generated/fn/browser-deck-controller/list-browser-decks';
 import { listBrowserExports } from '@api/generated/fn/browser-deck-controller/list-browser-exports';
 import { updateBrowserDeck } from '@api/generated/fn/browser-deck-controller/update-browser-deck';
-import { BrowserDeckDto, BrowserExportDto, DeckMutationRequestDto } from '@api/generated/models';
+import {
+  BrowserDeckDto,
+  BrowserDeckListDto,
+  BrowserExportDto,
+  BrowserExportListDto,
+  DeckMutationRequestDto,
+} from '@api/generated/models';
 
 export type Deck = BrowserDeckDto;
+export type DeckPage = BrowserDeckListDto;
 export type DeckExport = BrowserExportDto;
+export type DeckExportPage = BrowserExportListDto;
 export type DeckMutation = DeckMutationRequestDto;
 
 @Injectable({ providedIn: 'root' })
 export class DeckApi {
   private readonly api = inject(Api);
 
-  list(): Observable<Deck[]> {
-    return this.api.invoke(listBrowserDecks);
+  list(page = 0, pageSize = 20, search?: string): Observable<DeckPage> {
+    return this.api.invoke(listBrowserDecks, { search, page, pageSize });
   }
 
   create(body: DeckMutation): Observable<Deck> {
@@ -39,8 +47,8 @@ export class DeckApi {
     return this.api.invoke(createBrowserDeckExport, { reference });
   }
 
-  exports(): Observable<DeckExport[]> {
-    return this.api.invoke(listBrowserExports);
+  exports(page = 0, pageSize = 20): Observable<DeckExportPage> {
+    return this.api.invoke(listBrowserExports, { page, pageSize });
   }
 
   exportStatus(reference: string): Observable<DeckExport> {

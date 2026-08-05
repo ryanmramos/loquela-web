@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -18,6 +25,10 @@ import { SourceApi, SourceSummary } from '@api/api-adapters/source-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { ToastService } from '@app/shared/components/toast/toast.service';
+import {
+  SearchableSelect,
+  SearchableSelectOption,
+} from '@app/shared/components/searchable-select/searchable-select';
 import { SessionFacade } from '@core/auth/session-facade';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
@@ -36,6 +47,7 @@ interface HighlightSegment {
     ButtonDirective,
     LookupSourceFilters,
     RouterLink,
+    SearchableSelect,
     UiState,
     TranslatePipe,
   ],
@@ -59,6 +71,11 @@ export class LookupPage {
   readonly loading = signal(false);
   readonly error = signal('');
   readonly decks = signal<BrowserDeckOptionDto[]>([]);
+  readonly deckOptions = computed<SearchableSelectOption[]>(() =>
+    this.decks()
+      .map((deck) => ({ value: deck.reference ?? '', label: deck.name ?? '' }))
+      .filter((option) => option.value && option.label),
+  );
   readonly sources = signal<SourceSummary[]>([]);
   readonly selectedContext = signal<number | 'definition' | null>(null);
   readonly saving = signal(false);
@@ -134,7 +151,8 @@ export class LookupPage {
   }
   private loadDecks(): void {
     this.api.decks().subscribe({
-      next: (decks) => {
+      next: (page) => {
+        const decks = page.items ?? [];
         this.decks.set(decks);
         if (decks[0]?.reference) this.saveForm.controls.deckReference.setValue(decks[0].reference);
       },
@@ -205,6 +223,13 @@ export class LookupPage {
   }
   chooseDeck(reference: string): void {
     this.saveForm.controls.deckReference.setValue(reference);
+  }
+
+  searchDecks(search: string): void {
+    this.api.decks(search || undefined).subscribe({
+      next: (page) => this.decks.set(page.items ?? []),
+      error: () => this.error.set(this.translations.translate('lookup.decksLoadError')),
+    });
   }
   toggleKind(kind: string, checked: boolean): void {
     const current = this.form.controls.sourceKinds.value;

@@ -50,8 +50,13 @@ jobs:
       - run: npm run api:check
       - run: npm test -- --watch=false
       - run: npm run build
+      - run: npm run bundle:check
       - run: npm run proxy:check
       - run: npm run audit:dependencies
+      - run: >-
+          ./mvnw org.owasp:dependency-check-maven:12.2.2:check
+        working-directory: ${{ github.workspace }}
+      - run: npm run secrets:check
       - run: npm run licenses:check
 
   browser:
@@ -67,5 +72,5 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run e2e

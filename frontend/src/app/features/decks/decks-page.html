@@ -17,6 +17,14 @@
     <app-ui-state kind="error" [title]="'decks.errorTitle' | translate" [description]="error()" />
   }
 
+  <form class="deck-search" role="search" (ngSubmit)="applySearch()">
+    <label class="field">
+      <span>{{ 'decks.searchLabel' | translate }}</span>
+      <input [formControl]="search" maxlength="256" type="search" />
+    </label>
+    <button appButton variant="secondary" type="submit">{{ 'common.search' | translate }}</button>
+  </form>
+
   @if (editorOpen()) {
     <section class="deck-editor" aria-labelledby="deck-editor-title">
       <div class="section-head">
@@ -113,6 +121,13 @@
         </article>
       }
     </div>
+    @if (deckTotalPages() > 1) {
+      <app-pagination
+        [currentPage]="deckPage() + 1"
+        [totalPages]="deckTotalPages()"
+        (pageChange)="goToDeckPage($event)"
+      />
+    }
   }
 
   <section id="export-history" class="export-card" aria-labelledby="exports-title" tabindex="0">
@@ -180,6 +195,13 @@
         kind="empty"
         [title]="'decks.noExports' | translate"
         [description]="'decks.noExportsDescription' | translate"
+      />
+    }
+    @if (exportTotalPages() > 1) {
+      <app-pagination
+        [currentPage]="exportPage() + 1"
+        [totalPages]="exportTotalPages()"
+        (pageChange)="goToExportPage($event)"
       />
     }
   </section>

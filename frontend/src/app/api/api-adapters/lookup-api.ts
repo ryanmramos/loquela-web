@@ -7,13 +7,14 @@ import { getBrowserLookup } from '@api/generated/fn/browser-lookup-controller/ge
 import { listBrowserLookupDecks } from '@api/generated/fn/browser-lookup-controller/list-browser-lookup-decks';
 import { saveBrowserLookupContext } from '@api/generated/fn/browser-lookup-controller/save-browser-lookup-context';
 import {
-  BrowserDeckOptionDto,
+  BrowserDeckOptionListDto,
   BrowserLookupAcceptedDto,
   BrowserLookupDto,
   BrowserLookupSaveDto,
 } from '@api/generated/models';
 
 export type { BrowserDeckOptionDto, BrowserLookupDto } from '@api/generated/models';
+export type DeckOptionPage = BrowserDeckOptionListDto;
 
 export interface BrowserLookupAccepted {
   readonly reference: string;
@@ -44,8 +45,8 @@ export class LookupApi {
   get(reference: string): Observable<BrowserLookupDto> {
     return this.api.invoke(getBrowserLookup, { lookupReference: reference });
   }
-  decks(): Observable<BrowserDeckOptionDto[]> {
-    return this.api.invoke(listBrowserLookupDecks);
+  decks(search?: string, page = 0, pageSize = 20): Observable<BrowserDeckOptionListDto> {
+    return this.api.invoke(listBrowserLookupDecks, { search, page, pageSize });
   }
   save(
     reference: string,

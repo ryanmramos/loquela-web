@@ -9,9 +9,19 @@ import { DecksPage } from './decks-page';
 
 describe('DecksPage', () => {
   const list = vi.fn(() =>
-    of([{ reference: 'deck-1', name: 'Spanish Core', themeColor: 'GREEN' as const, cardCount: 2 }]),
+    of({
+      items: [
+        { reference: 'deck-1', name: 'Spanish Core', themeColor: 'GREEN' as const, cardCount: 2 },
+      ],
+      page: 0,
+      pageSize: 20,
+      totalItems: 1,
+      totalPages: 1,
+    }),
   );
-  const exports = vi.fn(() => of([]));
+  const exports = vi.fn(() =>
+    of({ items: [], page: 0, pageSize: 20, totalItems: 0, totalPages: 0 }),
+  );
   const create = vi.fn(() => of({ reference: 'deck-2' }));
   const update = vi.fn(() => of({ reference: 'deck-1' }));
   const deleteDeck = vi.fn(() => of(undefined));
@@ -89,13 +99,13 @@ describe('DecksPage', () => {
     ).toBe(true);
   });
 
-  it('queues an immutable export and adds it to visible history', () => {
+  it('queues an immutable export and refreshes visible history from the server', () => {
     const page = TestBed.createComponent(DecksPage).componentInstance;
 
     page.requestExport(page.decks()[0]);
 
     expect(requestExport).toHaveBeenCalledWith('deck-1');
-    expect(page.exports()[0]?.state).toBe('QUEUED');
+    expect(exports).toHaveBeenCalledTimes(2);
   });
 
   it('does not queue an empty deck and exposes a useful error', () => {

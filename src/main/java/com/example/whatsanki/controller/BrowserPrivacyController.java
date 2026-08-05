@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Duration;
 import java.time.Instant;
 
+@ExternalEndpointSecurity(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF_OWNER_SCOPED)
 @RestController
 @RequestMapping("/api/v1/account-deletion-requests")
 @RequiredArgsConstructor

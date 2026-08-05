@@ -13,9 +13,12 @@ import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.exception.BrowserSourceNotFoundException;
 import com.example.whatsanki.service.util.BrowserReferenceCodec;
 import com.example.whatsanki.service.util.SourceReferenceCodec;
+import com.example.whatsanki.service.util.TextNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.time.Instant;
 import java.util.*;
@@ -33,6 +36,7 @@ public class BrowserLookupServiceImpl implements BrowserLookupService {
     private final SourceDocumentRepository sourceDocumentRepository;
     private final DeckRepository deckRepository;
     private final CardSaveService cardSaveService;
+    private final TextNormalizer textNormalizer;
 
     @Override
     public BrowserLookupAcceptedDto create(String googleSubject, CreateBrowserLookupRequestDto request) {
@@ -89,9 +93,19 @@ public class BrowserLookupServiceImpl implements BrowserLookupService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BrowserDeckOptionDto> decks(String googleSubject) {
-        return deckRepository.findAllByUserIdAndStatusOrderByName(user(googleSubject).value(), DeckEntity.Status.ACTIVE)
-                .stream().map(deck -> new BrowserDeckOptionDto(BrowserReferenceCodec.encode(deck.getId()), deck.getName())).toList();
+    public BrowserDeckOptionListDto decks(String googleSubject, String search, int page, int pageSize) {
+        String normalizedSearch = textNormalizer.normalizeForSearch(search == null ? "" : search);
+        var result = deckRepository.findAllByUserIdAndStatusAndNormalizedNameContaining(
+                user(googleSubject).value(), DeckEntity.Status.ACTIVE, normalizedSearch,
+                PageRequest.of(page, pageSize, Sort.by("name").ascending().and(Sort.by("id")))
+        );
+        return new BrowserDeckOptionListDto(
+                result.getContent().stream()
+                        .map(deck -> new BrowserDeckOptionDto(
+                                BrowserReferenceCodec.encode(deck.getId()), deck.getName()
+                        )).toList(),
+                result.getNumber(), result.getSize(), result.getTotalElements(), result.getTotalPages()
+        );
     }
 
     @Override

@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+@ExternalEndpointSecurity(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF_OWNER_SCOPED)
 @RestController
 @RequestMapping("/api/v1/lookups")
 @RequiredArgsConstructor
@@ -66,13 +69,16 @@ public class BrowserLookupController {
             description = "Active deck options",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    array = @ArraySchema(schema = @Schema(implementation = BrowserDeckOptionDto.class))
+                    schema = @Schema(implementation = BrowserDeckOptionListDto.class)
             )
     )
-    public ResponseEntity<List<BrowserDeckOptionDto>> decks(
-            @Parameter(hidden = true) Authentication auth
+    public ResponseEntity<BrowserDeckOptionListDto> decks(
+            @Parameter(hidden = true) Authentication auth,
+            @RequestParam(required = false) @Size(max = 256) String search,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(50) int pageSize
     ) {
-        return ResponseEntity.ok(browserLookupService.decks(auth.getName()));
+        return ResponseEntity.ok(browserLookupService.decks(auth.getName(), search, page, pageSize));
     }
 
     @PostMapping("/{lookupReference}/contexts/{contextNumber}/save")

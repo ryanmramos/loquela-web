@@ -32,6 +32,7 @@ import java.time.Instant;
  * Both the profile and property conditions keep this boundary out of production.
  */
 @Hidden
+@ExternalEndpointSecurity(ExternalEndpointSecurity.Control.DEVELOPMENT_ONLY_CSRF)
 @RestController
 @Profile({"local", "test"})
 @ConditionalOnProperty(

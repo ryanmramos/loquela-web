@@ -8,6 +8,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { Deck, DeckApi } from '@api/api-adapters/deck-api';
 import { PracticeApi, PracticeRating, PracticeSession } from '@api/api-adapters/practice-api';
@@ -28,7 +29,14 @@ interface RatingOption {
 
 @Component({
   selector: 'app-practice-page',
-  imports: [RouterLink, ButtonDirective, UiState, YoutubePracticePlayer, TranslatePipe],
+  imports: [
+    RouterLink,
+    ReactiveFormsModule,
+    ButtonDirective,
+    UiState,
+    YoutubePracticePlayer,
+    TranslatePipe,
+  ],
   templateUrl: './practice-page.html',
   styleUrl: './practice-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +52,7 @@ export class PracticePage {
   readonly loading = signal(true);
   readonly pending = signal(false);
   readonly error = signal('');
+  readonly deckSearch = new FormControl('', { nonNullable: true });
   readonly pendingRating = signal<{ requestId: string; rating: PracticeRating } | null>(null);
   readonly ratings: readonly RatingOption[] = [
     {
@@ -180,10 +189,10 @@ export class PracticePage {
     }
   }
 
-  private loadDecks(): void {
-    this.deckApi.list().subscribe({
-      next: (decks) => {
-        this.decks.set(decks);
+  loadDecks(): void {
+    this.deckApi.list(0, 20, this.deckSearch.value.trim() || undefined).subscribe({
+      next: (page) => {
+        this.decks.set(page.items ?? []);
         this.loading.set(false);
       },
       error: () => {

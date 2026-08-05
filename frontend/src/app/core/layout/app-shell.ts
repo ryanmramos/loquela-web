@@ -25,7 +25,6 @@ interface ShellNavigationItem {
   selector: 'app-shell',
   imports: [ActionMenu, ButtonDirective, RouterLink, RouterLinkActive, ToastRegion, TranslatePipe],
   templateUrl: './app-shell.html',
-  styleUrl: './app-shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShell {

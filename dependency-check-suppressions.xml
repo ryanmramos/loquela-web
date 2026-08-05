@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <suppress until="2026-09-04Z">
+        <notes><![CDATA[
+            CVE-2026-66299 affects only Apache Tomcat's optional WebSocket chat example.
+            WhatsAnki embeds tomcat-embed-core and tomcat-embed-websocket 11.0.24 and packages
+            no Tomcat examples application or WebSocket chat example. Apache's vendor advisory
+            explicitly says deployments without the examples web application are unaffected.
+
+            Owner: Loquela maintainer
+            Approved: 2026-08-05
+            Review and expiry: 2026-09-04
+            Tracking: replace Tomcat 11.0.24 with 11.0.25 or later when released, then remove
+            this suppression.
+            Vendor advisory: https://lists.apache.org/thread/8owczcc1o8qw1rxmg9gvfk4w2jnh4l5k
+        ]]></notes>
+        <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-(core|websocket)@11\.0\.24$</packageUrl>
+        <cve>CVE-2026-66299</cve>
+    </suppress>
+</suppressions>

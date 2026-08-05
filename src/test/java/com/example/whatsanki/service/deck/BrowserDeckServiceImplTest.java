@@ -20,6 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.net.URI;
 import java.time.Instant;
@@ -130,17 +133,40 @@ class BrowserDeckServiceImplTest {
         ));
         export.setExpiresAt(Instant.now().plusSeconds(300));
         export.setArtifactKey("private/key");
-        when(exportRequestRepository.findAllByUserIdOrderByCreatedAtDesc(userId.value()))
-                .thenReturn(List.of(export));
+        when(exportRequestRepository.findAllByUserId(eq(userId.value()), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(export)));
         when(deckRepository.findByIdAndUserId(deck.getId(), userId.value())).thenReturn(Optional.of(deck));
 
-        var result = service.exports("subject");
+        var result = service.exports("subject", 0, 20);
 
-        assertThat(result).singleElement().satisfies(item -> {
+        assertThat(result.items()).singleElement().satisfies(item -> {
             assertThat(item.deckName()).isEqualTo("Original name");
             assertThat(item.cardCount()).isEqualTo(2);
             assertThat(item.downloadAvailable()).isTrue();
         });
+    }
+
+    @Test
+    void paginatesDecksAtTheRepositoryBoundary() {
+        DeckEntity deck = deck("Vocabulary");
+        when(deckRepository.findAllByUserIdAndStatusAndNormalizedNameContaining(
+                eq(userId.value()), eq(DeckEntity.Status.ACTIVE), eq(""), any(Pageable.class)
+        )).thenReturn(new PageImpl<>(List.of(deck), PageRequest.of(0, 20), 1_001));
+
+        when(textNormalizer.normalizeForSearch("")).thenReturn("");
+
+        var result = service.list("subject", "", 0, 20);
+
+        assertThat(result.items()).singleElement()
+                .satisfies(item -> assertThat(item.name()).isEqualTo("Vocabulary"));
+        assertThat(result.pageSize()).isEqualTo(20);
+        assertThat(result.totalItems()).isEqualTo(1_001);
+        assertThat(result.totalPages()).isEqualTo(51);
+        verify(deckRepository).findAllByUserIdAndStatusAndNormalizedNameContaining(
+                eq(userId.value()), eq(DeckEntity.Status.ACTIVE), eq(""),
+                org.mockito.ArgumentMatchers.argThat(pageable -> pageable.getPageNumber() == 0
+                        && pageable.getPageSize() == 20)
+        );
     }
 
     @Test
@@ -160,6 +186,32 @@ class BrowserDeckServiceImplTest {
         verify(objectStore).createPresignedGetUrl(eq(export.getArtifactKey()),
                 org.mockito.ArgumentMatchers.argThat(duration -> !duration.isNegative()
                         && duration.toMinutes() <= 5));
+    }
+
+    @Test
+    void expiredAndCrossOwnerDownloadsRevealNoArtifactDetails() {
+        DeckEntity deck = deck("Vocabulary");
+        ExportRequestEntity expired = export(deck, ExportRequestEntity.State.READY);
+        expired.setArtifactKey("opaque/private/object.apkg");
+        expired.setExpiresAt(Instant.now().minusSeconds(1));
+        when(exportRequestRepository.findByIdAndUserId(expired.getId(), userId.value()))
+                .thenReturn(Optional.of(expired));
+
+        assertThatThrownBy(() -> service.download(
+                "subject",
+                BrowserReferenceCodec.encode(expired.getId())
+        )).isInstanceOfSatisfying(BrowserDeckException.class, exception ->
+                assertThat(exception.problemCode()).isEqualTo("EXPORT_DOWNLOAD_UNAVAILABLE"));
+
+        UUID otherOwnerExport = UUID.randomUUID();
+        when(exportRequestRepository.findByIdAndUserId(otherOwnerExport, userId.value()))
+                .thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.download(
+                "subject",
+                BrowserReferenceCodec.encode(otherOwnerExport)
+        )).isInstanceOfSatisfying(BrowserDeckException.class, exception ->
+                assertThat(exception.problemCode()).isEqualTo("EXPORT_NOT_FOUND"));
+        verify(objectStore, never()).createPresignedGetUrl(any(), any());
     }
 
     private DeckEntity deck(String name) {

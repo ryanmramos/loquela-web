@@ -4,5 +4,6 @@
   "localLoginEnabled": true,
   "supportUrl": "/support",
   "environmentName": "local",
-  "telemetryEnabled": false
+  "telemetryEnabled": false,
+  "releaseId": "local"
 }

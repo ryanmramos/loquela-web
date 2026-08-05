@@ -5,6 +5,7 @@ import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.security.AuthenticationRateLimitFilter;
 import com.example.whatsanki.service.security.BrowserAuthenticationSuccessHandler;
+import com.example.whatsanki.service.security.BrowserCacheControlFilter;
 import com.example.whatsanki.service.security.CsrfCookieFilter;
 import com.example.whatsanki.service.security.ReauthenticationAuthorizationRequestResolver;
 import com.example.whatsanki.service.security.SpaCsrfTokenRequestHandler;
@@ -27,6 +28,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -87,12 +89,21 @@ public class BrowserSecurityConfiguration {
                         .logoutSuccessHandler((request, response, authentication) -> response.setStatus(204)))
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.deny())
+                        .referrerPolicy(referrer -> referrer.policy(
+                                ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN
+                        ))
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "default-src 'self'; img-src 'self' data: https://i.ytimg.com; "
+                                "default-src 'self'; script-src 'self'; style-src 'self'; "
+                                        + "connect-src 'self'; font-src 'self'; "
+                                        + "img-src 'self' data: https://i.ytimg.com; "
                                         + "frame-src 'self' https://www.youtube-nocookie.com; "
-                                        + "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+                                        + "object-src 'none'; frame-ancestors 'none'; "
+                                        + "base-uri 'self'; form-action 'self'; "
+                                        + "trusted-types angular angular#bundler; "
+                                        + "require-trusted-types-for 'script'"
                         )))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new BrowserCacheControlFilter(), CsrfCookieFilter.class)
                 .addFilterBefore(
                         new AuthenticationRateLimitFilter(
                                 objectMapper,

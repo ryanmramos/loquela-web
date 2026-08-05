@@ -40,6 +40,17 @@ describe('DeckApi', () => {
     http.verify();
   });
 
+  it('bounds and forwards deck list pagination and search', () => {
+    const api = TestBed.inject(DeckApi);
+    const http = TestBed.inject(HttpTestingController);
+
+    api.list(2, 50, 'Travel').subscribe();
+    const list = http.expectOne('/api/v1/decks?search=Travel&page=2&pageSize=50');
+    expect(list.request.method).toBe('GET');
+    list.flush({ items: [], page: 2, pageSize: 50, totalItems: 0, totalPages: 0 });
+    http.verify();
+  });
+
   it('queues and resumes export state through opaque references', () => {
     const api = TestBed.inject(DeckApi);
     const http = TestBed.inject(HttpTestingController);
@@ -50,9 +61,9 @@ describe('DeckApi', () => {
     create.flush({ state: 'QUEUED' });
 
     api.exports().subscribe();
-    const history = http.expectOne('/api/v1/exports');
+    const history = http.expectOne('/api/v1/exports?page=0&pageSize=20');
     expect(history.request.method).toBe('GET');
-    history.flush([]);
+    history.flush({ items: [] });
 
     api.exportStatus('opaque_export').subscribe();
     const status = http.expectOne('/api/v1/exports/opaque_export');

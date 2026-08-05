@@ -17,7 +17,9 @@ describe('PracticePage', () => {
   const reveal = vi.fn(() => of(revealedSession()));
   const rate = vi.fn(() => of({ ...hiddenSession(), position: 2 }));
   const end = vi.fn(() => of({ ...hiddenSession(), status: 'EXPIRED' as const }));
-  const list = vi.fn(() => of(decks));
+  const list = vi.fn(() =>
+    of({ items: decks, page: 0, pageSize: 20, totalItems: 1, totalPages: 1 }),
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();

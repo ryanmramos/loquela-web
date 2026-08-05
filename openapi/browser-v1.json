@@ -437,16 +437,44 @@
         "tags" : [ "browser-deck-controller" ],
         "summary" : "List active owned decks",
         "operationId" : "listBrowserDecks",
+        "parameters" : [ {
+          "name" : "search",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 256,
+            "minLength" : 0
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "name" : "pageSize",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20,
+            "maximum" : 50,
+            "minimum" : 1
+          }
+        } ],
         "responses" : {
           "200" : {
             "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/BrowserDeckDto"
-                  }
+                  "$ref" : "#/components/schemas/BrowserDeckListDto"
                 }
               }
             }
@@ -1149,16 +1177,44 @@
         "tags" : [ "browser-lookup-controller" ],
         "summary" : "List active decks available for lookup cards",
         "operationId" : "listBrowserLookupDecks",
+        "parameters" : [ {
+          "name" : "search",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 256,
+            "minLength" : 0
+          }
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "name" : "pageSize",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20,
+            "maximum" : 50,
+            "minimum" : 1
+          }
+        } ],
         "responses" : {
           "200" : {
             "description" : "Active deck options",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/BrowserDeckOptionDto"
-                  }
+                  "$ref" : "#/components/schemas/BrowserDeckOptionListDto"
                 }
               }
             }
@@ -1171,16 +1227,35 @@
         "tags" : [ "browser-deck-controller" ],
         "summary" : "List recent owned exports",
         "operationId" : "listBrowserExports",
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "name" : "pageSize",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20,
+            "maximum" : 50,
+            "minimum" : 1
+          }
+        } ],
         "responses" : {
           "200" : {
             "description" : "OK",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/BrowserExportDto"
-                  }
+                  "$ref" : "#/components/schemas/BrowserExportListDto"
                 }
               }
             }
@@ -2376,6 +2451,87 @@
           },
           "name" : {
             "type" : "string"
+          }
+        }
+      },
+      "BrowserDeckOptionListDto" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BrowserDeckOptionDto"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "BrowserExportListDto" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BrowserExportDto"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "BrowserDeckListDto" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/BrowserDeckDto"
+            }
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pageSize" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalItems" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "totalPages" : {
+            "type" : "integer",
+            "format" : "int32"
           }
         }
       },

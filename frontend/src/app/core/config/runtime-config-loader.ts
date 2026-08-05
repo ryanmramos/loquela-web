@@ -49,6 +49,7 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
   const supportUrl = requiredString(value, 'supportUrl');
   const environmentName = requiredEnvironment(value['environmentName']);
   const telemetryEnabled = value['telemetryEnabled'];
+  const releaseId = optionalReleaseId(value['releaseId']);
 
   if (!isSameOriginPath(apiBasePath, '/api/')) {
     throw new RuntimeConfigError('apiBasePath must be a same-origin /api path.');
@@ -76,7 +77,16 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
     supportUrl,
     environmentName,
     telemetryEnabled,
+    releaseId,
   };
+}
+
+function optionalReleaseId(value: unknown): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || !/^[A-Za-z0-9._-]{1,100}$/u.test(value)) {
+    throw new RuntimeConfigError('releaseId must contain only safe release characters.');
+  }
+  return value;
 }
 
 export function renderRuntimeConfigError(documentRef: Document = document): void {

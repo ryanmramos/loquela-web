@@ -296,7 +296,17 @@ main {
   }
 
   .workspace-search {
-    width: min(100%, 22rem);
+    width: auto;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .workspace-search input {
+    min-width: 0;
+  }
+
+  .topbar__actions {
+    flex: 0 0 auto;
   }
 
   .topbar__actions > a[appButton],

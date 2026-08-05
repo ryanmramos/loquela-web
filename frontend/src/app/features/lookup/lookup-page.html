@@ -238,20 +238,13 @@
           <p>{{ 'lookup.contextCardLocation' | translate }}</p>
         }
         <form [formGroup]="saveForm" (ngSubmit)="save()">
-          <div class="deck-options">
-            @for (deck of decks(); track deck.reference) {
-              <button
-                type="button"
-                class="deck-option"
-                [class.deck-option--selected]="
-                  saveForm.controls.deckReference.value === deck.reference
-                "
-                (click)="chooseDeck(deck.reference ?? '')"
-              >
-                <span>▥</span><strong>{{ deck.name }}</strong>
-              </button>
-            }
-          </div>
+          <app-searchable-select
+            formControlName="deckReference"
+            [label]="'cards.deck' | translate"
+            [placeholder]="'cards.filterDeck' | translate"
+            [options]="deckOptions()"
+            (searchChange)="searchDecks($event)"
+          />
           <div class="modal-actions">
             <button appButton variant="secondary" type="button" (click)="closeSave()">
               {{ 'common.cancel' | translate }}</button

@@ -1,5 +1,6 @@
 package com.example.whatsanki.browser;
 
+import com.example.whatsanki.controller.ExternalEndpointSecurity;
 import com.example.whatsanki.controller.RequestCorrelationFilter;
 import com.example.whatsanki.domain.AppUserEntity;
 import com.example.whatsanki.domain.SourceDocumentEntity;
@@ -19,6 +20,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.session.SessionRepository;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.blankOrNullString;
@@ -82,7 +88,10 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(jsonPath("$.status").value(401))
                 .andExpect(jsonPath("$.title").value("Authentication required"))
                 .andExpect(jsonPath("$.code").value("AUTHENTICATION_REQUIRED"))
-                .andExpect(jsonPath("$.fieldErrors").isEmpty());
+                .andExpect(jsonPath("$.fieldErrors").isEmpty())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"));
     }
 
     @Test
@@ -112,6 +121,12 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                         "Content-Security-Policy",
                         containsString("frame-src 'self' https://www.youtube-nocookie.com")
                 ))
+                .andExpect(header().string(
+                        "Content-Security-Policy",
+                        containsString("require-trusted-types-for 'script'")
+                ))
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("X-Frame-Options", "DENY"))
                 .andExpect(header().string("X-Correlation-ID", not(blankOrNullString())));
     }
 
@@ -146,6 +161,52 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                         .with(oidcLogin())
                         .with(csrf()))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void everyExternallyReachableMutationHasAnExplicitSecurityClassification() {
+        RequestMappingHandlerMapping mappings = applicationContext.getBean(
+                "requestMappingHandlerMapping",
+                RequestMappingHandlerMapping.class
+        );
+
+        Map<RequestMappingInfo, org.springframework.web.method.HandlerMethod> externalMutations =
+                mappings.getHandlerMethods().entrySet().stream()
+                        .filter(entry -> entry.getValue().getBeanType().getPackageName()
+                                .equals("com.example.whatsanki.controller"))
+                        .filter(entry -> entry.getKey().getMethodsCondition().getMethods().stream()
+                                .anyMatch(method -> method != RequestMethod.GET && method != RequestMethod.HEAD
+                                        && method != RequestMethod.OPTIONS))
+                        .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        assertThat(externalMutations).hasSize(28);
+        externalMutations.forEach((mapping, handler) -> {
+            ExternalEndpointSecurity methodClassification = handler.getMethodAnnotation(
+                    ExternalEndpointSecurity.class
+            );
+            ExternalEndpointSecurity classification = methodClassification != null
+                    ? methodClassification
+                    : handler.getBeanType().getAnnotation(ExternalEndpointSecurity.class);
+            assertThat(classification)
+                    .as("security classification for %s %s", mapping, handler)
+                    .isNotNull();
+            mapping.getPatternValues().forEach(path -> {
+                if (path.startsWith("/webhooks/")) {
+                    assertThat(classification.value())
+                            .isEqualTo(ExternalEndpointSecurity.Control.TWILIO_SIGNED_WEBHOOK);
+                } else if (path.equals("/api/v1/auth/local-login")) {
+                    assertThat(classification.value())
+                            .isEqualTo(ExternalEndpointSecurity.Control.DEVELOPMENT_ONLY_CSRF);
+                } else if (path.equals("/api/v1/session/logout")) {
+                    assertThat(classification.value())
+                            .isEqualTo(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF);
+                } else {
+                    assertThat(path).startsWith("/api/v1/");
+                    assertThat(classification.value())
+                            .isEqualTo(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF_OWNER_SCOPED);
+                }
+            });
+        });
     }
 
     @Test

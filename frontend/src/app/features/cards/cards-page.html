@@ -30,14 +30,14 @@
         </button>
       </div>
       <form [formGroup]="form" (ngSubmit)="save()">
-        <label class="field">
-          <span>{{ 'cards.deck' | translate }}</span>
-          <select formControlName="deckReference">
-            @for (deck of decks(); track deck.reference) {
-              <option [value]="deck.reference">{{ deck.name }}</option>
-            }
-          </select>
-        </label>
+        <app-searchable-select
+          class="field"
+          formControlName="deckReference"
+          [label]="'cards.deck' | translate"
+          [placeholder]="'cards.filterDeck' | translate"
+          [options]="deckOptions()"
+          (searchChange)="searchDecks($event)"
+        />
         <label class="field">
           <span>{{ 'cards.front' | translate }}</span>
           <input formControlName="term" />
@@ -75,15 +75,14 @@
           [placeholder]="'cards.searchLabel' | translate"
         />
       </label>
-      <label class="control">
-        <span class="visually-hidden">{{ 'cards.filterDeck' | translate }}</span>
-        <select [formControl]="deckFilter" (change)="load()">
-          <option value="">{{ 'cards.allDecks' | translate }}</option>
-          @for (deck of decks(); track deck.reference) {
-            <option [value]="deck.reference">{{ deck.name }}</option>
-          }
-        </select>
-      </label>
+      <app-searchable-select
+        class="control"
+        [formControl]="deckFilter"
+        [label]="'cards.filterDeck' | translate"
+        [placeholder]="'cards.filterDeck' | translate"
+        [options]="deckFilterOptions()"
+        (searchChange)="searchDecks($event)"
+      />
       <label class="control">
         <span class="visually-hidden">{{ 'cards.filterNoteType' | translate }}</span>
         <select [formControl]="noteTypeFilter" (change)="applyNoteTypeFilter()">

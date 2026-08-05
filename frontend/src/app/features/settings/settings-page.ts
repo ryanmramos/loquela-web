@@ -8,7 +8,11 @@ import { finalize } from 'rxjs';
 import { BrowserSettings, LanguagePair, SettingsApi } from '@api/api-adapters/settings-api';
 import { SessionFacade } from '@core/auth/session-facade';
 import { RUNTIME_CONFIG } from '@core/config/runtime-config';
-import { InterfaceLanguage, TranslationService } from '@core/i18n/translation.service';
+import {
+  INTERFACE_LANGUAGE_OPTIONS,
+  InterfaceLanguage,
+  TranslationService,
+} from '@core/i18n/translation.service';
 import { Alert } from '@app/shared/components/alert/alert';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { Skeleton } from '@app/shared/components/skeleton/skeleton';
@@ -25,6 +29,7 @@ type Section = 'profile' | 'accounts' | 'language' | 'delivery' | 'export' | 'pr
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPage {
+  readonly interfaceLanguages = INTERFACE_LANGUAGE_OPTIONS;
   readonly translations = inject(TranslationService);
   private readonly session = inject(SessionFacade);
   private readonly settingsApi = inject(SettingsApi);
