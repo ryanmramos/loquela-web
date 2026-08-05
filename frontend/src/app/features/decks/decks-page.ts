@@ -10,6 +10,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval } from 'rxjs';
+import { InputText } from 'primeng/inputtext';
 
 import { Deck, DeckApi, DeckExport } from '@api/api-adapters/deck-api';
 import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/action-menu';
@@ -19,6 +20,7 @@ import { Pagination } from '@app/shared/components/pagination/pagination';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 import { ActivityMonitor } from '@core/activity/activity-monitor';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 
 type ThemeColor = NonNullable<Deck['themeColor']>;
 
@@ -28,7 +30,9 @@ type ThemeColor = NonNullable<Deck['themeColor']>;
     ReactiveFormsModule,
     RouterLink,
     ActionMenu,
+    AppIcon,
     ButtonDirective,
+    InputText,
     Pagination,
     UiState,
     TranslatePipe,

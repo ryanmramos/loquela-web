@@ -83,10 +83,15 @@ export class SessionFacade {
   }
 
   updateInterfaceLanguage(language: InterfaceLanguage): Observable<void> {
+    const previousLanguage = this.translations.language();
     this.translations.setLanguage(language);
     return this.api.updateInterfaceLanguage(language).pipe(
       tap((session) => this.store.setAuthenticated(session)),
       map(() => undefined),
+      catchError((error: unknown) => {
+        this.translations.setLanguage(previousLanguage);
+        return throwError(() => error);
+      }),
     );
   }
 

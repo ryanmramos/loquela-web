@@ -31,7 +31,7 @@
   </section>
 
   <p class="refresh-note" role="status">
-    <span aria-hidden="true">↻</span>
+    <app-icon name="activity" [size]="17" />
     {{ (state.paused() ? 'activity.refreshPaused' : 'activity.refreshActive') | translate }}
   </p>
 
@@ -61,7 +61,7 @@
       </h2>
       @for (item of state.items(); track item.reference) {
         <article class="feed-item" [class.feed-item--failed]="item.lifecycle === 'FAILED'">
-          <span class="type-icon" aria-hidden="true">{{ icon(item.category) }}</span>
+          <span class="type-icon"><app-icon [name]="icon(item.category)" [size]="19" /></span>
           <div class="feed-copy">
             <div class="feed-heading">
               <div>

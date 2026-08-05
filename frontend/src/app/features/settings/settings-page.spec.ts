@@ -8,6 +8,7 @@ import { vi } from 'vitest';
 import { BrowserSettings, SettingsApi } from '@api/api-adapters/settings-api';
 import { SessionFacade } from '@core/auth/session-facade';
 import { provideRuntimeConfig } from '@core/config/runtime-config';
+import { TranslationService } from '@core/i18n/translation.service';
 
 import { SettingsPage } from './settings-page';
 
@@ -120,6 +121,19 @@ describe('SettingsPage', () => {
 
     expect(updateInterfaceLanguage).toHaveBeenCalledWith('es');
     expect(element.querySelector('.save-status .success')).toBeNull();
+  });
+
+  it('initializes the interface language selector from the active translation language', () => {
+    TestBed.inject(TranslationService).setLanguage('es');
+    const fixture = TestBed.createComponent(SettingsPage);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    const select = element.querySelector<HTMLSelectElement>(
+      'select[aria-label="Idioma de la interfaz"]',
+    );
+
+    expect(select?.value).toBe('es');
   });
 
   it('keeps unsupported source and definition combinations from submission', () => {

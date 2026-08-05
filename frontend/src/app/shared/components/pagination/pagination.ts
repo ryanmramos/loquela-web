@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { ButtonDirective } from '../button/button.directive';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Paginator } from 'primeng/paginator';
+import { PaginatorState } from 'primeng/types/paginator';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-pagination',
-  imports: [ButtonDirective, TranslatePipe],
+  imports: [Paginator, TranslatePipe],
   templateUrl: './pagination.html',
   styleUrl: './pagination.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -14,10 +15,8 @@ export class Pagination {
   readonly totalPages = input.required<number>();
   readonly pageChange = output<number>();
 
-  readonly canGoBack = computed(() => this.currentPage() > 1);
-  readonly canGoForward = computed(() => this.currentPage() < this.totalPages());
-
-  goTo(page: number): void {
+  changePage(event: PaginatorState): void {
+    const page = (event.page ?? 0) + 1;
     if (page >= 1 && page <= this.totalPages() && page !== this.currentPage()) {
       this.pageChange.emit(page);
     }

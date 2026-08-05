@@ -21,7 +21,9 @@ input {
   color: var(--color-text);
   padding: 0 var(--space-3);
 
-  @include mixins.focus-ring;
+  &:focus-visible {
+    @include mixins.focus-ring;
+  }
 }
 
 .searchable-select__listbox {

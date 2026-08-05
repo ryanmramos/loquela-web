@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
+import { InputText } from 'primeng/inputtext';
 
 import { BrowserSettings, LanguagePair, SettingsApi } from '@api/api-adapters/settings-api';
 import { SessionFacade } from '@core/auth/session-facade';
@@ -23,7 +24,15 @@ type Section = 'profile' | 'accounts' | 'language' | 'delivery' | 'export' | 'pr
 
 @Component({
   selector: 'app-settings-page',
-  imports: [Alert, ButtonDirective, ReactiveFormsModule, Skeleton, UiState, TranslatePipe],
+  imports: [
+    Alert,
+    ButtonDirective,
+    InputText,
+    ReactiveFormsModule,
+    Skeleton,
+    UiState,
+    TranslatePipe,
+  ],
   templateUrl: './settings-page.html',
   styleUrl: './settings-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,23 +1,14 @@
-<nav class="pagination" [attr.aria-label]="'common.pagination' | translate">
-  <button
-    appButton
-    variant="secondary"
-    type="button"
-    [disabled]="!canGoBack()"
-    (click)="goTo(currentPage() - 1)"
-  >
-    {{ 'common.previous' | translate }}
-  </button>
-  <p aria-live="polite">
-    {{ 'common.pageOf' | translate: { page: currentPage(), total: totalPages() } }}
-  </p>
-  <button
-    appButton
-    variant="secondary"
-    type="button"
-    [disabled]="!canGoForward()"
-    (click)="goTo(currentPage() + 1)"
-  >
-    {{ 'common.next' | translate }}
-  </button>
-</nav>
+<p-paginator
+  styleClass="pagination"
+  [attr.aria-label]="'common.pagination' | translate"
+  [first]="currentPage() - 1"
+  [rows]="1"
+  [totalRecords]="totalPages()"
+  [showFirstLastIcon]="false"
+  [showPageLinks]="false"
+  [showCurrentPageReport]="true"
+  [currentPageReportTemplate]="
+    'common.pageOf' | translate: { page: currentPage(), total: totalPages() }
+  "
+  (onPageChange)="changePage($event)"
+/>

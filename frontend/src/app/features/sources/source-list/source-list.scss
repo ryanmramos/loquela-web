@@ -68,9 +68,8 @@
   background: var(--color-surface-panel);
 }
 
-table {
+.loquela-data-table {
   width: 100%;
-  border-collapse: collapse;
 }
 
 th,
@@ -143,6 +142,10 @@ tbody tr:last-child td {
   .filters {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .filters app-form-field:first-child {
+    flex: none;
   }
 
   .source-table {

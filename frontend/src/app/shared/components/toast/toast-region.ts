@@ -1,15 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-
-import { IconButtonDirective } from '../button/button.directive';
-import { ToastService } from './toast.service';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Toast } from 'primeng/toast';
 
 @Component({
   selector: 'app-toast-region',
-  imports: [IconButtonDirective],
+  imports: [Toast],
   templateUrl: './toast-region.html',
   styleUrl: './toast-region.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ToastRegion {
-  readonly toasts = inject(ToastService);
-}
+export class ToastRegion {}

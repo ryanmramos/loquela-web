@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Skeleton as PrimeSkeleton } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-skeleton',
-  template: '<span class="skeleton" [style.width]="width()" aria-hidden="true"></span>',
+  imports: [PrimeSkeleton],
+  template: '<p-skeleton class="skeleton" [width]="width()" height="1rem" aria-hidden="true" />',
   styleUrl: './skeleton.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

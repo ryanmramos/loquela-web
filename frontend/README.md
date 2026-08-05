@@ -59,9 +59,7 @@ npm run api:check
 ```
 
 Generated code belongs under `src/app/api/generated` and must never be edited manually. The
-application accesses it through stable adapters under `src/app/api/api-adapters`. The generator
-decision is recorded in
-[`../docs/frontend/ADR-001-OPENAPI_CLIENT_GENERATOR.md`](../docs/frontend/ADR-001-OPENAPI_CLIENT_GENERATOR.md).
+application accesses it through stable adapters under `src/app/api/api-adapters`.
 
 ## Runtime configuration and local API
 
@@ -93,16 +91,16 @@ direct generated-client imports from components, browser storage outside the rev
 unsafe Angular sanitizer bypass calls, and generated API files without a generator marker.
 Type-aware ESLint rules additionally reject unsafe `any` flows and floating promises.
 
-## Design foundation
+## Design system
 
-The local/test-only `/foundation` route exercises the maintained shared component set and the
-responsive application shell. Semantic color, typography, spacing, shape, elevation, breakpoint,
-motion, and layer roles live under `src/styles/`; component styles consume those roles instead of
-copying values from the original static mockups.
+PrimeNG 22 styled mode supplies rich component behavior, `src/app/core/theme/loquela-preset.ts`
+maps it to Loquela's light/dark palette, and the typed `app-icon` registry supplies Lucide icons.
+Semantic layout, typography, spacing, shape, elevation, breakpoint, motion, and layer roles remain
+under `src/styles/`.
 
-End-to-end checks run Axe accessibility scanning, keyboard focus flows, reduced-motion emulation,
-and layout checks at 320 px, 768 px, and 1440 px. Shared controls live under
-`src/app/shared/components`, while the application shell remains under `src/app/core/layout`.
+There is no user-accessible component-gallery route. End-to-end checks run against real login and
+authenticated feature routes, including Axe, keyboard focus, reduced motion, responsive
+navigation, and 320 CSS-pixel reflow.
 
 ## Build cache
 

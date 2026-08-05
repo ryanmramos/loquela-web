@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterOutlet } from '@angular/router';
+import { ConfirmDialog } from 'primeng/confirmdialog';
 
 import { SessionFacade } from '@core/auth/session-facade';
 import { AppShell } from '@core/layout/app-shell';
@@ -10,7 +11,7 @@ import { ActivityMonitor } from '@core/activity/activity-monitor';
 
 @Component({
   selector: 'app-authenticated-shell-page',
-  imports: [Alert, AppShell, RouterOutlet],
+  imports: [Alert, AppShell, ConfirmDialog, RouterOutlet],
   template: `
     @if (session().user; as user) {
       <app-shell
@@ -30,6 +31,7 @@ import { ActivityMonitor } from '@core/activity/activity-monitor';
         }
         <router-outlet />
       </app-shell>
+      <p-confirm-dialog />
     }
   `,
   styles: `

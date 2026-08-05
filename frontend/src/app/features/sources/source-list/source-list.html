@@ -11,6 +11,7 @@
   <form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
     <app-form-field inputId="source-search" [label]="'sources.search' | translate">
       <input
+        pInputText
         id="source-search"
         type="search"
         formControlName="search"
@@ -18,40 +19,44 @@
       />
     </app-form-field>
     <app-form-field inputId="source-kind" [label]="'sources.type' | translate">
-      <select id="source-kind" formControlName="kind">
-        <option value="">{{ 'sources.allTypes' | translate }}</option>
-        <option value="PASTED_TEXT">{{ 'sources.pastedText' | translate }}</option>
-        <option value="YOUTUBE_VIDEO">{{ 'sources.youtube' | translate }}</option>
-        <option value="PDF">PDF</option>
-        <option value="TXT">TXT</option>
-        <option value="EPUB">EPUB</option>
-      </select>
+      <p-select
+        inputId="source-kind"
+        formControlName="kind"
+        [options]="kindOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
     </app-form-field>
     <app-form-field inputId="source-status" [label]="'sources.status' | translate">
-      <select id="source-status" formControlName="status">
-        <option value="">{{ 'sources.allStatuses' | translate }}</option>
-        <option value="READY">{{ 'sources.ready' | translate }}</option>
-        <option value="RECEIVED">{{ 'sources.received' | translate }}</option>
-        <option value="FETCHING">{{ 'sources.fetching' | translate }}</option>
-        <option value="STORED">{{ 'sources.stored' | translate }}</option>
-        <option value="EXTRACTING">{{ 'sources.extracting' | translate }}</option>
-        <option value="INDEXING">{{ 'sources.indexing' | translate }}</option>
-        <option value="FAILED">{{ 'sources.failed' | translate }}</option>
-        <option value="DELETING">{{ 'sources.deleting' | translate }}</option>
-      </select>
+      <p-select
+        inputId="source-status"
+        formControlName="status"
+        [options]="statusOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
     </app-form-field>
     <app-form-field inputId="source-sort" [label]="'sources.sort' | translate">
-      <select id="source-sort" formControlName="sort">
-        <option value="CREATED_AT">{{ 'sources.created' | translate }}</option>
-        <option value="UPDATED_AT">{{ 'sources.updated' | translate }}</option>
-        <option value="DISPLAY_NAME">{{ 'sources.name' | translate }}</option>
-      </select>
+      <p-select
+        inputId="source-sort"
+        formControlName="sort"
+        [options]="sortOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
     </app-form-field>
     <app-form-field inputId="source-direction" [label]="'sources.direction' | translate">
-      <select id="source-direction" formControlName="direction">
-        <option value="DESC">{{ 'sources.descending' | translate }}</option>
-        <option value="ASC">{{ 'sources.ascending' | translate }}</option>
-      </select>
+      <p-select
+        inputId="source-direction"
+        formControlName="direction"
+        [options]="directionOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
     </app-form-field>
     <div class="filter-actions">
       <button appButton type="submit">{{ 'common.apply' | translate }}</button>
@@ -88,8 +93,8 @@
         {{ 'sources.resultCount' | translate: { count: page.totalItems ?? 0 } }}
       </p>
       <div class="source-table">
-        <table>
-          <thead>
+        <p-table [value]="page.items" styleClass="loquela-data-table">
+          <ng-template #header>
             <tr>
               <th scope="col">{{ 'common.source' | translate }}</th>
               <th scope="col">{{ 'common.type' | translate }}</th>
@@ -97,25 +102,23 @@
               <th scope="col">{{ 'sources.storage' | translate }}</th>
               <th scope="col">{{ 'common.updated' | translate }}</th>
             </tr>
-          </thead>
-          <tbody>
-            @for (source of page.items; track source.reference) {
-              <tr>
-                <td>
-                  <a [routerLink]="['/app/sources', source.reference]">{{ source.displayName }}</a>
-                </td>
-                <td>{{ kindLabel(source.kind) }}</td>
-                <td>
-                  <app-status-badge [tone]="statusTone(source.status)">
-                    {{ statusLabel(source.status) }}
-                  </app-status-badge>
-                </td>
-                <td>{{ formatStorage(source.databaseSizeBytes) }}</td>
-                <td>{{ formatUpdatedDate(source.updatedAt) }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
+          </ng-template>
+          <ng-template #body let-source>
+            <tr>
+              <td>
+                <a [routerLink]="['/app/sources', source.reference]">{{ source.displayName }}</a>
+              </td>
+              <td>{{ kindLabel(source.kind) }}</td>
+              <td>
+                <app-status-badge [tone]="statusTone(source.status)">
+                  {{ statusLabel(source.status) }}
+                </app-status-badge>
+              </td>
+              <td>{{ formatStorage(source.databaseSizeBytes) }}</td>
+              <td>{{ formatUpdatedDate(source.updatedAt) }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
       </div>
 
       <ul class="source-cards" [attr.aria-label]="'common.sources' | translate">

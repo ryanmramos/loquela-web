@@ -7,7 +7,7 @@
     </div>
     <div class="heading-actions">
       <button appButton type="button" (click)="newCard()">
-        <span aria-hidden="true">＋</span> {{ 'cards.new' | translate }}
+        <app-icon name="plus" [size]="18" /> {{ 'cards.new' | translate }}
       </button>
     </div>
   </header>
@@ -30,25 +30,30 @@
         </button>
       </div>
       <form [formGroup]="form" (ngSubmit)="save()">
-        <app-searchable-select
-          class="field"
-          formControlName="deckReference"
-          [label]="'cards.deck' | translate"
-          [placeholder]="'cards.filterDeck' | translate"
-          [options]="deckOptions()"
-          (searchChange)="searchDecks($event)"
-        />
+        <app-form-field inputId="card-deck" [label]="'cards.deck' | translate">
+          <p-select
+            inputId="card-deck"
+            formControlName="deckReference"
+            [options]="deckOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [filter]="true"
+            filterBy="label"
+            [fluid]="true"
+            (onFilter)="searchDecks($event.filter)"
+          />
+        </app-form-field>
         <label class="field">
           <span>{{ 'cards.front' | translate }}</span>
-          <input formControlName="term" />
+          <input pInputText formControlName="term" />
         </label>
         <label class="field field--wide">
           <span>{{ 'cards.back' | translate }}</span>
-          <textarea formControlName="definition" rows="3"></textarea>
+          <textarea pTextarea formControlName="definition" rows="3"></textarea>
         </label>
         <label class="field field--wide">
           <span>{{ 'cards.contextOptional' | translate }}</span>
-          <textarea formControlName="exampleText" rows="2"></textarea>
+          <textarea pTextarea formControlName="exampleText" rows="2"></textarea>
         </label>
         <div class="editor-actions field--wide">
           @if (selected()) {
@@ -67,22 +72,32 @@
   <form class="toolbar" (ngSubmit)="load()">
     <div class="toolbar-group">
       <label class="control search-control">
-        <span aria-hidden="true">⌕</span>
+        <app-icon name="search" [size]="18" />
         <span class="visually-hidden">{{ 'cards.searchLabel' | translate }}</span>
         <input
+          pInputText
           type="search"
           [formControl]="filter"
           [placeholder]="'cards.searchLabel' | translate"
         />
       </label>
-      <app-searchable-select
-        class="control"
-        [formControl]="deckFilter"
+      <app-form-field
+        class="deck-filter-control"
+        inputId="card-deck-filter"
         [label]="'cards.filterDeck' | translate"
-        [placeholder]="'cards.filterDeck' | translate"
-        [options]="deckFilterOptions()"
-        (searchChange)="searchDecks($event)"
-      />
+      >
+        <p-select
+          inputId="card-deck-filter"
+          [formControl]="deckFilter"
+          [options]="deckFilterOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterBy="label"
+          [fluid]="true"
+          (onFilter)="searchDecks($event.filter)"
+        />
+      </app-form-field>
       <label class="control">
         <span class="visually-hidden">{{ 'cards.filterNoteType' | translate }}</span>
         <select [formControl]="noteTypeFilter" (change)="applyNoteTypeFilter()">
@@ -102,8 +117,8 @@
         class="view-button"
         [attr.aria-label]="'cards.tableView' | translate"
         [title]="'cards.tableView' | translate"
-        >☷</span
-      >
+        ><app-icon name="list" [size]="19"
+      /></span>
     </div>
   </form>
 

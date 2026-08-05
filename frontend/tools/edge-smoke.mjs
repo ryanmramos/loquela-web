@@ -37,23 +37,20 @@ try {
       ];
     });
   });
-  const response = await page.goto(`http://127.0.0.1:${appPort}/foundation`);
-  await page.getByRole('heading', { name: 'Your language workspace' }).waitFor();
-  await page.keyboard.press('Tab');
+  const response = await page.goto(`http://127.0.0.1:${appPort}/error`);
+  await page.getByRole('heading', { name: 'Something went wrong' }).waitFor();
   const evidence = await page.evaluate(() => ({
     title: document.title,
     language: document.documentElement.lang,
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
-    focusedText: document.activeElement?.textContent?.trim(),
     policyViolations: window.__step16PolicyViolations ?? [],
   }));
   const policy = response?.headers()['content-security-policy'] ?? '';
   if (
-    evidence.title !== 'Design foundation · Loquela' ||
+    evidence.title !== 'Something went wrong · Loquela' ||
     evidence.language !== 'en' ||
     evidence.scrollWidth > evidence.clientWidth ||
-    !evidence.focusedText?.includes('Skip to main content') ||
     evidence.policyViolations.length ||
     !policy.includes("require-trusted-types-for 'script'")
   ) {

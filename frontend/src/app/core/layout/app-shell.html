@@ -10,16 +10,21 @@
     </a>
 
     <nav class="navigation" [attr.aria-label]="'shell.primaryNavigation' | translate">
-      @for (item of navigation; track item.key) {
-        <a
-          [routerLink]="item.target"
-          [attr.aria-label]="item.key | translate"
-          routerLinkActive="navigation__link--active"
-          [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
-        >
-          <span class="navigation__icon" aria-hidden="true">{{ item.symbol }}</span>
-          <span class="navigation__label">{{ item.key | translate }}</span>
-        </a>
+      @for (group of navigationGroups; track group.label) {
+        <section class="navigation__group">
+          <p class="navigation__group-title">{{ group.label | translate }}</p>
+          @for (item of group.items; track item.key) {
+            <a
+              [routerLink]="item.target"
+              [attr.aria-label]="item.key | translate"
+              routerLinkActive="navigation__link--active"
+              [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
+            >
+              <app-icon class="navigation__icon" [name]="item.icon" [size]="19" />
+              <span class="navigation__label">{{ item.key | translate }}</span>
+            </a>
+          }
+        </section>
       }
     </nav>
 
@@ -52,8 +57,9 @@
         <label class="visually-hidden" for="workspace-search">{{
           'shell.search' | translate
         }}</label>
-        <span aria-hidden="true">⌕</span>
+        <app-icon name="search" [size]="18" />
         <input
+          pInputText
           #searchInput
           id="workspace-search"
           name="query"
@@ -69,7 +75,7 @@
           [attr.title]="themeToggleLabel()"
           (click)="themes.toggle()"
         >
-          <span aria-hidden="true">{{ themes.theme() === 'dark' ? '☀' : '☾' }}</span>
+          <app-icon [name]="themes.theme() === 'dark' ? 'sun' : 'moon'" [size]="19" />
         </button>
         <a
           class="activity-link"
@@ -80,7 +86,7 @@
               : ('shell.openActivityCount' | translate: { count: activeJobCount() ?? 0 })
           "
         >
-          <span aria-hidden="true">↻</span>
+          <app-icon name="activity" [size]="18" />
           <span class="activity-link__label">{{ 'shell.activity' | translate }}</span>
           @if ((activeJobCount() ?? 0) > 0) {
             <span class="activity-link__count">{{ activeJobCount() }}</span>
@@ -103,17 +109,48 @@
   </div>
 
   <nav class="mobile-navigation" [attr.aria-label]="'shell.mobileNavigation' | translate">
-    @for (item of navigation.slice(0, 4); track item.key) {
+    @for (item of mobilePrimary; track item.key) {
       <a
         [routerLink]="item.target"
         routerLinkActive="mobile-navigation__link--active"
         [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
       >
-        <span aria-hidden="true">{{ item.symbol }}</span>
+        <app-icon [name]="item.icon" [size]="20" />
+        <span>{{ item.key | translate }}</span>
+      </a>
+    }
+    <button
+      type="button"
+      [attr.aria-label]="'navigation.more' | translate"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      (click)="mobileMenuOpen.set(true)"
+    >
+      <app-icon name="menu" [size]="20" />
+      <span>{{ 'navigation.more' | translate }}</span>
+    </button>
+  </nav>
+</div>
+
+<p-drawer
+  styleClass="mobile-more-drawer"
+  position="bottom"
+  [header]="'navigation.more' | translate"
+  [ariaCloseLabel]="'shell.closeMoreNavigation' | translate"
+  [visible]="mobileMenuOpen()"
+  (visibleChange)="mobileMenuOpen.set($event)"
+>
+  <nav class="mobile-more-navigation" [attr.aria-label]="'shell.moreNavigation' | translate">
+    @for (item of mobileMore; track item.key) {
+      <a
+        [routerLink]="item.target"
+        routerLinkActive="mobile-more-navigation__link--active"
+        (click)="mobileMenuOpen.set(false)"
+      >
+        <app-icon [name]="item.icon" [size]="20" />
         <span>{{ item.key | translate }}</span>
       </a>
     }
   </nav>
-</div>
+</p-drawer>
 
 <app-toast-region />

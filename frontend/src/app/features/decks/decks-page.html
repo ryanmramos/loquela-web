@@ -7,9 +7,11 @@
     </div>
     <div class="heading-actions">
       <a appButton variant="secondary" href="#export-history"
-        >⇩ {{ 'decks.exports' | translate }}</a
+        ><app-icon name="download" [size]="18" /> {{ 'decks.exports' | translate }}</a
       >
-      <button appButton type="button" (click)="newDeck()">＋ {{ 'decks.new' | translate }}</button>
+      <button appButton type="button" (click)="newDeck()">
+        <app-icon name="plus" [size]="18" /> {{ 'decks.new' | translate }}
+      </button>
     </div>
   </header>
 
@@ -18,10 +20,8 @@
   }
 
   <form class="deck-search" role="search" (ngSubmit)="applySearch()">
-    <label class="field">
-      <span>{{ 'decks.searchLabel' | translate }}</span>
-      <input [formControl]="search" maxlength="256" type="search" />
-    </label>
+    <label for="deck-search-input">{{ 'decks.searchLabel' | translate }}</label>
+    <input pInputText id="deck-search-input" [formControl]="search" maxlength="256" type="search" />
     <button appButton variant="secondary" type="submit">{{ 'common.search' | translate }}</button>
   </form>
 
@@ -43,7 +43,7 @@
       <form [formGroup]="form" (ngSubmit)="save()">
         <label class="field">
           <span>{{ 'decks.deckName' | translate }}</span>
-          <input formControlName="name" maxlength="255" />
+          <input pInputText formControlName="name" maxlength="255" />
         </label>
         <fieldset>
           <legend>{{ 'decks.themeColor' | translate }}</legend>

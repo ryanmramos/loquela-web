@@ -1,6 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Textarea } from 'primeng/textarea';
 
 import { SessionFacade } from '@core/auth/session-facade';
 import { Alert } from '@app/shared/components/alert/alert';
@@ -11,6 +12,7 @@ import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 import { ActivityItem } from '@api/api-adapters/activity-api';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 
 import { DashboardState } from './dashboard-state';
 
@@ -18,6 +20,7 @@ import { DashboardState } from './dashboard-state';
   selector: 'app-dashboard-page',
   imports: [
     Alert,
+    AppIcon,
     ButtonDirective,
     DecimalPipe,
     RouterLink,
@@ -25,6 +28,7 @@ import { DashboardState } from './dashboard-state';
     StatusBadge,
     UiState,
     TranslatePipe,
+    Textarea,
   ],
   providers: [DashboardState],
   templateUrl: './dashboard-page.html',

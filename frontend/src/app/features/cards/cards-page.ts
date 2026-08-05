@@ -2,15 +2,16 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { Textarea } from 'primeng/textarea';
 import { BrowserCardDto, CardApi } from '@api/api-adapters/card-api';
 import { BrowserDeckOptionDto, LookupApi } from '@api/api-adapters/lookup-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/action-menu';
+import { FormField } from '@app/shared/components/form-field/form-field';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
-import {
-  SearchableSelect,
-  SearchableSelectOption,
-} from '@app/shared/components/searchable-select/searchable-select';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 @Component({
@@ -20,9 +21,13 @@ import { TranslationService } from '@core/i18n/translation.service';
     RouterLink,
     ButtonDirective,
     ActionMenu,
-    SearchableSelect,
+    AppIcon,
+    FormField,
+    InputText,
+    Select,
     UiState,
     TranslatePipe,
+    Textarea,
   ],
   templateUrl: './cards-page.html',
   styleUrl: './cards-page.scss',
@@ -36,7 +41,7 @@ export class CardsPage {
   readonly cards = signal<BrowserCardDto[]>([]);
   readonly decks = signal<BrowserDeckOptionDto[]>([]);
   readonly pinnedDeck = signal<BrowserDeckOptionDto | null>(null);
-  readonly deckOptions = computed<SearchableSelectOption[]>(() => {
+  readonly deckOptions = computed(() => {
     const options = this.decks().map((deck) => ({
       value: deck.reference ?? '',
       label: deck.name ?? '',
@@ -47,7 +52,7 @@ export class CardsPage {
     }
     return options.filter((option) => option.value && option.label);
   });
-  readonly deckFilterOptions = computed<SearchableSelectOption[]>(() => [
+  readonly deckFilterOptions = computed(() => [
     { value: '', label: this.translations.translate('cards.allDecks') },
     ...this.deckOptions(),
   ]);

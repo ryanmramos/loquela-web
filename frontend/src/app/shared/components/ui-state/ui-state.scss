@@ -22,15 +22,6 @@
   color: var(--color-danger);
 }
 
-.state__spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 0.1875rem solid var(--color-border);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin var(--motion-slow) linear infinite;
-}
-
 h2 {
   margin: 0;
   font-family: var(--font-family-display);
@@ -46,10 +37,4 @@ p {
 
 .state__actions {
   margin-top: var(--space-5);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(1turn);
-  }
 }

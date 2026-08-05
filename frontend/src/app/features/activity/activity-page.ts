@@ -8,12 +8,13 @@ import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/sta
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import { AppIcon, AppIconName } from '@app/shared/components/icon/app-icon';
 
 import { ActivityState } from './activity-state';
 
 @Component({
   selector: 'app-activity-page',
-  imports: [ButtonDirective, StatusBadge, TranslatePipe, UiState],
+  imports: [AppIcon, ButtonDirective, StatusBadge, TranslatePipe, UiState],
   providers: [ActivityState],
   templateUrl: './activity-page.html',
   styleUrl: './activity-page.scss',
@@ -92,8 +93,8 @@ export class ActivityPage {
     return 'info';
   }
 
-  icon(category: ActivityCategory): string {
-    return category === 'SOURCE' ? 'T' : category === 'LOOKUP' ? '⌕' : '⇩';
+  icon(category: ActivityCategory): AppIconName {
+    return category === 'SOURCE' ? 'document' : category === 'LOOKUP' ? 'search' : 'download';
   }
 
   formatDate(value: string): string {

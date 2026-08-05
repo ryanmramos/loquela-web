@@ -9,6 +9,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { InputText } from 'primeng/inputtext';
 import {
   catchError,
   distinctUntilChanged,
@@ -33,6 +34,7 @@ import { SessionFacade } from '@core/auth/session-facade';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 import { ActivityMonitor } from '@core/activity/activity-monitor';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 import { LookupSourceFilters } from './source-filters/lookup-source-filters';
 
 interface HighlightSegment {
@@ -45,6 +47,8 @@ interface HighlightSegment {
   imports: [
     ReactiveFormsModule,
     ButtonDirective,
+    AppIcon,
+    InputText,
     LookupSourceFilters,
     RouterLink,
     SearchableSelect,

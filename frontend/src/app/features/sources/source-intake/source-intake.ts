@@ -3,6 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
+import { InputText } from 'primeng/inputtext';
+import { Textarea } from 'primeng/textarea';
 
 import { AcceptedPastedTextSource, AcceptedSource, SourceApi } from '@api/api-adapters/source-api';
 import { Alert } from '@app/shared/components/alert/alert';
@@ -12,12 +14,23 @@ import { ApiProblemError } from '@core/errors/api-problem';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 import { ActivityMonitor } from '@core/activity/activity-monitor';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 
 type IntakeStatus = 'idle' | 'submitting' | 'error';
 
 @Component({
   selector: 'app-source-intake',
-  imports: [Alert, ButtonDirective, FormField, ReactiveFormsModule, RouterLink, TranslatePipe],
+  imports: [
+    Alert,
+    AppIcon,
+    ButtonDirective,
+    FormField,
+    InputText,
+    ReactiveFormsModule,
+    RouterLink,
+    Textarea,
+    TranslatePipe,
+  ],
   templateUrl: './source-intake.html',
   styleUrl: './source-intake.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

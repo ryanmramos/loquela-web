@@ -5,6 +5,89 @@
 @use 'app/core/layout/app-shell';
 @use 'styles/feature-budget-overflow';
 
+// PrimeNG owns accessible component behavior; these bridge rules keep application-owned
+// elements and Prime components visually aligned to the same Loquela token contract.
+:where(input:not([type='checkbox'], [type='radio'], [type='file']), select, textarea) {
+  min-height: var(--control-min-size);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-panel);
+  color: var(--color-text);
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    background var(--motion-fast) var(--ease-standard);
+}
+
+:where(input:not([type='checkbox'], [type='radio'], [type='file']), select, textarea):hover:not(
+    :disabled
+  ) {
+  border-color: var(--color-primary);
+}
+
+:where(
+  input:not([type='checkbox'], [type='radio'], [type='file']),
+  select,
+  textarea
+):focus-visible {
+  border-color: var(--color-focus);
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+
+:where(.p-component) {
+  font-family: var(--font-family-body);
+}
+
+:where(.p-overlay, .p-dialog, .p-popover, .p-menu) {
+  color: var(--color-text);
+}
+
+// Prime drawers render in the document overlay layer, outside AppShell's scoped styles.
+.mobile-more-drawer {
+  height: min(22rem, 70dvh) !important;
+  max-height: min(22rem, 70dvh);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.mobile-more-drawer .p-drawer-content {
+  overflow-y: auto;
+}
+
+.mobile-more-navigation {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.mobile-more-navigation a {
+  display: flex;
+  min-height: var(--control-min-size);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.mobile-more-navigation a:hover,
+.mobile-more-navigation__link--active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
 .bootstrap-error {
   max-width: 42rem;
   margin: 0 auto;

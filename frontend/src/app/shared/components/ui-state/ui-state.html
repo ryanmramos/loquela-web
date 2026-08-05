@@ -6,13 +6,13 @@
   <div class="state__mark" [class.state__mark--error]="kind() === 'error'" aria-hidden="true">
     @switch (kind()) {
       @case ('loading') {
-        <span class="state__spinner"></span>
+        <p-progress-spinner styleClass="state__spinner" [strokeWidth]="5" [ariaLabel]="title()" />
       }
       @case ('empty') {
-        <span> Aa </span>
+        <app-icon name="book" [size]="30" />
       }
       @case ('error') {
-        <span>!</span>
+        <app-icon name="danger" [size]="30" />
       }
     }
   </div>

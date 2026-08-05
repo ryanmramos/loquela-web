@@ -1,6 +1,7 @@
 import { ENVIRONMENT_NAMES, EnvironmentName, RuntimeConfig } from './runtime-config';
 
 const CONFIG_PATH = '/config.json';
+const LOCAL_CONFIG_PATH = '/config.local.json';
 const CONFIG_ERROR_TITLE = 'Loquela configuration error';
 
 export class RuntimeConfigError extends Error {
@@ -35,7 +36,45 @@ export async function loadRuntimeConfig(
     throw new RuntimeConfigError('Runtime configuration is not valid JSON.');
   }
 
-  return parseRuntimeConfig(value);
+  const config = parseRuntimeConfig(value);
+  if (config.environmentName !== 'local' && config.environmentName !== 'test') {
+    return config;
+  }
+
+  const localOverride = await loadLocalOverride(fetchConfig);
+  if (localOverride === undefined) {
+    return config;
+  }
+  if (!isRecord(value) || !isRecord(localOverride)) {
+    throw new RuntimeConfigError('Local runtime configuration must be an object.');
+  }
+
+  return parseRuntimeConfig({ ...value, ...localOverride });
+}
+
+async function loadLocalOverride(fetchConfig: typeof fetch): Promise<unknown> {
+  let response: Response;
+  try {
+    response = await fetchConfig(LOCAL_CONFIG_PATH, {
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+  } catch {
+    return undefined;
+  }
+
+  if (response.status === 404) {
+    return undefined;
+  }
+  if (!response.ok) {
+    throw new RuntimeConfigError('Local runtime configuration is unavailable.');
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    throw new RuntimeConfigError('Local runtime configuration is not valid JSON.');
+  }
 }
 
 export function parseRuntimeConfig(value: unknown): RuntimeConfig {
@@ -50,6 +89,7 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
   const environmentName = requiredEnvironment(value['environmentName']);
   const telemetryEnabled = value['telemetryEnabled'];
   const releaseId = optionalReleaseId(value['releaseId']);
+  const primeUiLicenseKey = optionalNonEmptyString(value['primeUiLicenseKey'], 'primeUiLicenseKey');
 
   if (!isSameOriginPath(apiBasePath, '/api/')) {
     throw new RuntimeConfigError('apiBasePath must be a same-origin /api path.');
@@ -78,7 +118,16 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
     environmentName,
     telemetryEnabled,
     releaseId,
+    primeUiLicenseKey,
   };
+}
+
+function optionalNonEmptyString(value: unknown, key: string): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new RuntimeConfigError(`${key} must be a non-empty string when provided.`);
+  }
+  return value.trim();
 }
 
 function optionalReleaseId(value: unknown): string | undefined {

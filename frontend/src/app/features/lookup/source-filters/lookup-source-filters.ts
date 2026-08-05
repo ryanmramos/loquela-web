@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, output } f
 import { SourceSummary } from '@api/api-adapters/source-api';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 
 interface FilterToggle {
   readonly value: string;
@@ -11,7 +12,7 @@ interface FilterToggle {
 
 @Component({
   selector: 'app-lookup-source-filters',
-  imports: [TranslatePipe],
+  imports: [AppIcon, TranslatePipe],
   templateUrl: './lookup-source-filters.html',
   styleUrl: './lookup-source-filters.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,9 +1,11 @@
 import { Directive, input } from '@angular/core';
+import { ButtonDirective as PrimeButtonDirective } from 'primeng/button';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 @Directive({
   selector: 'button[appButton], a[appButton]',
+  hostDirectives: [PrimeButtonDirective],
   host: {
     class: 'loquela-button',
     '[class.loquela-button--secondary]': "variant() === 'secondary'",
@@ -17,6 +19,7 @@ export class ButtonDirective {
 
 @Directive({
   selector: 'button[appIconButton], a[appIconButton]',
+  hostDirectives: [PrimeButtonDirective],
   host: {
     class: 'loquela-icon-button',
   },

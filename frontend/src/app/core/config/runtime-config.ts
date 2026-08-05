@@ -16,6 +16,8 @@ export interface RuntimeConfig {
   readonly environmentName: EnvironmentName;
   readonly telemetryEnabled: boolean;
   readonly releaseId?: string;
+  /** Public signed token used by PrimeNG's offline verifier; it is embedded in the client. */
+  readonly primeUiLicenseKey?: string;
 }
 
 export const RUNTIME_CONFIG = new InjectionToken<RuntimeConfig>('RUNTIME_CONFIG');

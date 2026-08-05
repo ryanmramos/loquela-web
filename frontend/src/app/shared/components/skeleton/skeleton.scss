@@ -1,19 +1,3 @@
 .skeleton {
   display: block;
-  height: 1rem;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(
-    90deg,
-    var(--color-surface-subtle) 25%,
-    var(--color-primary-soft) 50%,
-    var(--color-surface-subtle) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.4s var(--ease-standard) infinite;
-}
-
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
 }

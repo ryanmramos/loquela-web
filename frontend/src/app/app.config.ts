@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { provideRouter, TitleStrategy, withInMemoryScrolling } from '@angular/router';
+import { MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
 import { RuntimeConfig, provideRuntimeConfig } from '@core/config/runtime-config';
@@ -25,6 +26,7 @@ export function createAppConfig(runtimeConfig: RuntimeConfig): ApplicationConfig
   return {
     providers: [
       provideBrowserGlobalErrorListeners(),
+      MessageService,
       provideAppInitializer(() => inject(ThemeService).initialize()),
       provideAppInitializer(() => inject(WebVitalsTelemetry).start()),
       provideRuntimeConfig(runtimeConfig),

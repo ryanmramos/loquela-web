@@ -1,7 +1,10 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
+import { Table } from 'primeng/table';
 
 import { SourceListQuery, SourceSummary } from '@api/api-adapters/source-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
@@ -19,12 +22,15 @@ import { SourceListState } from './source-list-state';
   imports: [
     ButtonDirective,
     FormField,
+    InputText,
     Pagination,
     ReactiveFormsModule,
     RouterLink,
+    Select,
     StatusBadge,
     UiState,
     TranslatePipe,
+    Table,
   ],
   providers: [SourceListState],
   templateUrl: './source-list.html',
@@ -45,6 +51,38 @@ export class SourceList {
     sort: new FormControl('CREATED_AT', { nonNullable: true }),
     direction: new FormControl('DESC', { nonNullable: true }),
   });
+
+  readonly kindOptions = computed(() => [
+    { label: this.translations.translate('sources.allTypes'), value: '' },
+    { label: this.translations.translate('sources.pastedText'), value: 'PASTED_TEXT' },
+    { label: this.translations.translate('sources.youtube'), value: 'YOUTUBE_VIDEO' },
+    { label: 'PDF', value: 'PDF' },
+    { label: 'TXT', value: 'TXT' },
+    { label: 'EPUB', value: 'EPUB' },
+  ]);
+
+  readonly statusOptions = computed(() => [
+    { label: this.translations.translate('sources.allStatuses'), value: '' },
+    { label: this.translations.translate('sources.ready'), value: 'READY' },
+    { label: this.translations.translate('sources.received'), value: 'RECEIVED' },
+    { label: this.translations.translate('sources.fetching'), value: 'FETCHING' },
+    { label: this.translations.translate('sources.stored'), value: 'STORED' },
+    { label: this.translations.translate('sources.extracting'), value: 'EXTRACTING' },
+    { label: this.translations.translate('sources.indexing'), value: 'INDEXING' },
+    { label: this.translations.translate('sources.failed'), value: 'FAILED' },
+    { label: this.translations.translate('sources.deleting'), value: 'DELETING' },
+  ]);
+
+  readonly sortOptions = computed(() => [
+    { label: this.translations.translate('sources.created'), value: 'CREATED_AT' },
+    { label: this.translations.translate('sources.updated'), value: 'UPDATED_AT' },
+    { label: this.translations.translate('sources.name'), value: 'DISPLAY_NAME' },
+  ]);
+
+  readonly directionOptions = computed(() => [
+    { label: this.translations.translate('sources.descending'), value: 'DESC' },
+    { label: this.translations.translate('sources.ascending'), value: 'ASC' },
+  ]);
 
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {

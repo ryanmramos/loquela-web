@@ -1,5 +1,7 @@
 <section class="details-page">
-  <a class="back-link" routerLink="/app/sources">← {{ 'sourceDetails.back' | translate }}</a>
+  <a class="back-link" routerLink="/app/sources"
+    ><app-icon name="arrow-left" [size]="17" /> {{ 'sourceDetails.back' | translate }}</a
+  >
 
   @if (state.loadStatus() === 'loading') {
     <app-ui-state
@@ -113,7 +115,13 @@
         <h2 id="manage-heading">{{ 'sourceDetails.manage' | translate }}</h2>
         <div class="manage-row">
           <app-form-field inputId="source-name" [label]="'sourceDetails.displayName' | translate">
-            <input id="source-name" #sourceName [value]="source.displayName" maxlength="512" />
+            <input
+              pInputText
+              id="source-name"
+              #sourceName
+              [value]="source.displayName"
+              maxlength="512"
+            />
           </app-form-field>
           <button
             appButton

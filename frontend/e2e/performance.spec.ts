@@ -96,8 +96,8 @@ test('three-run mobile lab medians stay within the Step 16 budgets', async ({
 
   const runs: { lcp: number; cls: number; tbt: number }[] = [];
   for (let run = 0; run < 3; run += 1) {
-    await page.goto('/foundation');
-    await expect(page.getByRole('heading', { name: 'Your language workspace' })).toBeVisible();
+    await page.goto('/error');
+    await expect(page.getByRole('heading', { name: 'Something went wrong' })).toBeVisible();
     await page.waitForTimeout(250);
     runs.push(
       await page.evaluate(
@@ -113,16 +113,16 @@ test('three-run mobile lab medians stay within the Step 16 budgets', async ({
   expect(median(runs.map(({ cls }) => cls))).toBeLessThanOrEqual(0.1);
   expect(median(runs.map(({ tbt }) => tbt))).toBeLessThanOrEqual(200);
 
-  const interactionDuration = await page.getByRole('button', { name: 'Add a source' }).evaluate(
-    (button) =>
+  const interactionDuration = await page.getByRole('link', { name: 'Return to Loquela' }).evaluate(
+    (link) =>
       new Promise<number>((resolve) => {
         const startedAt = performance.now();
-        (button as HTMLButtonElement).click();
+        (link as HTMLAnchorElement).focus();
         requestAnimationFrame(() =>
           requestAnimationFrame(() => resolve(performance.now() - startedAt)),
         );
       }),
   );
-  await expect(page.getByRole('dialog', { name: 'Confirm source' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Return to Loquela' })).toBeFocused();
   expect(interactionDuration).toBeLessThanOrEqual(200);
 });

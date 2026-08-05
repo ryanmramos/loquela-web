@@ -18,11 +18,15 @@ const validConfig = {
 
 describe('runtime configuration', () => {
   it('loads and validates public configuration without caching it', async () => {
-    const fetchConfig = vi.fn<typeof fetch>().mockResolvedValue(
-      new Response(JSON.stringify(validConfig), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 200,
-      }),
+    const fetchConfig = vi.fn<typeof fetch>().mockImplementation((input) =>
+      Promise.resolve(
+        input === '/config.local.json'
+          ? new Response(null, { status: 404 })
+          : new Response(JSON.stringify(validConfig), {
+              headers: { 'Content-Type': 'application/json' },
+              status: 200,
+            }),
+      ),
     );
 
     await expect(loadRuntimeConfig(fetchConfig)).resolves.toEqual(validConfig);
@@ -30,6 +34,45 @@ describe('runtime configuration', () => {
       cache: 'no-store',
       credentials: 'same-origin',
     });
+  });
+
+  it('merges an ignored local override in local environments', async () => {
+    const fetchConfig = vi
+      .fn<typeof fetch>()
+      .mockImplementation((input) =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify(
+              input === '/config.local.json'
+                ? { primeUiLicenseKey: 'PrimeUI-local-license' }
+                : validConfig,
+            ),
+            { headers: { 'Content-Type': 'application/json' }, status: 200 },
+          ),
+        ),
+      );
+
+    await expect(loadRuntimeConfig(fetchConfig)).resolves.toEqual({
+      ...validConfig,
+      primeUiLicenseKey: 'PrimeUI-local-license',
+    });
+  });
+
+  it('does not request the local override in production', async () => {
+    const productionConfig = {
+      ...validConfig,
+      environmentName: 'production',
+      localLoginEnabled: false,
+    } as const;
+    const fetchConfig = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify(productionConfig), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 200,
+      }),
+    );
+
+    await expect(loadRuntimeConfig(fetchConfig)).resolves.toEqual(productionConfig);
+    expect(fetchConfig).not.toHaveBeenCalledWith('/config.local.json', expect.anything());
   });
 
   it('rejects a missing required value', () => {

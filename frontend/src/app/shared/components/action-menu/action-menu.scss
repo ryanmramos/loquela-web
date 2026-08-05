@@ -1,29 +1,8 @@
 .menu {
-  display: grid;
   min-width: 12rem;
-  padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-panel);
-  box-shadow: var(--shadow-md);
 }
 
-.menu__item {
-  min-height: var(--control-min-size);
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.menu__item:hover,
-.menu__item:focus-visible {
-  background: var(--color-primary-soft);
-}
-
-.menu__item--danger {
+.menu__item--danger .p-menu-item-link,
+.menu__item--danger .p-menu-item-label {
   color: var(--color-danger);
 }

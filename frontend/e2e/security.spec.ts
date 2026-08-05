@@ -14,8 +14,8 @@ test('compiled SPA enforces the production security-header contract', async ({ p
     });
   });
 
-  const response = await page.goto('/foundation');
-  await expect(page.getByRole('heading', { name: 'Your language workspace' })).toBeVisible();
+  const response = await page.goto('/error');
+  await expect(page.getByRole('heading', { name: 'Something went wrong' })).toBeVisible();
 
   const headers = response?.headers() ?? {};
   expect(headers['content-security-policy']).toContain("require-trusted-types-for 'script'");

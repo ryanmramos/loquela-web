@@ -3,6 +3,7 @@ import { firstValueFrom, of, throwError } from 'rxjs';
 
 import { BrowserSession, SessionApi } from '@api/api-adapters/session-api';
 import { ApiProblemError } from '@core/errors/api-problem';
+import { TranslationService } from '@core/i18n/translation.service';
 
 import { SessionFacade } from './session-facade';
 
@@ -21,6 +22,7 @@ describe('SessionFacade', () => {
     getCurrent: ReturnType<typeof vi.fn>;
     localLogin: ReturnType<typeof vi.fn>;
     logout: ReturnType<typeof vi.fn>;
+    updateInterfaceLanguage: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -28,6 +30,7 @@ describe('SessionFacade', () => {
       getCurrent: vi.fn(),
       localLogin: vi.fn(),
       logout: vi.fn(),
+      updateInterfaceLanguage: vi.fn(),
     };
     TestBed.configureTestingModule({
       providers: [{ provide: SessionApi, useValue: api }],
@@ -130,5 +133,18 @@ describe('SessionFacade', () => {
       status: 'anonymous',
       notice: 'account-deleted',
     });
+  });
+
+  it('restores the previous interface language when persistence fails', async () => {
+    api.updateInterfaceLanguage.mockReturnValue(throwError(() => new Error('save failed')));
+    const facade = TestBed.inject(SessionFacade);
+    const translations = TestBed.inject(TranslationService);
+    translations.setLanguage('en');
+
+    await expect(firstValueFrom(facade.updateInterfaceLanguage('es'))).rejects.toThrow(
+      'save failed',
+    );
+
+    expect(translations.language()).toBe('en');
   });
 });

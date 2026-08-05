@@ -1,18 +1,1 @@
-<section class="toast-region" aria-label="Notifications" aria-live="polite">
-  @for (toast of toasts.messages(); track toast.id) {
-    <article class="toast" [class]="'toast toast--' + toast.tone">
-      <div>
-        <strong>{{ toast.title }}</strong>
-        <p>{{ toast.message }}</p>
-      </div>
-      <button
-        appIconButton
-        type="button"
-        [attr.aria-label]="'Dismiss ' + toast.title"
-        (click)="toasts.dismiss(toast.id)"
-      >
-        <span aria-hidden="true">×</span>
-      </button>
-    </article>
-  }
-</section>
+<p-toast key="loquela" position="bottom-right" mode="expanded" [preventOpenDuplicates]="true" />

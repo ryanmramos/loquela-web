@@ -1,12 +1,14 @@
-<section
+<p-message
   class="alert"
   [class]="'alert alert--' + tone()"
+  [severity]="primeSeverity()"
+  icon=""
   [attr.aria-live]="live()"
   [attr.role]="tone() === 'danger' ? 'alert' : 'status'"
 >
-  <span class="alert__mark" aria-hidden="true">!</span>
-  <div>
+  <span class="alert__mark"><app-icon [name]="icon()" [size]="15" /></span>
+  <div class="alert__content">
     <strong>{{ title() }}</strong>
     <div class="alert__body"><ng-content /></div>
   </div>
-</section>
+</p-message>

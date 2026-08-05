@@ -39,8 +39,8 @@ async function waitForApplication(sessionId) {
   // Safari may report navigation complete before Angular has rendered the lazy route.
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const ready = await webdriver(`/session/${sessionId}/execute/sync`, 'POST', {
-      script: `return document.title === 'Design foundation · Loquela'
-        && document.querySelector('main h1')?.textContent?.trim() === 'Your language workspace';`,
+      script: `return document.title === 'Something went wrong · Loquela'
+        && document.querySelector('main h1')?.textContent?.trim() === 'Something went wrong';`,
       args: [],
     });
     if (ready) return;
@@ -58,7 +58,7 @@ try {
   sessionId = session.sessionId;
   await webdriver(`/session/${sessionId}/window/rect`, 'POST', { width: 320, height: 720 });
   await webdriver(`/session/${sessionId}/url`, 'POST', {
-    url: `http://127.0.0.1:${appPort}/foundation`,
+    url: `http://127.0.0.1:${appPort}/error`,
   });
   await waitForApplication(sessionId);
   const evidence = await webdriver(`/session/${sessionId}/execute/sync`, 'POST', {
@@ -72,8 +72,8 @@ try {
     args: [],
   });
   if (
-    evidence.title !== 'Design foundation · Loquela' ||
-    evidence.heading !== 'Your language workspace' ||
+    evidence.title !== 'Something went wrong · Loquela' ||
+    evidence.heading !== 'Something went wrong' ||
     evidence.language !== 'en' ||
     evidence.scrollWidth > evidence.clientWidth
   ) {

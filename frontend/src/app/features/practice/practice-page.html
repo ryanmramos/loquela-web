@@ -4,7 +4,7 @@
   } @else if (session(); as current) {
     @if (current.status === 'COMPLETED') {
       <section class="completion-card" aria-labelledby="practice-complete-title">
-        <span class="completion-mark" aria-hidden="true">✓</span>
+        <span class="completion-mark"><app-icon name="check" [size]="28" /></span>
         <p class="eyebrow">{{ 'practice.complete' | translate }}</p>
         <h1 id="practice-complete-title" #focusTarget tabindex="-1">
           {{ 'practice.niceWork' | translate }}
@@ -161,10 +161,14 @@
     }
 
     <form class="deck-search" role="search" (ngSubmit)="loadDecks()">
-      <label class="field">
-        <span>{{ 'decks.searchLabel' | translate }}</span>
-        <input [formControl]="deckSearch" maxlength="256" type="search" />
-      </label>
+      <label for="practice-deck-search-input">{{ 'decks.searchLabel' | translate }}</label>
+      <input
+        pInputText
+        id="practice-deck-search-input"
+        [formControl]="deckSearch"
+        maxlength="256"
+        type="search"
+      />
       <button appButton variant="secondary" type="submit">{{ 'common.search' | translate }}</button>
     </form>
 

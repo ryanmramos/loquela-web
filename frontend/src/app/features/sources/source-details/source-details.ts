@@ -1,21 +1,18 @@
-import { Dialog, DialogModule } from '@angular/cdk/dialog';
 import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { filter } from 'rxjs';
+import { ConfirmationService } from 'primeng/api';
+import { InputText } from 'primeng/inputtext';
 
 import { SourceDetails as SourceDetailsModel } from '@api/api-adapters/source-api';
 import { Alert } from '@app/shared/components/alert/alert';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
-import {
-  ConfirmDialog,
-  ConfirmDialogData,
-} from '@app/shared/components/confirm-dialog/confirm-dialog';
 import { FormField } from '@app/shared/components/form-field/form-field';
 import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/status-badge';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 
 import { SourceDetailsState } from './source-details-state';
 
@@ -23,10 +20,11 @@ import { SourceDetailsState } from './source-details-state';
   selector: 'app-source-details',
   imports: [
     Alert,
+    AppIcon,
     ButtonDirective,
     DecimalPipe,
-    DialogModule,
     FormField,
+    InputText,
     RouterLink,
     StatusBadge,
     UiState,
@@ -39,7 +37,7 @@ import { SourceDetailsState } from './source-details-state';
 })
 export class SourceDetails {
   private readonly route = inject(ActivatedRoute);
-  private readonly dialog = inject(Dialog);
+  private readonly confirmations = inject(ConfirmationService);
   readonly state = inject(SourceDetailsState);
   private readonly translations = inject(TranslationService);
 
@@ -52,19 +50,15 @@ export class SourceDetails {
   }
 
   confirmDelete(): void {
-    this.dialog
-      .open<boolean, ConfirmDialogData>(ConfirmDialog, {
-        data: {
-          title: this.translations.translate('sourceDetails.confirmDeleteTitle'),
-          description: this.translations.translate('sourceDetails.confirmDeleteDescription'),
-          confirmLabel: this.translations.translate('sourceDetails.deleteSource'),
-        },
-        ariaLabel: this.translations.translate('sourceDetails.confirmDeleteAria'),
-        autoFocus: 'button',
-        restoreFocus: true,
-      })
-      .closed.pipe(filter(Boolean))
-      .subscribe(() => this.state.delete());
+    this.confirmations.confirm({
+      header: this.translations.translate('sourceDetails.confirmDeleteTitle'),
+      message: this.translations.translate('sourceDetails.confirmDeleteDescription'),
+      acceptLabel: this.translations.translate('sourceDetails.deleteSource'),
+      rejectLabel: this.translations.translate('common.cancel'),
+      acceptButtonProps: { severity: 'danger' },
+      rejectButtonProps: { outlined: true, severity: 'secondary' },
+      accept: () => this.state.delete(),
+    });
   }
 
   kindLabel(kind: SourceDetailsModel['kind']): string {

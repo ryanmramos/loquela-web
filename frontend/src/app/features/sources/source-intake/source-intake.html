@@ -13,7 +13,7 @@
 
   <div class="intake-grid">
     <section class="intake-card" aria-labelledby="paste-heading">
-      <div class="card-mark" aria-hidden="true">Aa</div>
+      <div class="card-mark"><app-icon name="type" [size]="23" /></div>
       <h2 id="paste-heading">{{ 'sourcesIntake.paste' | translate }}</h2>
       <p>{{ 'sourcesIntake.pasteDescription' | translate }}</p>
       <form [formGroup]="pastedText" (ngSubmit)="submitPastedText()">
@@ -28,7 +28,7 @@
               : undefined
           "
         >
-          <textarea id="pasted-text" rows="8" formControlName="text"></textarea>
+          <textarea pTextarea id="pasted-text" rows="8" formControlName="text"></textarea>
         </app-form-field>
         <button appButton type="submit" [disabled]="status() === 'submitting'">
           {{
@@ -40,7 +40,7 @@
     </section>
 
     <section class="intake-card" aria-labelledby="youtube-heading">
-      <div class="card-mark" aria-hidden="true">▶</div>
+      <div class="card-mark"><app-icon name="video" [size]="23" /></div>
       <h2 id="youtube-heading">{{ 'sourcesIntake.youtubeCaptions' | translate }}</h2>
       <p>{{ 'sourcesIntake.youtubeDescription' | translate }}</p>
       <form [formGroup]="youtube" (ngSubmit)="submitYouTube()">
@@ -56,6 +56,7 @@
           "
         >
           <input
+            pInputText
             id="youtube-url"
             type="url"
             formControlName="url"
@@ -80,7 +81,7 @@
     </section>
 
     <section class="intake-card intake-card--wide" aria-labelledby="upload-heading">
-      <div class="card-mark" aria-hidden="true">↑</div>
+      <div class="card-mark"><app-icon name="upload" [size]="23" /></div>
       <h2 id="upload-heading">{{ 'sourcesIntake.uploadDocument' | translate }}</h2>
       <p>{{ 'sourcesIntake.uploadDescription' | translate }}</p>
       <app-form-field
@@ -113,5 +114,7 @@
     </section>
   </div>
 
-  <a class="back-link" routerLink="/app/sources">← {{ 'sourcesIntake.back' | translate }}</a>
+  <a class="back-link" routerLink="/app/sources"
+    ><app-icon name="arrow-left" [size]="17" /> {{ 'sourcesIntake.back' | translate }}</a
+  >
 </section>

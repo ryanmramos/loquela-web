@@ -1,6 +1,36 @@
 @use 'tokens' as tokens;
 
+body .deck-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+body .deck-search label {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+body .deck-search input {
+  flex: 1 1 24rem;
+  max-width: 32rem;
+  min-width: 10rem;
+  min-height: var(--control-min-size);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-panel);
+  color: var(--color-text);
+}
+
 body .cards-page {
+  .toolbar-group {
+    align-items: flex-end;
+  }
+  .deck-filter-control {
+    flex: 0 1 15rem;
+    min-width: 12rem;
+  }
   .updated {
     color: var(--color-text-muted);
     font-size: var(--font-size-xs);
@@ -318,6 +348,16 @@ body .dashboard {
 }
 
 @media (max-width: tokens.$breakpoint-mobile) {
+  body .deck-search {
+    flex-wrap: wrap;
+  }
+  body .deck-search label {
+    flex-basis: 100%;
+  }
+  body .deck-search input {
+    min-width: 0;
+  }
+
   body .cards-page {
     padding: 1.75rem var(--space-4) 6.25rem;
   }

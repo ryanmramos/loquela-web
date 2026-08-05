@@ -158,6 +158,7 @@
         <form (submit)="submitCapture($event, captureText)">
           <label for="capture-text">{{ 'dashboard.sourceText' | translate }}</label>
           <textarea
+            pTextarea
             #captureText
             id="capture-text"
             rows="5"
@@ -215,7 +216,16 @@
             @for (item of dashboard.activity.items; track item.reference) {
               <li>
                 <span class="activity-icon" aria-hidden="true">
-                  {{ item.category === 'SOURCE' ? 'T' : item.category === 'LOOKUP' ? '⌕' : '⇩' }}
+                  <app-icon
+                    [name]="
+                      item.category === 'SOURCE'
+                        ? 'document'
+                        : item.category === 'LOOKUP'
+                          ? 'search'
+                          : 'download'
+                    "
+                    [size]="18"
+                  />
                 </span>
                 <div>
                   @if (item.target) {
