@@ -3,6 +3,7 @@ package com.example.whatsanki.controller;
 import com.example.whatsanki.dto.ApiErrorResponseDto;
 import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.service.exception.BrowserAccountUnavailableException;
+import com.example.whatsanki.service.exception.AdminAccessException;
 import com.example.whatsanki.service.exception.BrowserDeckException;
 import com.example.whatsanki.service.exception.BrowserPracticeException;
 import com.example.whatsanki.service.exception.BrowserPrivacyException;
@@ -33,6 +34,30 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AdminAccessException.class)
+    public ResponseEntity<ApiProblemDto> handleAdminAccess(
+            AdminAccessException exception,
+            HttpServletRequest request
+    ) {
+        String detail = switch (exception.problemCode()) {
+            case "RECENT_AUTHENTICATION_REQUIRED" ->
+                    "Sign in with Google again before changing administrator access.";
+            case "ADMIN_CONFIRMATION_REQUIRED" ->
+                    "Confirm the exact target email before changing administrator access.";
+            case "LAST_ADMIN_REQUIRED" -> "At least one active administrator is required.";
+            case "SELF_ADMIN_CHANGE_FORBIDDEN" ->
+                    "Another administrator must change your administrator access.";
+            default -> "The administrative access change could not be completed.";
+        };
+        return problem(
+                exception.status(),
+                exception.problemCode(),
+                "Administrative access operation rejected",
+                detail,
+                request
+        );
+    }
 
     @ExceptionHandler(BrowserActivityException.class)
     public ResponseEntity<ApiProblemDto> handleActivity(

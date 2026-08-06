@@ -20,9 +20,11 @@ interface ShellNavigationItem {
     | 'navigation.decks'
     | 'navigation.study'
     | 'navigation.activity'
-    | 'navigation.settings';
+    | 'navigation.settings'
+    | 'navigation.admin';
   readonly icon: AppIconName;
   readonly target: string;
+  readonly adminOnly?: boolean;
 }
 
 interface ShellNavigationGroup {
@@ -53,6 +55,7 @@ export class AppShell {
   readonly userEmail = input('ryan@example.com');
   readonly activeJobCount = input<number | null>(null);
   readonly cardsToStudy = input<number | null>(null);
+  readonly isAdmin = input(false);
   readonly searchSubmitted = output<string>();
   readonly userActionSelected = output<string>();
   readonly mobileMenuOpen = signal(false);
@@ -79,6 +82,12 @@ export class AppShell {
       items: [
         { key: 'navigation.activity', icon: 'activity', target: '/app/activity' },
         { key: 'navigation.settings', icon: 'settings', target: '/app/settings' },
+        {
+          key: 'navigation.admin',
+          icon: 'shield',
+          target: '/app/admin/access',
+          adminOnly: true,
+        },
       ],
     },
   ];

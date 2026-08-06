@@ -14,6 +14,7 @@ const activeSession: BrowserSession = {
   sourceLanguage: 'es',
   definitionLanguage: 'en',
   accountState: 'ACTIVE',
+  roles: ['USER'],
   linkedAccounts: { google: true, whatsapp: false },
 };
 

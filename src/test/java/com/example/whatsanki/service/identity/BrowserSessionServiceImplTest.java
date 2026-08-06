@@ -25,7 +25,10 @@ class BrowserSessionServiceImplTest {
                 any(byte[].class)
         )).thenReturn(Optional.empty());
         var service = new BrowserSessionServiceImpl(
-                identities, mock(AppUserRepository.class), protection
+                identities,
+                mock(AppUserRepository.class),
+                protection,
+                mock(com.example.whatsanki.service.GoogleAccessService.class)
         );
 
         assertThatThrownBy(() -> service.getByGoogleSubject("google"))

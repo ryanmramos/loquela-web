@@ -34,6 +34,7 @@ describe('sessionExpirationInterceptor', () => {
       sourceLanguage: 'es',
       definitionLanguage: 'en',
       accountState: 'ACTIVE',
+      roles: ['USER'],
       linkedAccounts: { google: true, whatsapp: false },
     });
     const router = TestBed.inject(Router);

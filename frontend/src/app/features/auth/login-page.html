@@ -29,6 +29,11 @@
         <app-alert title="Google sign-in was not completed" tone="warning">
           Try again. If the problem continues, contact support.
         </app-alert>
+      } @else if (reason === 'access-denied') {
+        <app-alert title="Account unavailable" tone="danger">
+          This Google account does not have access to Loquela. Contact an administrator if you
+          believe this is a mistake.
+        </app-alert>
       }
 
       @if (loginFailed()) {
@@ -72,6 +77,15 @@
               (click)="loginLocally('reviewer')"
             >
               {{ pendingAccount() === 'reviewer' ? 'Signing in…' : 'Local Reviewer' }}
+            </button>
+            <button
+              appButton
+              variant="secondary"
+              type="button"
+              [disabled]="pendingAccount() !== null"
+              (click)="loginLocally('admin')"
+            >
+              {{ pendingAccount() === 'admin' ? 'Signing in…' : 'Local Admin' }}
             </button>
           </div>
         </section>

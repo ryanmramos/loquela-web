@@ -14,15 +14,17 @@
         <section class="navigation__group">
           <p class="navigation__group-title">{{ group.label | translate }}</p>
           @for (item of group.items; track item.key) {
-            <a
-              [routerLink]="item.target"
-              [attr.aria-label]="item.key | translate"
-              routerLinkActive="navigation__link--active"
-              [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
-            >
-              <app-icon class="navigation__icon" [name]="item.icon" [size]="19" />
-              <span class="navigation__label">{{ item.key | translate }}</span>
-            </a>
+            @if (!item.adminOnly || isAdmin()) {
+              <a
+                [routerLink]="item.target"
+                [attr.aria-label]="item.key | translate"
+                routerLinkActive="navigation__link--active"
+                [routerLinkActiveOptions]="{ exact: item.target === '/app' }"
+              >
+                <app-icon class="navigation__icon" [name]="item.icon" [size]="19" />
+                <span class="navigation__label">{{ item.key | translate }}</span>
+              </a>
+            }
           }
         </section>
       }
@@ -141,14 +143,16 @@
 >
   <nav class="mobile-more-navigation" [attr.aria-label]="'shell.moreNavigation' | translate">
     @for (item of mobileMore; track item.key) {
-      <a
-        [routerLink]="item.target"
-        routerLinkActive="mobile-more-navigation__link--active"
-        (click)="mobileMenuOpen.set(false)"
-      >
-        <app-icon [name]="item.icon" [size]="20" />
-        <span>{{ item.key | translate }}</span>
-      </a>
+      @if (!item.adminOnly || isAdmin()) {
+        <a
+          [routerLink]="item.target"
+          routerLinkActive="mobile-more-navigation__link--active"
+          (click)="mobileMenuOpen.set(false)"
+        >
+          <app-icon [name]="item.icon" [size]="20" />
+          <span>{{ item.key | translate }}</span>
+        </a>
+      }
     }
   </nav>
 </p-drawer>

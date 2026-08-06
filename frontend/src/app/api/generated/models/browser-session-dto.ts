@@ -9,6 +9,7 @@ export interface BrowserSessionDto {
   email?: string;
   interfaceLanguage?: string;
   linkedAccounts: LinkedAccountsDto;
+  roles: Array<'USER' | 'ADMIN'>;
   sourceLanguage: string;
   userId: string;
 }

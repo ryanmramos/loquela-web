@@ -1,0 +1,137 @@
+:host {
+  display: block;
+}
+
+.admin-page {
+  width: min(100%, 76rem);
+  margin: 0 auto;
+  padding: var(--space-8);
+}
+
+.page-heading {
+  margin-bottom: var(--space-7);
+}
+
+.page-heading h1,
+.create-card h2 {
+  margin: 0;
+  font-family: var(--font-family-display);
+}
+
+.page-heading h1 {
+  font-size: var(--font-size-2xl);
+}
+
+.page-heading p:not(.eyebrow),
+.create-card p:not(.eyebrow) {
+  color: var(--color-text-muted);
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.create-card,
+.filters,
+.access-table {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+}
+
+.create-card {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.7fr) minmax(24rem, 1.3fr);
+  gap: var(--space-7);
+  margin: var(--space-5) 0;
+  padding: var(--space-5);
+}
+
+.create-card form,
+.filters {
+  display: flex;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.create-card app-form-field:first-child,
+.filters app-form-field:first-child {
+  flex: 1 1 16rem;
+}
+
+.create-card app-form-field:nth-child(2),
+.filters app-form-field:not(:first-child) {
+  min-width: 9rem;
+}
+
+.filters {
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+}
+
+.filter-actions,
+.row-actions,
+.dialog-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.access-table {
+  overflow-x: auto;
+}
+
+.access-table th,
+.access-table td {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.access-table th {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+}
+
+.confirmation-dialog {
+  display: grid;
+  min-width: min(28rem, 75vw);
+  gap: var(--space-4);
+}
+
+.dialog-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 54rem) {
+  .create-card {
+    grid-template-columns: 1fr;
+  }
+
+  .create-card form,
+  .filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .create-card app-form-field:first-child,
+  .filters app-form-field:first-child {
+    flex: none;
+  }
+}
+
+@media (max-width: 42rem) {
+  .admin-page {
+    padding: var(--space-5) var(--space-4) var(--space-10);
+  }
+
+  .row-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

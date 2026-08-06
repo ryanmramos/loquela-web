@@ -8,10 +8,13 @@ import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.UserIdentityRepository;
 import com.example.whatsanki.service.BrowserSessionService;
 import com.example.whatsanki.service.IdentityProtectionService;
+import com.example.whatsanki.service.GoogleAccessService;
 import com.example.whatsanki.service.exception.BrowserAccountUnavailableException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ public class BrowserSessionServiceImpl implements BrowserSessionService {
     private final UserIdentityRepository userIdentityRepository;
     private final AppUserRepository appUserRepository;
     private final IdentityProtectionService identityProtectionService;
+    private final GoogleAccessService googleAccessService;
 
     @Override
     @Transactional(readOnly = true)
@@ -68,6 +72,7 @@ public class BrowserSessionServiceImpl implements BrowserSessionService {
                 user.getStatus() == AppUserEntity.Status.DELETING
                         ? BrowserSessionDto.AccountState.DELETING
                         : BrowserSessionDto.AccountState.ACTIVE,
+                roles(googleIdentity),
                 new BrowserSessionDto.LinkedAccountsDto(
                         true,
                         userIdentityRepository.existsByUserIdAndProvider(
@@ -75,5 +80,14 @@ public class BrowserSessionServiceImpl implements BrowserSessionService {
                         )
                 )
         );
+    }
+
+    private List<BrowserSessionDto.Role> roles(UserIdentityEntity googleIdentity) {
+        boolean admin = googleAccessService.findActiveAccess(googleIdentity.getDisplayEmail())
+                .filter(entry -> entry.getRole() == com.example.whatsanki.domain.AccessEntryEntity.Role.ADMIN)
+                .isPresent();
+        return admin
+                ? List.of(BrowserSessionDto.Role.USER, BrowserSessionDto.Role.ADMIN)
+                : List.of(BrowserSessionDto.Role.USER);
     }
 }

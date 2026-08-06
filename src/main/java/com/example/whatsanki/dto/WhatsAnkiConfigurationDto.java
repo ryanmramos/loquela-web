@@ -115,6 +115,8 @@ public class WhatsAnkiConfigurationDto {
 
         private List<@NotBlank String> allowedOrigins = new ArrayList<>();
 
+        private List<@NotBlank String> bootstrapAdminEmails = new ArrayList<>();
+
         @Positive
         private int authRequestsPerMinute = 30;
 

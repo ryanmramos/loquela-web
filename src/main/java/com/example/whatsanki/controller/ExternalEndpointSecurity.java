@@ -17,6 +17,7 @@ public @interface ExternalEndpointSecurity {
     enum Control {
         BROWSER_SESSION_CSRF,
         BROWSER_SESSION_CSRF_OWNER_SCOPED,
+        BROWSER_SESSION_CSRF_ADMIN,
         DEVELOPMENT_ONLY_CSRF,
         TWILIO_SIGNED_WEBHOOK
     }

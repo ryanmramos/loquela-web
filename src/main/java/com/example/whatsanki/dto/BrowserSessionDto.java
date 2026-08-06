@@ -3,6 +3,7 @@ package com.example.whatsanki.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.UUID;
+import java.util.List;
 
 public record BrowserSessionDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -17,9 +18,13 @@ public record BrowserSessionDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         AccountState accountState,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
+        List<Role> roles,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         LinkedAccountsDto linkedAccounts
 ) {
     public enum AccountState { ACTIVE, DELETING }
+
+    public enum Role { USER, ADMIN }
 
     public record LinkedAccountsDto(
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

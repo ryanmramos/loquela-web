@@ -15,6 +15,7 @@ export interface BrowserSession {
   readonly definitionLanguage: string;
   readonly interfaceLanguage?: 'en' | 'es' | null;
   readonly accountState: 'ACTIVE' | 'DELETING';
+  readonly roles: readonly ('USER' | 'ADMIN')[];
   readonly linkedAccounts: {
     readonly google: boolean;
     readonly whatsapp: boolean;
@@ -52,7 +53,7 @@ export class SessionApi {
   }
 }
 
-export type LocalAccountId = 'learner' | 'reviewer';
+export type LocalAccountId = 'learner' | 'reviewer' | 'admin';
 
 function toBrowserSession(response: BrowserSessionDto): BrowserSession {
   return {
@@ -66,6 +67,9 @@ function toBrowserSession(response: BrowserSessionDto): BrowserSession {
         ? response.interfaceLanguage
         : null,
     accountState: response.accountState,
+    roles: ((response as BrowserSessionDto & { roles?: string[] }).roles ?? ['USER']).filter(
+      (role): role is 'USER' | 'ADMIN' => role === 'USER' || role === 'ADMIN',
+    ),
     linkedAccounts: {
       google: response.linkedAccounts.google,
       whatsapp: response.linkedAccounts.whatsapp,

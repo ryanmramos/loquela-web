@@ -19,6 +19,7 @@ import { ActivityMonitor } from '@core/activity/activity-monitor';
         [userEmail]="user.email || 'Google account'"
         [activeJobCount]="shellDashboard.activeActivity()"
         [cardsToStudy]="shellDashboard.cardsToStudy()"
+        [isAdmin]="user.roles.includes('ADMIN')"
         (searchSubmitted)="openLookup($event)"
         (userActionSelected)="handleUserAction($event)"
       >

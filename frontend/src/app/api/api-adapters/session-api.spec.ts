@@ -51,6 +51,7 @@ describe('SessionApi', () => {
       definitionLanguage: 'en',
       interfaceLanguage: null,
       accountState: 'ACTIVE',
+      roles: ['USER'],
       linkedAccounts: {
         google: true,
         whatsapp: false,
@@ -65,6 +66,7 @@ describe('SessionApi', () => {
       definitionLanguage: 'en',
       interfaceLanguage: null,
       accountState: 'ACTIVE',
+      roles: ['USER'],
       linkedAccounts: {
         google: true,
         whatsapp: false,
@@ -79,6 +81,7 @@ describe('SessionApi', () => {
       sourceLanguage: 'es',
       definitionLanguage: 'en',
       accountState: 'ACTIVE',
+      roles: ['USER'],
       linkedAccounts: {
         google: true,
         whatsapp: false,
@@ -105,6 +108,7 @@ describe('SessionApi', () => {
       sourceLanguage: 'es',
       definitionLanguage: 'en',
       accountState: 'ACTIVE',
+      roles: ['USER'],
       linkedAccounts: { google: true, whatsapp: false },
     });
 

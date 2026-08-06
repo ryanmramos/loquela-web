@@ -3,6 +3,7 @@ package com.example.whatsanki.controller;
 import com.example.whatsanki.dto.BrowserSessionDto;
 import com.example.whatsanki.dto.LocalLoginRequestDto;
 import com.example.whatsanki.service.BrowserSessionService;
+import com.example.whatsanki.service.LocalAccessProvisioningService;
 import com.example.whatsanki.service.security.BrowserAuthenticationSuccessHandler;
 import com.example.whatsanki.service.UserIdentityService;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -45,12 +46,14 @@ import java.time.Instant;
 public class LocalBrowserAuthenticationController {
 
     private static final Map<String, LocalAccount> ACCOUNTS = Map.of(
-            "learner", new LocalAccount("local:learner", "learner@local.loquela.test", "Local Learner"),
-            "reviewer", new LocalAccount("local:reviewer", "reviewer@local.loquela.test", "Local Reviewer")
+            "learner", new LocalAccount("local:learner", "learner@local.loquela.test", "Local Learner", false),
+            "reviewer", new LocalAccount("local:reviewer", "reviewer@local.loquela.test", "Local Reviewer", false),
+            "admin", new LocalAccount("local:admin", "admin@local.loquela.test", "Local Admin", true)
     );
 
     private final UserIdentityService userIdentityService;
     private final BrowserSessionService browserSessionService;
+    private final LocalAccessProvisioningService localAccessProvisioningService;
 
     @PostMapping("/local-login")
     public ResponseEntity<BrowserSessionDto> login(
@@ -68,6 +71,9 @@ public class LocalBrowserAuthenticationController {
                 account.email(),
                 account.displayName()
         );
+        if (account.admin()) {
+            localAccessProvisioningService.ensureAdminAccess(account.email());
+        }
         request.getSession();
         request.changeSessionId();
         request.getSession().setAttribute(
@@ -89,6 +95,6 @@ public class LocalBrowserAuthenticationController {
         return ResponseEntity.ok(browserSessionService.getByGoogleSubject(account.subject()));
     }
 
-    private record LocalAccount(String subject, String email, String displayName) {
+    private record LocalAccount(String subject, String email, String displayName, boolean admin) {
     }
 }

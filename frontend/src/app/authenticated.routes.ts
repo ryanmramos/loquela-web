@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 
 import { provideLoquelaUi } from '@core/theme/loquela-ui.providers';
+import { adminGuard } from '@core/auth/session.guard';
 
 export const authenticatedRoutes: Routes = [
   {
@@ -77,6 +78,18 @@ export const authenticatedRoutes: Routes = [
         title: 'Settings',
         loadComponent: () =>
           import('@app/features/settings/settings-page').then((module) => module.SettingsPage),
+      },
+      {
+        path: 'admin',
+        pathMatch: 'full',
+        redirectTo: 'admin/access',
+      },
+      {
+        path: 'admin/access',
+        title: 'Access administration',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('@app/features/admin/access-admin-page').then((module) => module.AccessAdminPage),
       },
     ],
   },

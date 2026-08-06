@@ -62,3 +62,18 @@ export const deletingGuard: CanActivateFn = () => {
       ),
     );
 };
+
+export const adminGuard: CanActivateFn = () => {
+  const facade = inject(SessionFacade);
+  const router = inject(Router);
+
+  return facade
+    .ensureLoaded()
+    .pipe(
+      map((session) =>
+        session.status === 'authenticated' && session.user?.roles.includes('ADMIN')
+          ? true
+          : router.parseUrl('/app'),
+      ),
+    );
+};

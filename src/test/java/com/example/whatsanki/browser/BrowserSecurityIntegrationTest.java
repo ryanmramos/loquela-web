@@ -3,10 +3,12 @@ package com.example.whatsanki.browser;
 import com.example.whatsanki.controller.ExternalEndpointSecurity;
 import com.example.whatsanki.controller.RequestCorrelationFilter;
 import com.example.whatsanki.domain.AppUserEntity;
+import com.example.whatsanki.domain.AccessEntryEntity;
 import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.repository.AppUserRepository;
+import com.example.whatsanki.repository.AccessEntryRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.security.BrowserReturnPath;
@@ -50,6 +52,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
     private final RequestCorrelationFilter requestCorrelationFilter;
     private final SessionRepository<?> sessionRepository;
     private final AppUserRepository appUserRepository;
+    private final AccessEntryRepository accessEntryRepository;
     private final SourceDocumentRepository sourceDocumentRepository;
     private final Environment environment;
     private MockMvc mockMvc;
@@ -60,6 +63,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
             RequestCorrelationFilter requestCorrelationFilter,
             SessionRepository<?> sessionRepository,
             AppUserRepository appUserRepository,
+            AccessEntryRepository accessEntryRepository,
             SourceDocumentRepository sourceDocumentRepository,
             Environment environment
     ) {
@@ -68,6 +72,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
         this.requestCorrelationFilter = requestCorrelationFilter;
         this.sessionRepository = sessionRepository;
         this.appUserRepository = appUserRepository;
+        this.accessEntryRepository = accessEntryRepository;
         this.sourceDocumentRepository = sourceDocumentRepository;
         this.environment = environment;
     }
@@ -113,6 +118,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(jsonPath("$.accountState").value("ACTIVE"))
                 .andExpect(jsonPath("$.linkedAccounts.google").value(true))
                 .andExpect(jsonPath("$.linkedAccounts.whatsapp").value(false))
+                .andExpect(jsonPath("$.roles[0]").value("USER"))
                 .andExpect(header().string(
                         "Content-Security-Policy",
                         containsString("img-src 'self' data: https://i.ytimg.com")
@@ -128,6 +134,29 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(header().string("Cache-Control", "no-store"))
                 .andExpect(header().string("X-Frame-Options", "DENY"))
                 .andExpect(header().string("X-Correlation-ID", not(blankOrNullString())));
+    }
+
+    @Test
+    void adminApiChecksPersistedAdminAccessOnEveryRequest() throws Exception {
+        String adminSubject = "persisted-admin-subject";
+        String adminEmail = "persisted-admin@example.com";
+        userIdentityService.resolveOrCreateGoogle(adminSubject, adminEmail, "Persisted Admin");
+        AccessEntryEntity admin = new AccessEntryEntity();
+        admin.setNormalizedEmail(adminEmail);
+        admin.setRole(AccessEntryEntity.Role.ADMIN);
+        admin.setStatus(AccessEntryEntity.Status.ACTIVE);
+        accessEntryRepository.saveAndFlush(admin);
+
+        mockMvc.perform(get("/api/v1/admin/access-entries")
+                        .with(oidcLogin().idToken(token -> token.subject(adminSubject))))
+                .andExpect(status().isOk());
+
+        admin.setRole(AccessEntryEntity.Role.USER);
+        accessEntryRepository.saveAndFlush(admin);
+
+        mockMvc.perform(get("/api/v1/admin/access-entries")
+                        .with(oidcLogin().idToken(token -> token.subject(adminSubject))))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -179,7 +208,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                                         && method != RequestMethod.OPTIONS))
                         .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        assertThat(externalMutations).hasSize(28);
+        assertThat(externalMutations).hasSize(30);
         externalMutations.forEach((mapping, handler) -> {
             ExternalEndpointSecurity methodClassification = handler.getMethodAnnotation(
                     ExternalEndpointSecurity.class
@@ -200,6 +229,9 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 } else if (path.equals("/api/v1/session/logout")) {
                     assertThat(classification.value())
                             .isEqualTo(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF);
+                } else if (path.startsWith("/api/v1/admin/")) {
+                    assertThat(classification.value())
+                            .isEqualTo(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF_ADMIN);
                 } else {
                     assertThat(path).startsWith("/api/v1/");
                     assertThat(classification.value())
@@ -383,6 +415,26 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 .andExpect(status().isNoContent());
         mockMvc.perform(get("/api/v1/session"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void localAdminLoginCreatesAnAdminSessionThatCanUseTheAdminApi() throws Exception {
+        MockHttpSession session = (MockHttpSession) mockMvc.perform(post("/api/v1/auth/local-login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"accountId":"admin"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("admin@local.loquela.test"))
+                .andExpect(jsonPath("$.roles").isArray())
+                .andExpect(jsonPath("$.roles[1]").value("ADMIN"))
+                .andReturn()
+                .getRequest()
+                .getSession(false);
+
+        mockMvc.perform(get("/api/v1/admin/access-entries").session(session))
+                .andExpect(status().isOk());
     }
 
     @Test

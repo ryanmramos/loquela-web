@@ -73,6 +73,12 @@ export type { Delete$Params as Delete$Params } from './fn/browser-card-controlle
 export { delete$ as delete$ } from './fn/browser-card-controller/delete';
 export type { UpdateBrowserCard$Params as UpdateBrowserCard$Params } from './fn/browser-card-controller/update-browser-card';
 export { updateBrowserCard as updateBrowserCard } from './fn/browser-card-controller/update-browser-card';
+export type { ListAdminAccessEntries$Params as ListAdminAccessEntries$Params } from './fn/admin-access-controller/list-admin-access-entries';
+export { listAdminAccessEntries as listAdminAccessEntries } from './fn/admin-access-controller/list-admin-access-entries';
+export type { CreateAdminAccessEntry$Params as CreateAdminAccessEntry$Params } from './fn/admin-access-controller/create-admin-access-entry';
+export { createAdminAccessEntry as createAdminAccessEntry } from './fn/admin-access-controller/create-admin-access-entry';
+export type { UpdateAdminAccessEntry$Params as UpdateAdminAccessEntry$Params } from './fn/admin-access-controller/update-admin-access-entry';
+export { updateAdminAccessEntry as updateAdminAccessEntry } from './fn/admin-access-controller/update-admin-access-entry';
 export type { QueryBrowserActivityStatuses$Params as QueryBrowserActivityStatuses$Params } from './fn/browser-activity-controller/query-browser-activity-statuses';
 export { queryBrowserActivityStatuses as queryBrowserActivityStatuses } from './fn/browser-activity-controller/query-browser-activity-statuses';
 export type { ListBrowserActivity$Params as ListBrowserActivity$Params } from './fn/browser-activity-controller/list-browser-activity';

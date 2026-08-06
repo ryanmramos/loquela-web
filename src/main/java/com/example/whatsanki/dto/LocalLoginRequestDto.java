@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 
 public record LocalLoginRequestDto(
         @NotBlank
-        @Pattern(regexp = "learner|reviewer")
+        @Pattern(regexp = "learner|reviewer|admin")
         String accountId
 ) {
 }

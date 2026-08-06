@@ -3,8 +3,10 @@ package com.example.whatsanki.service.configuration;
 import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.UserIdentityService;
+import com.example.whatsanki.service.GoogleAccessService;
 import com.example.whatsanki.service.security.AuthenticationRateLimitFilter;
 import com.example.whatsanki.service.security.BrowserAuthenticationSuccessHandler;
+import com.example.whatsanki.service.security.BrowserAuthenticationFailureHandler;
 import com.example.whatsanki.service.security.BrowserCacheControlFilter;
 import com.example.whatsanki.service.security.CsrfCookieFilter;
 import com.example.whatsanki.service.security.ReauthenticationAuthorizationRequestResolver;
@@ -17,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -38,12 +41,14 @@ import java.net.URI;
 import java.util.List;
 
 @Configuration(proxyBeanMethods = false)
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class BrowserSecurityConfiguration {
 
     private final WhatsAnkiConfigurationDto configuration;
     private final ObjectMapper objectMapper;
     private final UserIdentityService userIdentityService;
+    private final GoogleAccessService googleAccessService;
 
     @Bean
     SecurityFilterChain applicationSecurityFilterChain(
@@ -122,9 +127,8 @@ public class BrowserSecurityConfiguration {
                     .successHandler(new BrowserAuthenticationSuccessHandler(
                             configuration.getSecurity().getFrontendBaseUrl()
                     ))
-                    .failureUrl(BrowserAuthenticationSuccessHandler.frontendUrl(
-                            configuration.getSecurity().getFrontendBaseUrl(),
-                            "/login?reason=oauth-error"
+                    .failureHandler(new BrowserAuthenticationFailureHandler(
+                            configuration.getSecurity().getFrontendBaseUrl()
                     )));
         }
         return http.build();
@@ -137,6 +141,7 @@ public class BrowserSecurityConfiguration {
             OidcUser oidcUser = delegate.loadUser(request);
             String verifiedEmail = Boolean.TRUE.equals(oidcUser.getEmailVerified())
                     ? oidcUser.getEmail() : null;
+            googleAccessService.requireActiveAccess(verifiedEmail);
             userIdentityService.resolveOrCreateGoogle(
                     oidcUser.getSubject(),
                     verifiedEmail,

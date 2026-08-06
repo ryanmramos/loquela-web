@@ -1,0 +1,183 @@
+<section class="admin-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Administration</p>
+      <h1>Access</h1>
+      <p>Control which exact Google accounts may sign in and which accounts are administrators.</p>
+    </div>
+  </header>
+
+  @if (notice()) {
+    <app-alert title="Access updated" tone="success">{{ notice() }}</app-alert>
+  }
+  @if (error()) {
+    <app-alert title="Access change unavailable" tone="danger">{{ error() }}</app-alert>
+  }
+
+  <section class="create-card" aria-labelledby="add-access-title">
+    <div>
+      <p class="eyebrow">New access grant</p>
+      <h2 id="add-access-title">Allow a Google account</h2>
+      <p>No invitation is sent. Share the normal login URL with the account owner.</p>
+    </div>
+    <form [formGroup]="createForm" (ngSubmit)="requestCreate()">
+      <app-form-field inputId="access-email" label="Exact email address">
+        <input
+          pInputText
+          id="access-email"
+          type="email"
+          autocomplete="off"
+          formControlName="email"
+          placeholder="person@example.com"
+        />
+      </app-form-field>
+      <app-form-field inputId="access-role" label="Role">
+        <p-select
+          inputId="access-role"
+          formControlName="role"
+          [options]="createRoleOptions"
+          optionLabel="label"
+          optionValue="value"
+          [fluid]="true"
+        />
+      </app-form-field>
+      <button appButton type="submit" [disabled]="createForm.invalid">Grant access</button>
+    </form>
+  </section>
+
+  <form class="filters" [formGroup]="filters" (ngSubmit)="load(0)">
+    <app-form-field inputId="admin-access-search" label="Search">
+      <input
+        pInputText
+        id="admin-access-search"
+        type="search"
+        formControlName="search"
+        placeholder="Email address"
+      />
+    </app-form-field>
+    <app-form-field inputId="admin-access-role" label="Role">
+      <p-select
+        inputId="admin-access-role"
+        formControlName="role"
+        [options]="roleOptions"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
+    </app-form-field>
+    <app-form-field inputId="admin-access-status" label="Status">
+      <p-select
+        inputId="admin-access-status"
+        formControlName="status"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
+    </app-form-field>
+    <div class="filter-actions">
+      <button appButton type="submit">Apply</button>
+      <button appButton variant="ghost" type="button" (click)="clearFilters()">Clear</button>
+    </div>
+  </form>
+
+  @if (loading()) {
+    <app-ui-state
+      kind="loading"
+      title="Loading access entries"
+      description="Reading the current production access policy."
+    />
+  } @else if (page(); as result) {
+    @if (result.items.length) {
+      <section class="access-table" aria-label="Google access entries">
+        <p-table [value]="result.items">
+          <ng-template #header>
+            <tr>
+              <th scope="col">Email</th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
+              <th scope="col">Updated</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-entry>
+            <tr>
+              <td>
+                <strong>{{ entry.email }}</strong>
+              </td>
+              <td>{{ entry.role === 'ADMIN' ? 'Admin' : 'User' }}</td>
+              <td>
+                <app-status-badge [tone]="entry.status === 'ACTIVE' ? 'success' : 'neutral'">
+                  {{ entry.status === 'ACTIVE' ? 'Active' : 'Revoked' }}
+                </app-status-badge>
+              </td>
+              <td>{{ entry.updatedAt | date: 'medium' }}</td>
+              <td class="row-actions">
+                <button appButton variant="ghost" type="button" (click)="changeRole(entry)">
+                  {{ entry.role === 'ADMIN' ? 'Make user' : 'Make admin' }}
+                </button>
+                <button
+                  appButton
+                  [variant]="entry.status === 'ACTIVE' ? 'danger' : 'secondary'"
+                  type="button"
+                  (click)="toggleStatus(entry)"
+                >
+                  {{ entry.status === 'ACTIVE' ? 'Revoke' : 'Reactivate' }}
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </section>
+      @if (result.totalPages > 1) {
+        <app-pagination
+          [currentPage]="result.page + 1"
+          [totalPages]="result.totalPages"
+          (pageChange)="load($event - 1)"
+        />
+      }
+    } @else {
+      <app-ui-state
+        kind="empty"
+        title="No access entries match"
+        description="Clear the filters or add an exact email address."
+      />
+    }
+  }
+</section>
+
+<p-dialog
+  header="Confirm administrator access change"
+  [modal]="true"
+  [closable]="true"
+  [visible]="sensitiveAction() !== null"
+  (visibleChange)="$event ? null : closeSensitive()"
+>
+  @if (sensitiveAction(); as action) {
+    <div class="confirmation-dialog">
+      <p>
+        Type <strong>{{ action.email }}</strong> to confirm. Google may ask you to sign in again.
+      </p>
+      <app-form-field inputId="admin-confirm-email" label="Confirmation email">
+        <input
+          pInputText
+          id="admin-confirm-email"
+          type="email"
+          autocomplete="off"
+          [formControl]="confirmation"
+        />
+      </app-form-field>
+      <div class="dialog-actions">
+        <button appButton variant="ghost" type="button" (click)="closeSensitive()">Cancel</button>
+        <button
+          appButton
+          type="button"
+          [disabled]="confirmation.value.trim().toLowerCase() !== action.email"
+          (click)="confirmSensitive()"
+        >
+          Confirm change
+        </button>
+      </div>
+    </div>
+  }
+</p-dialog>

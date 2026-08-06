@@ -36,8 +36,8 @@ WHATSANKI_ALLOWED_ORIGINS=
 ### Local test accounts
 
 The `.env.example` enables the `local` Spring profile and the local-only login boundary. Start both
-applications, open `http://localhost:4200/login`, and choose **Local Learner** or **Local
-Reviewer**. The first login creates a normal Google-only application user, default deck, and JDBC
+applications, open `http://localhost:4200/login`, and choose **Local Learner**, **Local Reviewer**,
+or **Local Admin**. The first login creates a normal Google-only application user, default deck, and JDBC
 browser session in the local PostgreSQL database. No Google request or phone number is involved.
 
 The local endpoint is available only when both `SPRING_PROFILES_ACTIVE=local` and
@@ -55,7 +55,14 @@ WHATSANKI_FRONTEND_BASE_URL=http://localhost:4200
 SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=your-client-id
 SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=your-client-secret
 SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=http://localhost:4200/login/oauth2/code/google
+WHATSANKI_BOOTSTRAP_ADMIN_EMAILS=owner@example.com
 ```
+
+Google sign-in is allowlisted. On the first deployment, `WHATSANKI_BOOTSTRAP_ADMIN_EMAILS` seeds
+one or more exact, normalized email addresses as persistent administrators. Once an active
+administrator exists in PostgreSQL, the environment value is ignored and access is managed at
+`/app/admin/access` without restarting the application. Remove the bootstrap value after verifying
+the first administrator can sign in. Local test-account login remains independent of this list.
 
 The backend can start without Twilio credentials when WhatsApp integration is not being exercised.
 
