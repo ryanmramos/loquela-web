@@ -6,6 +6,10 @@ import { randomBytes } from 'node:crypto';
 const root = resolve('dist/loquela-web/browser');
 const port = Number(process.env['LOQUELA_PRODUCTION_PORT'] ?? 4200);
 const indexTemplate = readFileSync(join(root, 'index.html'), 'utf8');
+const runtimeConfigTemplate = readFileSync(join(root, 'config.json'), 'utf8');
+const CADDY_NONCE_TEMPLATE = '{{placeholder "http.request.uuid"}}';
+const PRIMEUI_LICENSE_TEMPLATE = '{{printf "%q" (placeholder "env.PRIMEUI_LICENSE_KEY")}}';
+const primeUiLicenseKey = process.env['PRIMEUI_LICENSE_KEY'];
 
 const mimeTypes = new Map([
   ['.css', 'text/css; charset=utf-8'],
@@ -46,6 +50,7 @@ function securityHeaders(nonce) {
 function sendIndex(response) {
   const nonce = randomBytes(18).toString('base64');
   const html = indexTemplate
+    .replaceAll(CADDY_NONCE_TEMPLATE, nonce)
     .replace('<app-root', `<app-root ngCspNonce="${nonce}"`)
     .replaceAll('<script ', `<script nonce="${nonce}" `)
     .replaceAll('<style>', `<style nonce="${nonce}">`)
@@ -63,11 +68,27 @@ function sendIndex(response) {
   response.end(html);
 }
 
+function sendRuntimeConfig(response) {
+  const config = primeUiLicenseKey
+    ? runtimeConfigTemplate.replace(PRIMEUI_LICENSE_TEMPLATE, JSON.stringify(primeUiLicenseKey))
+    : runtimeConfigTemplate.replace(`,\n  "primeUiLicenseKey": ${PRIMEUI_LICENSE_TEMPLATE}`, '');
+  response.writeHead(200, {
+    'Cache-Control': 'no-store',
+    'Content-Type': 'application/json; charset=utf-8',
+  });
+  response.end(config);
+}
+
 createServer((request, response) => {
   const url = new URL(request.url ?? '/', `http://${request.headers.host ?? '127.0.0.1'}`);
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/oauth2/')) {
     response.writeHead(502, { 'Cache-Control': 'no-store', 'Content-Type': 'application/json' });
     response.end('{"error":"Production fixture API request was not mocked."}');
+    return;
+  }
+
+  if (url.pathname === '/config.json') {
+    sendRuntimeConfig(response);
     return;
   }
 

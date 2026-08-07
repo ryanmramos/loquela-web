@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+import { mockAuthenticatedE2eRuntimeConfig } from './runtime-config';
+
 test('login excludes authenticated feature chunks and routes load them lazily', async ({
   page,
 }) => {
+  await mockAuthenticatedE2eRuntimeConfig(page);
   let authenticated = false;
   const scripts = new Set<string>();
   page.on('response', (response) => {

@@ -53,10 +53,15 @@ export class SourceDetails {
     this.confirmations.confirm({
       header: this.translations.translate('sourceDetails.confirmDeleteTitle'),
       message: this.translations.translate('sourceDetails.confirmDeleteDescription'),
+      closable: false,
       acceptLabel: this.translations.translate('sourceDetails.deleteSource'),
       rejectLabel: this.translations.translate('common.cancel'),
-      acceptButtonProps: { severity: 'danger' },
-      rejectButtonProps: { outlined: true, severity: 'secondary' },
+      acceptButtonProps: { severity: 'danger', styleClass: 'loquela-confirm-dialog__accept' },
+      rejectButtonProps: {
+        outlined: true,
+        severity: 'secondary',
+        styleClass: 'loquela-confirm-dialog__reject',
+      },
       accept: () => this.state.delete(),
     });
   }

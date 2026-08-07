@@ -71,6 +71,28 @@
   background: var(--color-danger-strong);
 }
 
+.loquela-confirm-dialog__accept {
+  border-color: var(--color-danger) !important;
+  background: var(--color-danger) !important;
+  color: var(--color-on-primary) !important;
+}
+
+.loquela-confirm-dialog__reject {
+  border-color: var(--color-border) !important;
+  background: var(--color-surface-panel) !important;
+  color: var(--color-text) !important;
+}
+
+.p-toast-message.p-toast-message-success {
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-strong) !important;
+}
+
+.p-toast-message.p-toast-message-success .p-toast-summary,
+.p-toast-message.p-toast-message-success .p-toast-detail {
+  color: inherit !important;
+}
+
 .loquela-button:disabled,
 .loquela-icon-button:disabled {
   cursor: not-allowed;

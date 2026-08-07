@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+import { mockAuthenticatedE2eRuntimeConfig } from './runtime-config';
+
 test('the former foundation URL is not an application route', async ({ page }) => {
+  await mockAuthenticatedE2eRuntimeConfig(page);
   await page.route('**/api/v1/session', (route) =>
     route.fulfill({
       status: 401,

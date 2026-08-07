@@ -32,7 +32,11 @@ import { ActivityMonitor } from '@core/activity/activity-monitor';
         }
         <router-outlet />
       </app-shell>
-      <p-confirm-dialog />
+      <!--
+        PrimeNG assigns alertdialog to its inert host as well as to the visible confirmation dialog.
+        Keep the role on the visible dialog only, so the closed host is not announced as an empty dialog.
+      -->
+      <p-confirm-dialog [pt]="{ host: { role: null } }" />
     }
   `,
   styles: `

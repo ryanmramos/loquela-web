@@ -113,12 +113,10 @@
         >{{ displayedCards().length }}
         {{ (displayedCards().length === 1 ? 'common.card' : 'common.cards') | translate }}</span
       >
-      <span
-        class="view-button"
-        [attr.aria-label]="'cards.tableView' | translate"
-        [title]="'cards.tableView' | translate"
-        ><app-icon name="list" [size]="19"
-      /></span>
+      <span class="view-button" [title]="'cards.tableView' | translate"
+        ><app-icon name="list" [size]="19" />
+        <span class="visually-hidden">{{ 'cards.tableView' | translate }}</span></span
+      >
     </div>
   </form>
 

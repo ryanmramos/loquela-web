@@ -21,6 +21,7 @@
     <app-form-field inputId="source-kind" [label]="'sources.type' | translate">
       <p-select
         inputId="source-kind"
+        [ariaLabel]="'sources.type' | translate"
         formControlName="kind"
         [options]="kindOptions()"
         optionLabel="label"
@@ -31,6 +32,7 @@
     <app-form-field inputId="source-status" [label]="'sources.status' | translate">
       <p-select
         inputId="source-status"
+        [ariaLabel]="'sources.status' | translate"
         formControlName="status"
         [options]="statusOptions()"
         optionLabel="label"
@@ -41,6 +43,7 @@
     <app-form-field inputId="source-sort" [label]="'sources.sort' | translate">
       <p-select
         inputId="source-sort"
+        [ariaLabel]="'sources.sort' | translate"
         formControlName="sort"
         [options]="sortOptions()"
         optionLabel="label"
@@ -51,6 +54,7 @@
     <app-form-field inputId="source-direction" [label]="'sources.direction' | translate">
       <p-select
         inputId="source-direction"
+        [ariaLabel]="'sources.direction' | translate"
         formControlName="direction"
         [options]="directionOptions()"
         optionLabel="label"

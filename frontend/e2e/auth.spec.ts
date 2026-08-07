@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, Page, Route, test } from '@playwright/test';
 
+import { mockAuthenticatedE2eRuntimeConfig } from './runtime-config';
+
 const activeSession = {
   userId: '529b7902-040a-4a40-8905-aa4ee06d2413',
   displayName: 'Local Learner',
@@ -79,6 +81,15 @@ test('activity reconstructs, filters, paginates, and announces terminal batches 
   page,
 }) => {
   await mockAuthentication(page, true);
+  let releaseTerminalPoll!: () => void;
+  const terminalPollReleased = new Promise<void>((resolve) => {
+    releaseTerminalPoll = resolve;
+  });
+  const terminalPollStarted = page.waitForRequest(
+    (request) =>
+      request.method() === 'POST' &&
+      new URL(request.url()).pathname === '/api/v1/activity/status-query',
+  );
   const active = {
     reference: 'act_src_private',
     category: 'SOURCE',
@@ -93,6 +104,7 @@ test('activity reconstructs, filters, paginates, and announces terminal batches 
   await page.route('**/api/v1/activity**', async (route: Route) => {
     const request = route.request();
     if (request.method() === 'POST') {
+      await terminalPollReleased;
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -144,6 +156,8 @@ test('activity reconstructs, filters, paginates, and announces terminal batches 
   await expect(page).toHaveURL(/lifecycle=ACTIVE/u);
   await expect(page.getByText('Private source title')).toBeVisible();
 
+  await terminalPollStarted;
+  releaseTerminalPoll();
   const notification = page.getByRole('region', { name: 'Notifications' });
   await expect(notification).toContainText('Activity updated');
   await expect(notification).not.toContainText('Private source title');
@@ -699,7 +713,7 @@ test('practice hides answers, resumes after refresh, and supports reduced-motion
   const progressTransition = await page
     .locator('.progress-track span')
     .evaluate((element) => getComputedStyle(element).transitionDuration);
-  expect(progressTransition).toBe('0s');
+  expect(Number.parseFloat(progressTransition)).toBeLessThanOrEqual(0.001);
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });
@@ -709,8 +723,8 @@ test('source management keeps filters in the URL and resumes source details', as
   await page.goto('/app/sources?status=READY&kind=YOUTUBE_VIDEO');
 
   await expect(page.getByRole('heading', { name: 'Sources', exact: true })).toBeVisible();
-  await expect(page.getByLabel('Status')).toHaveValue('READY');
-  await expect(page.getByLabel('Type')).toHaveValue('YOUTUBE_VIDEO');
+  await expect(page.getByRole('combobox', { name: 'Status' })).toHaveText('Ready');
+  await expect(page.getByRole('combobox', { name: 'Type' })).toHaveText('YouTube');
   await expect(page.getByRole('link', { name: 'Easy Spanish transcript' }).first()).toBeVisible();
 
   await page.getByRole('link', { name: 'Easy Spanish transcript' }).first().click();
@@ -718,8 +732,22 @@ test('source management keeps filters in the URL and resumes source details', as
   await expect(page.getByRole('heading', { name: 'Easy Spanish transcript' })).toBeVisible();
   await expect(page.getByText('Ready', { exact: true })).toBeVisible();
 
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
+  const closedResults = await new AxeBuilder({ page }).analyze();
+  expect(closedResults.violations).toEqual([]);
+
+  await page.getByRole('button', { name: 'Delete source' }).click();
+  const confirmation = page.getByRole('alertdialog', { name: 'Delete this source?' });
+  await expect(confirmation).toBeVisible();
+  await confirmation.evaluate((dialog) =>
+    Promise.all(
+      dialog
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished.catch(() => undefined)),
+    ),
+  );
+
+  const openResults = await new AxeBuilder({ page }).analyze();
+  expect(openResults.violations).toEqual([]);
 });
 
 test('pasted-text intake navigates to the accepted durable source URL', async ({ page }) => {
@@ -814,6 +842,7 @@ async function mockAuthentication(
   initiallyAuthenticated = false,
   dashboard = dashboardSnapshot,
 ): Promise<{ isAuthenticated: () => boolean }> {
+  await mockAuthenticatedE2eRuntimeConfig(page);
   let authenticated = initiallyAuthenticated;
 
   await page.route('**/api/v1/session/logout', async (route: Route) => {

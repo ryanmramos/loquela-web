@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1.7
 
-ARG YT_DLP_VERSION=2025.12.08
+ARG YT_DLP_VERSION=2026.07.04
 
 FROM maven:3.9.11-eclipse-temurin-17 AS java-build
 WORKDIR /workspace
 COPY .mvn .mvn
 COPY mvnw pom.xml ./
-RUN --mount=type=cache,target=/root/.m2 ./mvnw -B -DskipTests dependency:go-offline
+RUN ./mvnw -B -DskipTests dependency:go-offline
 COPY src src
-RUN --mount=type=cache,target=/root/.m2 ./mvnw -B -DskipTests package
+RUN ./mvnw -B -DskipTests package
 
 FROM eclipse-temurin:17-jre-noble AS runtime
 ARG YT_DLP_VERSION
@@ -34,7 +34,8 @@ USER 10001:10001
 ENV WHATSANKI_EXPORTER_PYTHON_EXECUTABLE=/opt/loquela/python/bin/python \
     WHATSANKI_EXPORTER_WORKING_DIRECTORY=/opt/loquela/exporter \
     WHATSANKI_YOUTUBE_EXECUTABLE=/opt/loquela/python/bin/yt-dlp \
-    WHATSANKI_YOUTUBE_EXPECTED_VERSION=${YT_DLP_VERSION}
+    WHATSANKI_YOUTUBE_EXPECTED_VERSION=${YT_DLP_VERSION} \
+    JAVA_TOOL_OPTIONS="-Xms128m -Xmx512m"
 
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \

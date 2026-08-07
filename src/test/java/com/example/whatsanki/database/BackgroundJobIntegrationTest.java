@@ -43,7 +43,7 @@ class BackgroundJobIntegrationTest extends PostgreSqlIntegrationTest {
     void concurrentWorkersCannotClaimSameJob() throws Exception {
         UserId userId = user("concurrent-claim");
         Instant now = Instant.now();
-        backgroundJobService.enqueue(
+        JobId jobId = backgroundJobService.enqueue(
                 userId,
                 BackgroundJobEntity.Type.INGEST_TEXT,
                 payload("sourceId"),
@@ -64,7 +64,13 @@ class BackgroundJobIntegrationTest extends PostgreSqlIntegrationTest {
             workersReady.await();
             start.countDown();
 
-            assertThat(first.get().size() + second.get().size()).isEqualTo(1);
+            List<ClaimedBackgroundJobDto> claims = List.of(first.get(), second.get()).stream()
+                    .flatMap(List::stream)
+                    .toList();
+
+            assertThat(claims)
+                    .extracting(ClaimedBackgroundJobDto::jobId)
+                    .containsOnlyOnce(jobId);
         } finally {
             executor.shutdownNow();
         }

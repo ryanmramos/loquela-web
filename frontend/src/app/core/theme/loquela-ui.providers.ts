@@ -6,7 +6,6 @@ import {
   provideEnvironmentInitializer,
 } from '@angular/core';
 import { PrimeNG } from 'primeng/config';
-import { showInvalidLicenseBanner } from 'primeng/license';
 import { registerLicense, verifyLicense } from '@primeui/license-manager';
 
 import { RUNTIME_CONFIG } from '@core/config/runtime-config';
@@ -47,21 +46,16 @@ export function provideLoquelaUi(): EnvironmentProviders {
 async function verifyPrimeUiLicense(primeNg: PrimeNG): Promise<void> {
   try {
     const result = await verifyLicense('primeui', { releaseDate: PRIMENG_RELEASE_DATE });
-    primeNg._setVerified(result.valid);
-    if (result.valid) return;
+    if (result.valid) {
+      primeNg._setVerified(true);
+      return;
+    }
     console.warn(`[PrimeUI] ${result.message}`);
   } catch {
-    primeNg._setVerified(false);
     console.warn('[PrimeUI] License verification could not be completed.');
   }
 
-  // Keep PrimeNG's documented missing/invalid-license behavior when configured lazily.
-  if (!primeNg.verified()) {
-    try {
-      showInvalidLicenseBanner();
-    } catch {
-      // PrimeUI 22's notice uses TrustedHTML-incompatible shadow markup. The console warning
-      // above remains available without weakening Loquela's required Trusted Types policy.
-    }
-  }
+  // PrimeNG's false state triggers a vendor banner that writes raw shadow.innerHTML, which
+  // violates Loquela's required Trusted Types policy. Keep the warning and leave this state
+  // unresolved unless verification succeeds.
 }

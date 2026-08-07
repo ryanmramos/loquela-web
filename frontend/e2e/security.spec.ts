@@ -30,6 +30,10 @@ test('compiled SPA enforces the production security-header contract', async ({ p
 test('runtime config is never cached and hashed assets are immutable', async ({ request }) => {
   const config = await request.get('/config.json');
   expect(config.headers()['cache-control']).toBe('no-store');
+  await expect(config.json()).resolves.toMatchObject({
+    environmentName: 'production',
+    localLoginEnabled: false,
+  });
 
   const index = await request.get('/');
   const html = await index.text();
