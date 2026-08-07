@@ -5,13 +5,13 @@ import { LocalAccountId, SessionApi } from '@api/api-adapters/session-api';
 import { ApiProblemError } from '@core/errors/api-problem';
 
 import { SessionStore, SessionView } from './session-store';
-import { InterfaceLanguage, TranslationService } from '@core/i18n/translation.service';
+import { InterfaceLanguage, InterfaceLanguageStore } from '@core/i18n/interface-language.store';
 
 @Injectable({ providedIn: 'root' })
 export class SessionFacade {
   private readonly api = inject(SessionApi);
   private readonly store = inject(SessionStore);
-  private readonly translations = inject(TranslationService);
+  private readonly interfaceLanguage = inject(InterfaceLanguageStore);
   private loadRequest?: Observable<SessionView>;
 
   readonly view = this.store.view;
@@ -23,7 +23,9 @@ export class SessionFacade {
 
     this.loadRequest ??= this.api.getCurrent().pipe(
       tap((session) => {
-        this.translations.setLanguage(session.interfaceLanguage ?? this.translations.language());
+        this.interfaceLanguage.setLanguage(
+          session.interfaceLanguage ?? this.interfaceLanguage.language(),
+        );
         this.store.setAuthenticated(session);
       }),
       map(() => this.view()),
@@ -83,13 +85,13 @@ export class SessionFacade {
   }
 
   updateInterfaceLanguage(language: InterfaceLanguage): Observable<void> {
-    const previousLanguage = this.translations.language();
-    this.translations.setLanguage(language);
+    const previousLanguage = this.interfaceLanguage.language();
+    this.interfaceLanguage.setLanguage(language);
     return this.api.updateInterfaceLanguage(language).pipe(
       tap((session) => this.store.setAuthenticated(session)),
       map(() => undefined),
       catchError((error: unknown) => {
-        this.translations.setLanguage(previousLanguage);
+        this.interfaceLanguage.setLanguage(previousLanguage);
         return throwError(() => error);
       }),
     );

@@ -1,12 +1,9 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { computed, inject, Injectable } from '@angular/core';
 
-export const INTERFACE_LANGUAGES = ['en', 'es'] as const;
-export type InterfaceLanguage = (typeof INTERFACE_LANGUAGES)[number];
+import { InterfaceLanguage, InterfaceLanguageStore } from './interface-language.store';
 
-export const INTERFACE_LANGUAGE_OPTIONS = [
-  { code: 'en', label: 'settings.english' },
-  { code: 'es', label: 'settings.spanish' },
-] as const satisfies readonly { code: InterfaceLanguage; label: string }[];
+export { INTERFACE_LANGUAGES, INTERFACE_LANGUAGE_OPTIONS } from './interface-language.store';
+export type { InterfaceLanguage } from './interface-language.store';
 
 const translations = {
   en: {
@@ -1303,13 +1300,12 @@ const translations = {
 
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
-  private readonly selectedLanguage = signal<InterfaceLanguage>(this.detectLanguage());
-  readonly language = this.selectedLanguage.asReadonly();
+  private readonly interfaceLanguage = inject(InterfaceLanguageStore);
+  readonly language = this.interfaceLanguage.language;
   readonly htmlLanguage = computed(() => this.language());
 
   setLanguage(language: InterfaceLanguage): void {
-    this.selectedLanguage.set(language);
-    document.documentElement.lang = language;
+    this.interfaceLanguage.setLanguage(language);
   }
 
   translate(
@@ -1319,9 +1315,5 @@ export class TranslationService {
     return translations[this.language()][key].replace(/\{(\w+)\}/gu, (_, name: string) =>
       String(values[name] ?? ''),
     );
-  }
-
-  private detectLanguage(): InterfaceLanguage {
-    return navigator.language.toLowerCase().startsWith('es') ? 'es' : 'en';
   }
 }

@@ -21,12 +21,13 @@
     "e2e:dev": "playwright test",
     "e2e:edge": "node tools/edge-smoke.mjs",
     "e2e:safari": "node tools/safari-smoke.mjs",
+    "edge:prepare:check": "node --test tools/prepare-caddy-artifact.spec.mjs",
     "api:generate": "node tools/generate-api.mjs",
     "api:check": "node --test tools/openapi-contract.spec.mjs && node tools/check-generated-api.mjs",
     "audit:dependencies": "npm audit --audit-level=high",
     "secrets:check": "node --test tools/secret-scan.spec.mjs && node tools/secret-scan.mjs",
-    "licenses:check": "license-checker-rseidelsohn --production --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD'",
-    "verify": "npm run lint && npm run format:check && npm run architecture:check && npm run api:check && npm run secrets:check && npm test -- --watch=false && npm run build && npm run bundle:check && npm run proxy:check"
+    "licenses:check": "license-checker-rseidelsohn --production --excludePrivatePackages --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;Custom: LICENSE.md' --summary && node tools/check-custom-licenses.mjs",
+    "verify": "npm run lint && npm run format:check && npm run architecture:check && npm run api:check && npm run secrets:check && npm run edge:prepare:check && npm test -- --watch=false && npm run build && npm run bundle:check && npm run proxy:check"
   },
   "private": true,
   "packageManager": "npm@11.16.0",

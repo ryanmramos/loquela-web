@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ExternalEndpointSecurity(ExternalEndpointSecurity.Control.TWILIO_SIGNED_WEBHOOK)
 @RestController
 @RequestMapping("/webhooks/twilio")
+@ConditionalOnProperty(prefix = "whatsanki.twilio", name = "enabled", havingValue = "true", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
 public class TwilioWhatsAppWebhookController {

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -27,6 +28,9 @@ import java.util.Map;
 @Validated
 @ConfigurationProperties(prefix = "whatsanki")
 public class WhatsAnkiConfigurationDto {
+
+    @Pattern(regexp = "[A-Za-z0-9._-]{1,128}")
+    private String releaseId = "development";
 
     @NotNull
     private URI publicBaseUrl = URI.create("http://localhost:8080");
@@ -88,6 +92,7 @@ public class WhatsAnkiConfigurationDto {
     @Getter
     @Setter
     public static class Twilio {
+        private boolean enabled = true;
         private String accountSid = "";
         private String authToken = "";
         private String whatsappFrom = "";
@@ -425,6 +430,7 @@ public class WhatsAnkiConfigurationDto {
     @Getter
     @Setter
     public static class Youtube {
+        private boolean enabled = true;
         @NotBlank private String executable = "yt-dlp";
         private String expectedVersion = "";
         private boolean automaticCaptionFallback = true;

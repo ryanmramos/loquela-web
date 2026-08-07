@@ -29,6 +29,7 @@ import com.example.whatsanki.service.document.PastedTextIngestionService;
 import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.exception.BrowserSourceNotFoundException;
 import com.example.whatsanki.service.exception.BrowserSourceValidationException;
+import com.example.whatsanki.service.exception.YouTubeIngestionDisabledException;
 import com.example.whatsanki.service.job.BackgroundJobService;
 import com.example.whatsanki.service.util.SourceReferenceCodec;
 import com.example.whatsanki.service.util.TextNormalizer;
@@ -76,6 +77,11 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
         YouTubeSourceAcceptanceDto accepted;
         try {
             accepted = youTubeSourceService.acceptWebsite(resolveUser(googleSubject), url);
+        } catch (YouTubeIngestionDisabledException exception) {
+            throw new BrowserSourceValidationException(
+                    "YOUTUBE_INGESTION_DISABLED",
+                    HttpStatus.SERVICE_UNAVAILABLE
+            );
         } catch (IllegalArgumentException exception) {
             throw new BrowserSourceValidationException("INVALID_YOUTUBE_URL", HttpStatus.BAD_REQUEST);
         }

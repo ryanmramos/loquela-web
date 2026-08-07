@@ -3,7 +3,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 import { RUNTIME_CONFIG } from '@core/config/runtime-config';
-import { TranslationService } from '@core/i18n/translation.service';
+import { InterfaceLanguageStore } from '@core/i18n/interface-language.store';
 
 export type WebVitalName = 'CLS' | 'INP' | 'LCP';
 
@@ -30,7 +30,7 @@ export const TELEMETRY_SINK = new InjectionToken<TelemetrySink>('TELEMETRY_SINK'
 export class WebVitalsTelemetry {
   private readonly config = inject(RUNTIME_CONFIG);
   private readonly router = inject(Router);
-  private readonly translations = inject(TranslationService);
+  private readonly interfaceLanguage = inject(InterfaceLanguageStore);
   private readonly sink = inject(TELEMETRY_SINK);
   private routePattern = '/';
   private started = false;
@@ -64,7 +64,7 @@ export class WebVitalsTelemetry {
       releaseId: this.config.releaseId ?? 'unversioned',
       environment: this.config.environmentName,
       navigationType: navigationType(),
-      interfaceLanguage: this.translations.language(),
+      interfaceLanguage: this.interfaceLanguage.language(),
     });
   }
 

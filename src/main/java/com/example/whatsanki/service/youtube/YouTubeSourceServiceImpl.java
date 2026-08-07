@@ -11,6 +11,7 @@ import com.example.whatsanki.domain.SourceId;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.domain.VideoSourceEntity;
 import com.example.whatsanki.dto.FetchVideoSubtitlesJobPayloadDto;
+import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.dto.YouTubeSourceAcceptanceDto;
 import com.example.whatsanki.dto.YouTubeVideoReferenceDto;
 import com.example.whatsanki.repository.AppUserRepository;
@@ -19,6 +20,7 @@ import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.repository.VideoSourceRepository;
 import com.example.whatsanki.service.job.BackgroundJobService;
+import com.example.whatsanki.service.exception.YouTubeIngestionDisabledException;
 import com.example.whatsanki.service.util.YouTubeUrlPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,10 +41,12 @@ public class YouTubeSourceServiceImpl implements YouTubeSourceService {
     private final BackgroundJobRepository backgroundJobRepository;
     private final BackgroundJobService backgroundJobService;
     private final YouTubeUrlPolicy urlPolicy;
+    private final WhatsAnkiConfigurationDto configuration;
 
     @Override
     @Transactional
     public YouTubeSourceAcceptanceDto accept(UserId userId, InboundMessageId inboundMessageId, String rawUrl) {
+        requireEnabled();
         YouTubeVideoReferenceDto reference = urlPolicy.parse(rawUrl);
         var existingInbound = sourceDocumentRepository.findByUserIdAndInboundMessageId(
                 userId.value(), inboundMessageId.value()
@@ -64,7 +68,14 @@ public class YouTubeSourceServiceImpl implements YouTubeSourceService {
     @Override
     @Transactional
     public YouTubeSourceAcceptanceDto acceptWebsite(UserId userId, String rawUrl) {
+        requireEnabled();
         return acceptNew(userId, null, urlPolicy.parse(rawUrl), "WEBSITE");
+    }
+
+    private void requireEnabled() {
+        if (!configuration.getYoutube().isEnabled()) {
+            throw new YouTubeIngestionDisabledException();
+        }
     }
 
     private YouTubeSourceAcceptanceDto acceptNew(

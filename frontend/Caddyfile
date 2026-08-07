@@ -1,0 +1,45 @@
+{
+    auto_https off
+    admin off
+}
+
+:{$PORT:8080} {
+    root * /srv
+    encode zstd gzip
+
+    header {
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'nonce-{http.request.uuid}'; style-src 'self' 'nonce-{http.request.uuid}'; connect-src 'self'; font-src 'self'; img-src 'self' data: https://i.ytimg.com; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; trusted-types angular angular#bundler; require-trusted-types-for 'script'"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        Strict-Transport-Security "max-age=86400"
+        -Server
+    }
+
+    @live path /health/live
+    rewrite @live /actuator/health/liveness
+
+    @ready path /health/ready
+    rewrite @ready /actuator/health/readiness
+
+    @backend path /api/* /oauth2/* /login/oauth2/* /actuator/health/liveness /actuator/health/readiness
+    reverse_proxy @backend {$BACKEND_UPSTREAM:http://loquela-api.railway.internal:8080} {
+        header_up -X-Forwarded-Proto
+        header_up X-Forwarded-Proto https
+    }
+
+    @runtime path /config.json /index.html
+    header @runtime Cache-Control "no-store"
+
+    @hashed path_regexp hashed ^/.*-[A-Za-z0-9_-]{8,}\.(?:css|js|png|svg|webp|woff2)$
+    header @hashed Cache-Control "public, max-age=31536000, immutable"
+
+    route {
+        try_files {path} /index.html
+        templates {
+            mime text/html application/json
+        }
+        file_server
+    }
+}

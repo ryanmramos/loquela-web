@@ -18,6 +18,20 @@ class ProductionConfigurationValidatorTest {
     }
 
     @Test
+    void acceptsWebsiteOnlyProductionConfigurationWithoutTwilioSecrets() {
+        WhatsAnkiConfigurationDto configuration = validConfiguration();
+        configuration.getTwilio().setEnabled(false);
+        configuration.getTwilio().setAccountSid("");
+        configuration.getTwilio().setAuthToken("");
+        configuration.getTwilio().setWhatsappFrom("");
+        configuration.getTwilio().setStatusCallbackUrl(null);
+
+        ProductionConfigurationValidator validator = new ProductionConfigurationValidator(configuration);
+
+        assertThatCode(validator::validate).doesNotThrowAnyException();
+    }
+
+    @Test
     void rejectsMissingSecretsAndNonHttpsEndpoints() {
         WhatsAnkiConfigurationDto configuration = new WhatsAnkiConfigurationDto();
         ProductionConfigurationValidator validator = new ProductionConfigurationValidator(configuration);
@@ -61,6 +75,7 @@ class ProductionConfigurationValidatorTest {
         WhatsAnkiConfigurationDto configuration = new WhatsAnkiConfigurationDto();
         configuration.setPublicBaseUrl(URI.create("https://whatsanki.example"));
         configuration.setDataEncryptionKey("test-encryption-key");
+        configuration.getTwilio().setEnabled(true);
         configuration.getTwilio().setAccountSid("AC00000000000000000000000000000000");
         configuration.getTwilio().setAuthToken("test-auth-token");
         configuration.getTwilio().setWhatsappFrom("whatsapp:+15550000000");

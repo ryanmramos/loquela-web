@@ -322,6 +322,8 @@ public class GlobalExceptionHandler {
             case "SOURCE_VERSION_CONFLICT" -> "The source changed elsewhere. Refresh before renaming it.";
             case "SOURCE_NOT_RETRYABLE" -> "This failure cannot be retried with the original source data.";
             case "INVALID_YOUTUBE_URL" -> "Enter one HTTPS YouTube video URL. Playlists are not supported.";
+            case "YOUTUBE_INGESTION_DISABLED" ->
+                    "YouTube ingestion is temporarily unavailable. Try again later.";
             default -> "Review the source and try again.";
         };
     }

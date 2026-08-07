@@ -8,12 +8,14 @@ import com.example.whatsanki.domain.JobId;
 import com.example.whatsanki.domain.SourceDocumentEntity;
 import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.domain.VideoSourceEntity;
+import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.repository.AppUserRepository;
 import com.example.whatsanki.repository.BackgroundJobRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.repository.VideoSourceRepository;
 import com.example.whatsanki.service.job.BackgroundJobService;
+import com.example.whatsanki.service.exception.YouTubeIngestionDisabledException;
 import com.example.whatsanki.service.util.YouTubeUrlPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -41,14 +44,25 @@ class YouTubeSourceServiceImplTest {
     @Mock private BackgroundJobService backgroundJobService;
 
     private YouTubeSourceServiceImpl service;
+    private WhatsAnkiConfigurationDto configuration;
 
     @BeforeEach
     void setUp() {
+        configuration = new WhatsAnkiConfigurationDto();
         service = new YouTubeSourceServiceImpl(
                 appUserRepository, inboundMessageRepository, sourceDocumentRepository,
                 videoSourceRepository, backgroundJobRepository, backgroundJobService,
-                new YouTubeUrlPolicy()
+                new YouTubeUrlPolicy(), configuration
         );
+    }
+
+    @Test
+    void rejectsNewSourcesWhenIndependentKillSwitchIsOff() {
+        configuration.getYoutube().setEnabled(false);
+
+        assertThatThrownBy(() -> service.acceptWebsite(UserId.random(), "https://youtu.be/dQw4w9WgXcQ"))
+                .isInstanceOf(YouTubeIngestionDisabledException.class)
+                .hasMessage("YOUTUBE_INGESTION_DISABLED");
     }
 
     @Test

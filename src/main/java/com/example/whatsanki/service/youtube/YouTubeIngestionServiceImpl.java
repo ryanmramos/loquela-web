@@ -23,6 +23,12 @@ public class YouTubeIngestionServiceImpl implements YouTubeIngestionService {
 
     @Override
     public void fetchAndIndex(UserId userId, SourceId sourceId) {
+        if (!configuration.getYoutube().isEnabled()) {
+            throw new YouTubeSubtitleException(
+                    BackgroundJobFailureKind.PERMANENT,
+                    "YOUTUBE_INGESTION_DISABLED"
+            );
+        }
         YouTubeIngestionPreparationDto preparation = lifecycleService.prepare(userId, sourceId);
         if (preparation.alreadyReady()) return;
         YouTubeSubtitleResultDto result = subtitleProvider.fetch(

@@ -28,10 +28,12 @@ public class ProductionConfigurationValidator implements ApplicationRunner {
         requireHttps("WHATSANKI_PUBLIC_BASE_URL", configuration.getPublicBaseUrl(), errors);
         requireHttps("WHATSANKI_FRONTEND_BASE_URL", configuration.getSecurity().getFrontendBaseUrl(), errors);
         requireText("WHATSANKI_DATA_ENCRYPTION_KEY", configuration.getDataEncryptionKey(), errors);
-        requireText("TWILIO_ACCOUNT_SID", configuration.getTwilio().getAccountSid(), errors);
-        requireText("TWILIO_AUTH_TOKEN", configuration.getTwilio().getAuthToken(), errors);
-        requireText("TWILIO_WHATSAPP_FROM", configuration.getTwilio().getWhatsappFrom(), errors);
-        requireHttps("TWILIO_STATUS_CALLBACK_URL", configuration.getTwilio().getStatusCallbackUrl(), errors);
+        if (configuration.getTwilio().isEnabled()) {
+            requireText("TWILIO_ACCOUNT_SID", configuration.getTwilio().getAccountSid(), errors);
+            requireText("TWILIO_AUTH_TOKEN", configuration.getTwilio().getAuthToken(), errors);
+            requireText("TWILIO_WHATSAPP_FROM", configuration.getTwilio().getWhatsappFrom(), errors);
+            requireHttps("TWILIO_STATUS_CALLBACK_URL", configuration.getTwilio().getStatusCallbackUrl(), errors);
+        }
         requireHttps("OBJECT_STORE_ENDPOINT", configuration.getObjectStore().getEndpoint(), errors);
         if (!configuration.getSecurity().isGoogleOauthEnabled()) {
             errors.add("WHATSANKI_GOOGLE_OAUTH_ENABLED must be true in production");
