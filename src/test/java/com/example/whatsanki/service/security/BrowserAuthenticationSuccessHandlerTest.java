@@ -1,5 +1,6 @@
 package com.example.whatsanki.service.security;
 
+import com.example.whatsanki.service.demo.DemoWorkspaceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -9,11 +10,15 @@ import java.util.List;
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class BrowserAuthenticationSuccessHandlerTest {
 
+    private final DemoWorkspaceService demoWorkspaceService = mock(DemoWorkspaceService.class);
     private final BrowserAuthenticationSuccessHandler handler =
-            new BrowserAuthenticationSuccessHandler(URI.create("http://localhost:4200"));
+            new BrowserAuthenticationSuccessHandler(
+                    URI.create("http://localhost:4200"), demoWorkspaceService);
 
     @Test
     void consumesTheValidatedReturnPath() throws Exception {
@@ -32,6 +37,7 @@ class BrowserAuthenticationSuccessHandlerTest {
         assertThat(request.getSession().getAttribute(
                 BrowserAuthenticationSuccessHandler.RECENT_AUTHENTICATION_AT
         )).isInstanceOf(Long.class);
+        verify(demoWorkspaceService).cleanupForSignIn(request.getSession());
     }
 
     @Test

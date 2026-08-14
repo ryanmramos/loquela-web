@@ -1,5 +1,6 @@
 package com.example.whatsanki.service.security;
 
+import com.example.whatsanki.service.demo.DemoWorkspaceService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,9 +17,11 @@ public final class BrowserAuthenticationSuccessHandler implements Authentication
             BrowserAuthenticationSuccessHandler.class.getName() + ".RECENT_AUTHENTICATION_AT";
 
     private final URI frontendBaseUrl;
+    private final DemoWorkspaceService demoWorkspaceService;
 
-    public BrowserAuthenticationSuccessHandler(URI frontendBaseUrl) {
+    public BrowserAuthenticationSuccessHandler(URI frontendBaseUrl, DemoWorkspaceService demoWorkspaceService) {
         this.frontendBaseUrl = frontendBaseUrl;
+        this.demoWorkspaceService = demoWorkspaceService;
     }
 
     @Override
@@ -32,6 +35,8 @@ public final class BrowserAuthenticationSuccessHandler implements Authentication
                 ? null
                 : session.getAttribute(BrowserReturnPath.SESSION_ATTRIBUTE);
         if (session != null) {
+            // This is the final backstop for OAuth entry points that bypass the app's sign-in CTA.
+            demoWorkspaceService.cleanupForSignIn(session);
             session.removeAttribute(BrowserReturnPath.SESSION_ATTRIBUTE);
             session.setAttribute(RECENT_AUTHENTICATION_AT, Instant.now().toEpochMilli());
         }

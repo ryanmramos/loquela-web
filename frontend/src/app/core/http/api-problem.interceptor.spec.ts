@@ -86,4 +86,27 @@ describe('apiProblemInterceptor', () => {
       correlationId: 'safe-support-id',
     });
   });
+
+  it('maps a problem response when a download requests a blob', async () => {
+    const expectedProblem = {
+      type: 'https://loquela.example/problems/demo-busy',
+      title: 'Demo busy',
+      status: 429,
+      code: 'DEMO_BUSY',
+      correlationId: 'server-correlation-id',
+      fieldErrors: [],
+    };
+    const receivedError = await new Promise<unknown>((resolve) => {
+      http.post('/api/v1/demo/exports/download', {}, { responseType: 'blob' }).subscribe({
+        error: resolve,
+      });
+      httpTesting.expectOne('/api/v1/demo/exports/download').flush(
+        new Blob([JSON.stringify(expectedProblem)], { type: 'application/problem+json' }),
+        { status: 429, statusText: 'Too Many Requests' },
+      );
+    });
+
+    expect(receivedError).toBeInstanceOf(ApiProblemError);
+    expect((receivedError as ApiProblemError).problem).toEqual(expectedProblem);
+  });
 });

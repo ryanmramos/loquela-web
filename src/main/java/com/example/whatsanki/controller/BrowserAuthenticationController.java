@@ -1,6 +1,8 @@
 package com.example.whatsanki.controller;
 
 import com.example.whatsanki.service.security.BrowserReturnPath;
+import com.example.whatsanki.service.demo.DemoWorkspaceService;
+import lombok.RequiredArgsConstructor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpSession;
@@ -16,7 +18,10 @@ import java.net.URI;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
 public class BrowserAuthenticationController {
+
+    private final DemoWorkspaceService demoWorkspaceService;
 
     @GetMapping("/google")
     @Operation(
@@ -29,6 +34,7 @@ public class BrowserAuthenticationController {
             @RequestParam(defaultValue = "false") boolean reauthenticate,
             HttpSession session
     ) {
+        demoWorkspaceService.cleanupForSignIn(session);
         session.setAttribute(BrowserReturnPath.SESSION_ATTRIBUTE, BrowserReturnPath.validate(returnTo));
         String location = "/oauth2/authorization/google" + (reauthenticate ? "?prompt=login" : "");
         return ResponseEntity.status(HttpStatus.FOUND)

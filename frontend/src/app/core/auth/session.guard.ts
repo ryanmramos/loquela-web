@@ -46,6 +46,10 @@ export const anonymousGuard: CanActivateFn = () => {
   );
 };
 
+// Kept as a named policy so the public demo cannot accidentally inherit an
+// authenticated route guard while its API remains anonymous.
+export const demoGuard: CanActivateFn = anonymousGuard;
+
 export const deletingGuard: CanActivateFn = () => {
   const facade = inject(SessionFacade);
   const router = inject(Router);

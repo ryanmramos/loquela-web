@@ -71,6 +71,19 @@ class ContractTest(unittest.TestCase):
         with self.assertRaises(ContractError):
             parse_snapshot(snapshot)
 
+    def test_accepts_definition_only_recall_card(self):
+        snapshot = valid_snapshot()
+        fields = snapshot["cards"][0]["anki"]["fields"]
+        fields["ContextBefore"] = ""
+        fields["ContextAfter"] = ""
+        fields["TextRecognition"] = ""
+        fields["Recall"] = "1"
+
+        parsed = parse_snapshot(snapshot)
+
+        self.assertEqual("vivir", parsed.cards[0].fields[0])
+        self.assertIn("1", parsed.cards[0].fields)
+
     def test_accepts_only_a_controlled_youtube_video_url(self):
         snapshot = valid_snapshot()
         fields = snapshot["cards"][0]["anki"]["fields"]

@@ -1,6 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
+import { catchError, from, mergeMap, throwError } from 'rxjs';
 
 import { RUNTIME_CONFIG } from '@core/config/runtime-config';
 import { ApiFieldError, ApiProblem, ApiProblemError } from '@core/errors/api-problem';
@@ -19,13 +19,23 @@ export const apiProblemInterceptor: HttpInterceptorFn = (request, next) => {
   }
 
   return next(request).pipe(
-    catchError((error: unknown) =>
-      throwError(() =>
-        error instanceof ApiProblemError
-          ? error
-          : mapApiProblem(error, request.headers.get(CORRELATION_ID_HEADER)),
-      ),
-    ),
+    catchError((error: unknown) => {
+      if (error instanceof ApiProblemError) return throwError(() => error);
+
+      const correlationId = request.headers.get(CORRELATION_ID_HEADER);
+      if (error instanceof HttpErrorResponse) {
+        const blobBody = blobProblemBody(error);
+        if (blobBody) {
+          return from(blobBody.text()).pipe(
+            mergeMap((body) =>
+              throwError(() => mapApiProblemBody(error, parseProblemBody(body), correlationId)),
+            ),
+          );
+        }
+      }
+
+      return throwError(() => mapApiProblem(error, correlationId));
+    }),
   );
 };
 
@@ -37,7 +47,18 @@ export function mapApiProblem(
     return new ApiProblemError(fallbackProblem(0, requestCorrelationId));
   }
 
-  const body = isRecord(error.error) ? error.error : undefined;
+  return mapApiProblemBody(
+    error,
+    isRecord(error.error) ? error.error : undefined,
+    requestCorrelationId,
+  );
+}
+
+function mapApiProblemBody(
+  error: HttpErrorResponse,
+  body: Readonly<Record<string, unknown>> | undefined,
+  requestCorrelationId: string | null,
+): ApiProblemError {
   const responseCorrelationId = error.headers.get(CORRELATION_ID_HEADER);
 
   if (!body || !isCompleteProblem(body)) {
@@ -63,6 +84,22 @@ export function mapApiProblem(
   };
 
   return new ApiProblemError(problem);
+}
+
+function blobProblemBody(error: unknown): Blob | undefined {
+  if (!(error instanceof HttpErrorResponse) || typeof Blob === 'undefined') return undefined;
+
+  const body = error.error as unknown;
+  return body instanceof Blob ? body : undefined;
+}
+
+function parseProblemBody(value: string): Readonly<Record<string, unknown>> | undefined {
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return isRecord(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function fallbackProblem(status: number, correlationId: string | null): ApiProblem {

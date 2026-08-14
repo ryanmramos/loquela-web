@@ -208,7 +208,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                                         && method != RequestMethod.OPTIONS))
                         .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        assertThat(externalMutations).hasSize(30);
+        assertThat(externalMutations).hasSize(44);
         externalMutations.forEach((mapping, handler) -> {
             ExternalEndpointSecurity methodClassification = handler.getMethodAnnotation(
                     ExternalEndpointSecurity.class
@@ -232,6 +232,9 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                 } else if (path.startsWith("/api/v1/admin/")) {
                     assertThat(classification.value())
                             .isEqualTo(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF_ADMIN);
+                } else if (path.startsWith("/api/v1/demo/")) {
+                    assertThat(classification.value())
+                            .isEqualTo(ExternalEndpointSecurity.Control.ANONYMOUS_DEMO_SESSION_CSRF);
                 } else {
                     assertThat(path).startsWith("/api/v1/");
                     assertThat(classification.value())

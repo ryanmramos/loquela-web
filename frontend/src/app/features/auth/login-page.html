@@ -34,6 +34,10 @@
           This Google account does not have access to Loquela. Contact an administrator if you
           believe this is a mistake.
         </app-alert>
+      } @else if (reason === 'demo-expired') {
+        <app-alert [title]="'demo.expiredTitle' | translate" tone="warning">
+          {{ 'demo.expiredDetail' | translate }}
+        </app-alert>
       }
 
       @if (loginFailed()) {
@@ -46,6 +50,13 @@
         <span class="google-button__mark" aria-hidden="true">G</span>
         Continue with Google
       </a>
+
+      @if (demoEnabled()) {
+        <div class="demo-entry">
+          <a appButton class="demo-entry__cta" href="/demo">{{ 'demo.loginCta' | translate }}</a>
+          <p>{{ 'demo.loginHelper' | translate }}</p>
+        </div>
+      }
 
       <p class="legal">
         By continuing, you agree to Loquela’s Terms of Service and Privacy Policy. Google is used

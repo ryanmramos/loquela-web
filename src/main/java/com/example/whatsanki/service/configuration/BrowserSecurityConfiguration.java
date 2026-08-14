@@ -4,6 +4,7 @@ import com.example.whatsanki.dto.ApiProblemDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.UserIdentityService;
 import com.example.whatsanki.service.GoogleAccessService;
+import com.example.whatsanki.service.demo.DemoWorkspaceService;
 import com.example.whatsanki.service.security.AuthenticationRateLimitFilter;
 import com.example.whatsanki.service.security.BrowserAuthenticationSuccessHandler;
 import com.example.whatsanki.service.security.BrowserAuthenticationFailureHandler;
@@ -49,6 +50,7 @@ public class BrowserSecurityConfiguration {
     private final ObjectMapper objectMapper;
     private final UserIdentityService userIdentityService;
     private final GoogleAccessService googleAccessService;
+    private final DemoWorkspaceService demoWorkspaceService;
 
     @Bean
     SecurityFilterChain applicationSecurityFilterChain(
@@ -65,6 +67,9 @@ public class BrowserSecurityConfiguration {
                         .requestMatchers("/webhooks/**", "/actuator/health/**").permitAll()
                         .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/demo/capabilities").permitAll()
+                        // Demo state is deliberately anonymous-only; authenticated callers use production APIs.
+                        .requestMatchers("/api/v1/demo/**").anonymous()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/index.html", "/favicon.ico", "/assets/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
@@ -121,11 +126,12 @@ public class BrowserSecurityConfiguration {
         if (configuration.getSecurity().isGoogleOauthEnabled()) {
             http.oauth2Login(oauth -> oauth
                     .authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(
-                            new ReauthenticationAuthorizationRequestResolver(clientRegistrationRepository)
+                            new ReauthenticationAuthorizationRequestResolver(
+                                    clientRegistrationRepository, demoWorkspaceService)
                     ))
                     .userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService()))
                     .successHandler(new BrowserAuthenticationSuccessHandler(
-                            configuration.getSecurity().getFrontendBaseUrl()
+                            configuration.getSecurity().getFrontendBaseUrl(), demoWorkspaceService
                     ))
                     .failureHandler(new BrowserAuthenticationFailureHandler(
                             configuration.getSecurity().getFrontendBaseUrl()

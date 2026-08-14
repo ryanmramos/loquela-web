@@ -18,6 +18,7 @@ public @interface ExternalEndpointSecurity {
         BROWSER_SESSION_CSRF,
         BROWSER_SESSION_CSRF_OWNER_SCOPED,
         BROWSER_SESSION_CSRF_ADMIN,
+        ANONYMOUS_DEMO_SESSION_CSRF,
         DEVELOPMENT_ONLY_CSRF,
         TWILIO_SIGNED_WEBHOOK
     }

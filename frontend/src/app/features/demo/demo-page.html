@@ -1,0 +1,487 @@
+<main class="demo">
+  <header class="demo__header">
+    <a class="brand" href="/login" aria-label="Loquela">
+      <span class="brand__mark" aria-hidden="true">LQ</span>
+      <span>Loquela</span>
+    </a>
+    @if (workspace()) {
+      <nav class="demo__actions" [attr.aria-label]="'demo.workspaceActions' | translate">
+        <button
+          appIconButton
+          type="button"
+          [attr.aria-label]="'demo.startOver' | translate"
+          [attr.title]="'demo.startOver' | translate"
+          (click)="confirmReset()"
+        >
+          <app-icon name="more" [size]="18" />
+        </button>
+        <button appButton class="demo__sign-in" variant="secondary" type="button" (click)="confirmSignIn()">
+          {{ 'demo.signIn' | translate }} <app-icon name="arrow-left" [size]="17" />
+        </button>
+      </nav>
+    }
+  </header>
+
+  @if (!capabilities()) {
+    @if (capabilitiesLoadFailed()) {
+      <app-ui-state
+        kind="error"
+        [title]="'demo.capabilitiesErrorTitle' | translate"
+        [description]="'demo.capabilitiesErrorDescription' | translate"
+      >
+        <button appButton type="button" (click)="retryCapabilities()">
+          {{ 'common.tryAgain' | translate }}
+        </button>
+      </app-ui-state>
+    } @else {
+      <section class="demo-loading" [attr.aria-label]="'demo.loading' | translate">
+        <app-skeleton width="7rem" />
+        <app-skeleton width="min(28rem, 90%)" />
+        <app-skeleton height="20rem" />
+      </section>
+    }
+  } @else if (!capabilities()!.enabled) {
+    <app-ui-state
+      kind="error"
+      [title]="'demo.unavailable' | translate"
+      [description]="'demo.unavailableDetail' | translate"
+    >
+      <a appButton href="/login">{{ 'demo.backToLogin' | translate }}</a>
+    </app-ui-state>
+  } @else if (!workspace()) {
+    <section class="demo-welcome" aria-labelledby="demo-title">
+      <div class="demo-welcome__copy">
+        <p class="eyebrow">{{ 'demo.eyebrow' | translate }}</p>
+        <h1 id="demo-title">{{ 'demo.title' | translate }}</h1>
+        <p>{{ 'demo.description' | translate }}</p>
+        @if (errorMessage()) {
+          <app-alert [title]="'demo.errorTitle' | translate" tone="danger">
+            {{ errorMessage()! | translate }}
+          </app-alert>
+        }
+        <button appButton class="demo-welcome__start" type="button" [disabled]="busy()" (click)="start()">
+          @if (busy()) {
+            <app-icon class="app-icon--spin" name="loading" [size]="18" />
+            {{ 'common.loading' | translate }}
+          } @else {
+            {{ 'demo.start' | translate }} <app-icon name="arrow-left" [size]="17" />
+          }
+        </button>
+        <span class="demo-welcome__note">{{ 'demo.temporaryNotice' | translate }}</span>
+      </div>
+      <div class="demo-preview" aria-hidden="true">
+        <div class="demo-preview__bar"><span></span><span></span><span></span></div>
+        <div class="demo-preview__body">
+          <span class="demo-preview__eyebrow">{{ 'demo.previewLabel' | translate }}</span>
+          <strong>sobremesa</strong>
+          <p>{{ 'demo.previewDefinition' | translate }}</p>
+          <blockquote>{{ 'demo.previewContext' | translate }}</blockquote>
+          <span class="demo-preview__card">{{ 'demo.previewCard' | translate }}</span>
+        </div>
+      </div>
+    </section>
+  } @else {
+    <header class="workspace-heading">
+      <div>
+        <p class="eyebrow">{{ 'demo.workspaceLabel' | translate }}</p>
+        <h1>{{ 'demo.workspaceTitle' | translate }}</h1>
+      </div>
+      <div class="language-picker">
+        <div class="language-picker__fields">
+          <label>
+            <span>{{ 'demo.sourceLanguage' | translate }}</span>
+            <select [(ngModel)]="sourceLanguage" (ngModelChange)="sourceLanguageChanged()">
+              @for (language of sourceLanguageOptions(); track language) {
+                <option [value]="language">{{ languageName(language) }}</option>
+              }
+            </select>
+          </label>
+          <span class="language-picker__arrow" aria-hidden="true">→</span>
+          <label>
+            <span>{{ 'demo.targetLanguage' | translate }}</span>
+            <select [(ngModel)]="targetLanguage">
+              @for (language of targetLanguageOptions(); track language) {
+                <option [value]="language">{{ languageName(language) }}</option>
+              }
+            </select>
+          </label>
+        </div>
+        <button
+          appButton
+          class="language-picker__apply"
+          type="button"
+          [disabled]="busy()"
+          (click)="updateLanguages()"
+        >
+          {{ 'common.apply' | translate }}
+        </button>
+      </div>
+    </header>
+
+    @if (errorMessage()) {
+      <app-alert class="demo-alert" [title]="'demo.errorTitle' | translate" tone="danger">
+        {{ errorMessage()! | translate }}
+      </app-alert>
+    }
+    @if (notice()) {
+      <app-alert class="demo-alert" [title]="'demo.savedTitle' | translate" tone="success">
+        {{ notice()! | translate }}
+      </app-alert>
+    }
+    @if (!capabilities()!.ingestionEnabled) {
+      <app-alert
+        class="demo-alert"
+        [title]="'demo.ingestionPausedTitle' | translate"
+        tone="warning"
+      >
+        {{ 'demo.ingestionPaused' | translate }}
+      </app-alert>
+    }
+
+    <div class="demo-layout">
+      <section class="workspace-main" aria-label="Demo workspace">
+        <article class="panel source-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">{{ 'demo.stepSource' | translate }}</p>
+              <h2>{{ 'demo.sourcesTitle' | translate }}</h2>
+            </div>
+            <span class="source-count">{{ workspace()!.sources.length }}/3</span>
+          </div>
+
+          <div
+            class="source-picker"
+            role="group"
+            [attr.aria-label]="'demo.sourcesTitle' | translate"
+          >
+            @for (type of sourceTypes; track type) {
+              <button
+                type="button"
+                class="source-picker__option"
+                [class.source-picker__option--active]="selectedSourceType === type"
+                [attr.aria-pressed]="selectedSourceType === type"
+                (click)="selectSource(type)"
+              >
+                <app-icon [name]="sourceIcon(type)" [size]="18" />
+                <span>{{ sourceTypeLabel(type) }}</span>
+              </button>
+            }
+          </div>
+
+          @if (selectedSourceType === 'PASTED_TEXT') {
+            <div class="source-composer">
+              <label class="visually-hidden" for="demo-pasted-text">{{
+                'demo.pastedLabel' | translate
+              }}</label>
+              <textarea
+                id="demo-pasted-text"
+                [(ngModel)]="pastedText"
+                [maxlength]="capabilities()!.limits.pastedTextCharacters"
+                [placeholder]="'demo.pastedPlaceholder' | translate"
+              ></textarea>
+              <div class="source-composer__footer">
+                <span>{{
+                  'demo.pastedLimit'
+                    | translate: { count: capabilities()!.limits.pastedTextCharacters }
+                }}</span>
+                <button
+                  appButton
+                  class="source-composer__submit"
+                  type="button"
+                  [disabled]="busy() || !pastedText.trim() || !capabilities()!.ingestionEnabled"
+                  (click)="addPastedText()"
+                >
+                  <app-icon name="plus" [size]="17" />
+                  {{
+                    source('PASTED_TEXT') ? ('demo.replace' | translate) : ('demo.add' | translate)
+                  }}
+                </button>
+              </div>
+            </div>
+          } @else if (selectedSourceType === 'PDF') {
+            <div class="source-composer source-composer--file">
+              <app-icon name="upload" [size]="24" />
+              <div class="source-composer__file-copy">
+                <strong>{{ 'demo.pdfTitle' | translate }}</strong>
+                <span>{{
+                  'demo.pdfLimit' | translate: { pages: capabilities()!.limits.pdfPages }
+                }}</span>
+              </div>
+              <button
+                appButton
+                class="source-composer__submit"
+                variant="secondary"
+                type="button"
+                [disabled]="busy() || !capabilities()!.ingestionEnabled"
+                (click)="pdfInput.click()"
+              >
+                {{ 'demo.choosePdf' | translate }}
+              </button>
+              <input
+                #pdfInput
+                class="visually-hidden"
+                type="file"
+                accept="application/pdf,.pdf"
+                (change)="addPdf(pdfInput)"
+              />
+            </div>
+          } @else {
+            <div class="source-composer">
+              <label class="visually-hidden" for="demo-youtube-url">{{
+                'demo.youtubeLabel' | translate
+              }}</label>
+              <input
+                id="demo-youtube-url"
+                type="url"
+                [(ngModel)]="youtubeUrl"
+                [placeholder]="'demo.youtubePlaceholder' | translate"
+              />
+              <div class="source-composer__footer">
+                <span>{{
+                  'demo.youtubeLimit'
+                    | translate: { minutes: capabilities()!.limits.youtubeMinutes }
+                }}</span>
+                <button
+                  appButton
+                  class="source-composer__submit"
+                  type="button"
+                  [disabled]="busy() || !youtubeUrl.trim() || !capabilities()!.ingestionEnabled"
+                  (click)="addYouTube()"
+                >
+                  <app-icon name="plus" [size]="17" />
+                  {{ source('YOUTUBE') ? ('demo.replace' | translate) : ('demo.add' | translate) }}
+                </button>
+              </div>
+            </div>
+          }
+
+          @if (workspace()!.sources.length) {
+            <div class="source-list" aria-live="polite">
+              @for (item of workspace()!.sources; track item.reference) {
+                <article class="source-item">
+                  @if (youtubeThumbnail(item); as thumbnail) {
+                    <img
+                      class="source-item__thumbnail"
+                      [src]="thumbnail"
+                      alt=""
+                      width="96"
+                      height="54"
+                      loading="lazy"
+                      referrerpolicy="no-referrer"
+                    />
+                  } @else {
+                    <span class="source-item__icon"
+                      ><app-icon [name]="sourceIcon(item.type)" [size]="18"
+                    /></span>
+                  }
+                  <div class="source-item__details">
+                    <strong>{{ sourceDisplayName(item) }}</strong>
+                    @if (sourceDisplayName(item) !== sourceTypeLabel(item.type)) {
+                      <span class="source-item__type">{{ sourceTypeLabel(item.type) }}</span>
+                    }
+                    @if (item.state === 'FAILED') {
+                      <small>{{ sourceFailureGuidance(item.safeErrorCode) }}</small>
+                    }
+                  </div>
+                  <app-status-badge class="source-item__status" [tone]="sourceStateTone(item.state)">{{
+                    sourceStateKey(item.state) | translate
+                  }}</app-status-badge>
+                  <div class="source-item__actions">
+                    @if (item.state === 'FAILED') {
+                      <button
+                        appIconButton
+                        type="button"
+                        [attr.aria-label]="'common.retry' | translate"
+                        [attr.title]="'common.retry' | translate"
+                        (click)="retrySource(item.type)"
+                      >
+                        <app-icon name="loading" [size]="17" />
+                      </button>
+                    }
+                    <button
+                      appIconButton
+                      type="button"
+                      [attr.aria-label]="'demo.remove' | translate"
+                      [attr.title]="'demo.remove' | translate"
+                      (click)="removeSource(item.type)"
+                    >
+                      <app-icon name="trash" [size]="17" />
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </article>
+
+        <article class="panel lookup-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">{{ 'demo.stepLookup' | translate }}</p>
+              <h2>{{ 'demo.lookupTitle' | translate }}</h2>
+            </div>
+          </div>
+          <form class="lookup-form" (submit)="$event.preventDefault(); lookUp()">
+            <label class="visually-hidden" for="demo-lookup-term">{{
+              'demo.lookupLabel' | translate
+            }}</label>
+            <input
+              id="demo-lookup-term"
+              [(ngModel)]="lookupTerm"
+              name="lookupTerm"
+              maxlength="256"
+              [placeholder]="'demo.lookupPlaceholder' | translate"
+            />
+            <button
+              appButton
+              class="lookup-form__submit"
+              type="submit"
+              [disabled]="busy() || !lookupTerm.trim()"
+            >
+              <app-icon name="search" [size]="18" />{{ 'demo.lookupAction' | translate }}
+            </button>
+          </form>
+
+          @if (lookup(); as result) {
+            <section class="lookup-results" aria-live="polite">
+              @if (result.definitions.length) {
+                <article class="definition-result">
+                  <div>
+                    <span class="result-label">{{ 'demo.definitionLabel' | translate }}</span>
+                    <h3>{{ result.term }}</h3>
+                    @for (definition of result.definitions; track definition.definition) {
+                      <p>
+                        <strong>{{ definition.partOfSpeech }}</strong> {{ definition.definition }}
+                      </p>
+                    }
+                  </div>
+                  <button appButton type="button" [disabled]="busy()" (click)="saveDefinition()">
+                    <app-icon name="plus" [size]="17" />{{ 'demo.saveDefinition' | translate }}
+                  </button>
+                </article>
+              }
+              @for (context of result.contexts; track context.reference) {
+                <article class="context-result">
+                  <blockquote>
+                    @for (segment of highlightedContext(context.text, result.term); track $index) {
+                      @if (segment.highlighted) {
+                        <mark>{{ segment.text }}</mark>
+                      } @else {
+                        <span>{{ segment.text }}</span>
+                      }
+                    }
+                  </blockquote>
+                  <footer>
+                    @if (youtubeContextUrl(context); as url) {
+                      <a
+                        class="context-result__video"
+                        [href]="url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        [attr.aria-label]="
+                          'demo.openVideoAt'
+                            | translate: { timestamp: contextTimestamp(context) }
+                        "
+                      >
+                        <app-icon name="video" [size]="16" />
+                        <span>{{ context.sourceLabel }}</span>
+                        <small>{{
+                          'demo.openVideoAt' | translate: { timestamp: contextTimestamp(context) }
+                        }}</small>
+                      </a>
+                    } @else {
+                      <span>{{ context.sourceLabel }}</span>
+                    }
+                    <button
+                      appButton
+                      variant="secondary"
+                      type="button"
+                      [disabled]="busy()"
+                      (click)="saveContext(context.reference)"
+                    >
+                      <app-icon name="plus" [size]="17" />{{ 'demo.saveContext' | translate }}
+                    </button>
+                  </footer>
+                </article>
+              }
+              @if (!result.definitions.length && !result.contexts.length) {
+                <p class="lookup-empty">{{ 'demo.noResults' | translate }}</p>
+              }
+            </section>
+          }
+        </article>
+      </section>
+
+      <aside class="deck-panel panel" aria-labelledby="deck-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">{{ 'demo.stepDeck' | translate }}</p>
+            <h2 id="deck-title">{{ 'demo.deckTitle' | translate }}</h2>
+          </div>
+          <span class="source-count"
+            >{{ workspace()!.cards.length }}/{{ capabilities()!.limits.cards }}</span
+          >
+        </div>
+        @if (undo()) {
+          <app-alert [title]="'demo.cardRemoved' | translate" tone="info">
+            <button class="inline-action" type="button" (click)="undoCard()">
+              {{ 'demo.undo' | translate }}
+            </button>
+          </app-alert>
+        }
+        <div class="deck-cards">
+          @for (card of workspace()!.cards; track card.reference) {
+            <article class="deck-card">
+              <div>
+                <strong>{{ card.term }}</strong>
+                <span>{{ card.definition }}</span>
+              </div>
+              <button
+                appIconButton
+                type="button"
+                [attr.aria-label]="'demo.removeCard' | translate: { term: card.term }"
+                (click)="removeCard(card)"
+              >
+                <app-icon name="x" [size]="17" />
+              </button>
+            </article>
+          } @empty {
+            <div class="deck-empty">
+              <span aria-hidden="true">Aa</span>
+              <p>{{ 'demo.emptyDeck' | translate }}</p>
+            </div>
+          }
+        </div>
+        <div class="deck-actions">
+          <button
+            appButton
+            class="deck-actions__download"
+            type="button"
+            [disabled]="busy() || workspace()!.cards.length === 0"
+            (click)="exportDeck()"
+          >
+            <app-icon name="download" [size]="17" />{{ 'demo.prepareDownload' | translate }}
+          </button>
+          <button
+            appButton
+            class="deck-actions__exit"
+            variant="secondary"
+            type="button"
+            (click)="confirmExit()"
+          >
+            {{ 'demo.exit' | translate }}
+          </button>
+        </div>
+        <span class="visually-hidden" aria-live="polite">{{
+          downloadStatus() ? (downloadStatus()! | translate) : ''
+        }}</span>
+        <p class="temporary-note">{{ 'demo.temporaryNotice' | translate }}</p>
+      </aside>
+    </div>
+  }
+</main>
+
+<p-confirm-dialog
+  styleClass="loquela-confirm-dialog"
+  [pt]="{ host: { role: null }, mask: { class: 'loquela-confirm-mask' } }"
+/>

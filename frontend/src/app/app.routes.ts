@@ -1,8 +1,21 @@
 import { Routes } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
 
-import { anonymousGuard, authenticatedGuard, deletingGuard } from '@core/auth/session.guard';
+import {
+  anonymousGuard,
+  authenticatedGuard,
+  deletingGuard,
+  demoGuard,
+} from '@core/auth/session.guard';
 
 export const routes: Routes = [
+  {
+    path: 'demo',
+    title: 'Try Loquela',
+    canActivate: [demoGuard],
+    providers: [ConfirmationService],
+    loadComponent: () => import('@app/features/demo/demo-page').then((module) => module.DemoPage),
+  },
   {
     path: '',
     pathMatch: 'full',

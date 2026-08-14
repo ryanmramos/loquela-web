@@ -12,6 +12,7 @@ import com.example.whatsanki.service.exception.BrowserSourceConflictException;
 import com.example.whatsanki.service.exception.BrowserSourceNotFoundException;
 import com.example.whatsanki.service.exception.BrowserSourceValidationException;
 import com.example.whatsanki.service.exception.UnsupportedBrowserLanguagePairException;
+import com.example.whatsanki.service.exception.DemoException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,26 @@ import java.util.List;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(DemoException.class)
+    public ResponseEntity<ApiProblemDto> handleDemo(DemoException exception, HttpServletRequest request) {
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(exception.getStatus())
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .cacheControl(org.springframework.http.CacheControl.noStore());
+        if (exception.getRetryAfterSeconds() != null) {
+            response.header(org.springframework.http.HttpHeaders.RETRY_AFTER,
+                    exception.getRetryAfterSeconds().toString());
+        }
+        return response.body(new ApiProblemDto(
+                URI.create("https://loquela.app/problems/" + exception.getProblemCode()
+                        .toLowerCase().replace('_', '-')),
+                "Demo operation could not be completed",
+                exception.getStatus().value(),
+                exception.getProblemCode(),
+                demoProblemDetail(exception.getProblemCode()),
+                request.getRequestURI(), MDC.get("correlationId"), List.of()
+        ));
+    }
 
     @ExceptionHandler(AdminAccessException.class)
     public ResponseEntity<ApiProblemDto> handleAdminAccess(
@@ -325,6 +346,23 @@ public class GlobalExceptionHandler {
             case "YOUTUBE_INGESTION_DISABLED" ->
                     "YouTube ingestion is temporarily unavailable. Try again later.";
             default -> "Review the source and try again.";
+        };
+    }
+
+    private String demoProblemDetail(String code) {
+        return switch (code) {
+            case "DEMO_UNAVAILABLE" -> "The temporary demo is not available right now.";
+            case "DEMO_INGESTION_DISABLED" -> "Source ingestion is temporarily paused; lookup and deck features remain available.";
+            case "DEMO_EXPIRED" -> "This temporary demo workspace expired or is no longer available.";
+            case "DEMO_BUSY" -> "The demo is at capacity. Wait briefly and try again.";
+            case "DEMO_RATE_LIMITED" -> "The demo request limit was reached. Wait and try again.";
+            case "DEMO_DECK_FULL" -> "Loquela Demo can contain at most 20 cards.";
+            case "DEMO_DECK_EMPTY" -> "Add at least one card before downloading the deck.";
+            case "PDF_NEEDS_OCR" -> "This PDF has no readable text layer. Run OCR and try again.";
+            case "PDF_TOO_LARGE", "PDF_TOO_MANY_PAGES", "PDF_TEXT_TOO_LARGE",
+                    "PASTED_TEXT_TOO_LARGE", "DEMO_TOTAL_TEXT_LIMIT", "YOUTUBE_TOO_LONG" ->
+                    "Choose a source within the limits shown on the demo page.";
+            default -> "Review the demo page and try again.";
         };
     }
 }

@@ -1,5 +1,6 @@
 package com.example.whatsanki.service.security;
 
+import com.example.whatsanki.service.demo.DemoWorkspaceService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -22,11 +23,14 @@ public final class ReauthenticationAuthorizationRequestResolver
     private static final String LOGIN_PROMPT = "login";
 
     private final OAuth2AuthorizationRequestResolver delegate;
+    private final DemoWorkspaceService demoWorkspaceService;
 
     public ReauthenticationAuthorizationRequestResolver(
-            ClientRegistrationRepository clientRegistrationRepository
+            ClientRegistrationRepository clientRegistrationRepository,
+            DemoWorkspaceService demoWorkspaceService
     ) {
         this.delegate = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
+        this.demoWorkspaceService = demoWorkspaceService;
     }
 
     @Override
@@ -46,10 +50,14 @@ public final class ReauthenticationAuthorizationRequestResolver
             HttpServletRequest request,
             @Nullable OAuth2AuthorizationRequest authorizationRequest
     ) {
-        if (authorizationRequest == null
-                || !LOGIN_PROMPT.equals(request.getParameter(PROMPT_PARAMETER))) {
+        if (authorizationRequest == null) {
             return authorizationRequest;
         }
+        // Starting OAuth is the point of no return for anonymous data, even if Google is cancelled.
+        if (request.getSession(false) != null) {
+            demoWorkspaceService.cleanupForSignIn(request.getSession(false));
+        }
+        if (!LOGIN_PROMPT.equals(request.getParameter(PROMPT_PARAMETER))) return authorizationRequest;
         return OAuth2AuthorizationRequest.from(authorizationRequest)
                 .additionalParameters(parameters -> parameters.put(PROMPT_PARAMETER, LOGIN_PROMPT))
                 .build();

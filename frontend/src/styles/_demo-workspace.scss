@@ -1,0 +1,523 @@
+.demo .language-picker,
+.demo .source-picker,
+.demo .source-composer--file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+}
+
+.demo .language-picker {
+  justify-content: space-between;
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+.demo .language-picker__fields {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+}
+.demo .language-picker label,
+.demo .source-item > div,
+.demo .deck-card div {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.demo .language-picker select {
+  min-height: 1.65rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+}
+.demo .language-picker__arrow,
+.demo .source-count {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+.demo .loquela-button.language-picker__apply,
+.demo .loquela-button.source-composer__submit,
+.demo .loquela-button.lookup-form__submit,
+.demo .loquela-button.deck-actions__download,
+.demo .loquela-button.demo-welcome__start {
+  display: inline-flex !important;
+  min-height: 2.6rem;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-primary) !important;
+  border-radius: 0.7rem;
+  background: var(--color-primary) !important;
+  box-shadow: 0 0.35rem 0.8rem rgb(22 100 52 / 18%);
+  color: var(--color-on-primary) !important;
+  font-weight: 800;
+}
+.demo .loquela-button.demo__sign-in,
+.demo .loquela-button.deck-actions__exit {
+  display: inline-flex !important;
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border) !important;
+  border-radius: 0.7rem;
+  background: var(--color-surface-panel) !important;
+  color: var(--color-text) !important;
+  font-weight: 750;
+}
+.demo .loquela-button.language-picker__apply:hover:not(:disabled),
+.demo .loquela-button.source-composer__submit:hover:not(:disabled),
+.demo .loquela-button.lookup-form__submit:hover:not(:disabled),
+.demo .loquela-button.deck-actions__download:hover:not(:disabled),
+.demo .loquela-button.demo-welcome__start:hover:not(:disabled) {
+  border-color: var(--color-primary-strong) !important;
+  background: var(--color-primary-strong) !important;
+}
+.demo .loquela-button.demo__sign-in:hover:not(:disabled),
+.demo .loquela-button.deck-actions__exit:hover:not(:disabled) {
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-strong) !important;
+}
+.demo .loquela-button.language-picker__apply:focus-visible,
+.demo .loquela-button.source-composer__submit:focus-visible,
+.demo .loquela-button.lookup-form__submit:focus-visible,
+.demo .loquela-button.deck-actions__download:focus-visible,
+.demo .loquela-button.demo-welcome__start:focus-visible,
+.demo .loquela-button.demo__sign-in:focus-visible,
+.demo .loquela-button.deck-actions__exit:focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+.demo .loquela-button.demo-welcome__start {
+  min-height: 3.15rem;
+  padding-inline: var(--space-5);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-md);
+}
+.demo .source-count {
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  font-size: var(--font-size-xs);
+}
+.demo .demo-alert {
+  display: block;
+  margin-bottom: var(--space-4);
+}
+.demo .demo-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.38fr);
+  align-items: start;
+  gap: var(--space-5);
+}
+.demo .workspace-main {
+  gap: var(--space-5);
+}
+.demo .panel {
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-sm);
+}
+.demo .source-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: var(--space-5);
+}
+.demo .source-picker__option {
+  display: inline-flex;
+  min-height: var(--control-min-size);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 750;
+}
+.demo .source-picker__option--active {
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-primary);
+}
+.demo .source-composer {
+  margin-top: var(--space-4);
+  gap: var(--space-3);
+}
+.demo .source-composer textarea,
+.demo .source-composer input,
+.demo .lookup-form input {
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+}
+.demo .source-composer textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+.demo .source-composer__footer,
+.demo .context-result footer {
+  justify-content: space-between;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.demo .source-composer--file {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 8rem;
+  border-style: dashed;
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.demo .source-composer__file-copy {
+  display: grid;
+  gap: 0.15rem;
+}
+.demo .source-composer__file-copy span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+.demo .source-list {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  gap: var(--space-2);
+}
+.demo .source-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+.demo .source-item__thumbnail {
+  width: 5rem;
+  height: 3rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-subtle);
+  object-fit: cover;
+}
+.demo .source-item__icon,
+.demo .deck-empty > span {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-warning);
+}
+.demo .source-item small {
+  color: var(--color-danger);
+  white-space: normal;
+}
+.demo .source-item__type {
+  color: var(--color-text-muted);
+}
+.demo .source-item__details strong {
+  overflow-wrap: anywhere;
+}
+.demo .source-item__status .badge {
+  display: inline-flex;
+  min-height: 1.9rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+}
+.demo .source-item__status .badge--info {
+  border-color: color-mix(in srgb, var(--color-info) 20%, transparent);
+  background: var(--color-info-soft);
+  color: var(--color-info);
+}
+.demo .source-item__status .badge--success {
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+.demo .source-item__status .badge--danger {
+  border-color: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.demo .source-item__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.demo .lookup-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+.demo .lookup-results {
+  margin-top: var(--space-5);
+  gap: var(--space-3);
+}
+.demo .definition-result,
+.demo .context-result {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+.demo .definition-result {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.demo .definition-result h3,
+.demo .definition-result p {
+  margin: var(--space-1) 0;
+}
+.demo .context-result blockquote {
+  margin: 0;
+  border-left-color: var(--color-primary);
+}
+.demo .context-result mark {
+  padding: 0.05em 0.16em;
+  border-radius: 0.25rem;
+  background: var(--color-accent-soft);
+  box-decoration-break: clone;
+  color: inherit;
+}
+.demo .context-result footer {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+.demo .context-result__video {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-primary-strong);
+  font-weight: 750;
+  text-decoration: none;
+}
+.demo .context-result__video span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.demo .context-result__video small {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.demo .context-result__video:hover {
+  text-decoration: underline;
+}
+.demo .lookup-empty,
+.demo .deck-empty p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+.demo .deck-panel {
+  position: sticky;
+  top: var(--space-5);
+}
+.demo .deck-cards {
+  max-height: 24rem;
+  margin: var(--space-5) 0;
+  overflow: auto;
+  gap: var(--space-2);
+}
+.demo .deck-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+.demo .deck-empty {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5) 0;
+}
+.demo .deck-empty p {
+  margin: 0;
+}
+.demo .deck-actions {
+  display: flex;
+  flex-wrap: wrap;
+}
+.demo .inline-action {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+}
+.demo .temporary-note {
+  margin: var(--space-4) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+// PrimeNG confirms render in the document overlay layer, outside the demo page.
+// This keeps destructive demo actions visually consistent with the product shell.
+body .loquela-confirm-dialog {
+  width: min(calc(100vw - 2rem), 30rem) !important;
+  overflow: hidden;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--color-surface-panel) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+body .loquela-confirm-mask {
+  background: rgb(5 3 22 / 46%) !important;
+  backdrop-filter: blur(0.16rem);
+}
+body .loquela-confirm-dialog .p-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-5) var(--space-3);
+  background: var(--color-surface-panel);
+  color: var(--color-text);
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-xl);
+}
+body .loquela-confirm-dialog .p-dialog-content {
+  padding: 0 var(--space-5) var(--space-5);
+  background: var(--color-surface-panel);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
+}
+body .loquela-confirm-dialog .p-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+body .loquela-confirm-dialog .p-dialog-footer button {
+  display: inline-flex !important;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-surface-panel) !important;
+  color: var(--color-text) !important;
+  font: inherit;
+  font-weight: 800;
+}
+body .loquela-confirm-dialog .p-dialog-footer .loquela-confirm-dialog__accept {
+  border-color: var(--color-danger) !important;
+  background: var(--color-danger) !important;
+  color: var(--color-on-primary) !important;
+}
+body .loquela-confirm-dialog .p-dialog-footer .loquela-confirm-dialog__reject:hover,
+body .loquela-confirm-dialog .p-dialog-footer button:hover:not(:disabled) {
+  border-color: var(--color-primary) !important;
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-strong) !important;
+}
+body .loquela-confirm-dialog .p-dialog-footer .loquela-confirm-dialog__accept:hover:not(:disabled) {
+  border-color: var(--color-danger-strong) !important;
+  background: var(--color-danger-strong) !important;
+  color: var(--color-on-primary) !important;
+}
+body .loquela-confirm-dialog .p-dialog-footer button:focus-visible,
+body .loquela-confirm-dialog .p-dialog-header-close:focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+body .loquela-confirm-dialog .p-dialog-header-close {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+body .loquela-confirm-dialog .p-dialog-header-close:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+@media (max-width: 52rem) {
+  .demo .demo-layout {
+    grid-template-columns: 1fr;
+  }
+  .demo .deck-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 34rem) {
+  .demo .source-composer__footer,
+  .demo .definition-result,
+  .demo .context-result footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .demo .language-picker {
+    width: 100%;
+  }
+  .demo .language-picker__fields {
+    flex: 1 1 14rem;
+  }
+  .demo .language-picker label {
+    flex: 1;
+  }
+  .demo .language-picker select {
+    width: 100%;
+  }
+  .demo .loquela-button.language-picker__apply {
+    flex: 1 1 auto;
+  }
+  .demo .source-picker__option {
+    font-size: 0;
+  }
+  .demo .source-composer--file {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .demo .source-composer--file button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .demo .lookup-form {
+    grid-template-columns: 1fr;
+  }
+  .demo .source-item {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+  }
+  .demo .source-item__thumbnail {
+    width: 3.25rem;
+    height: 2.25rem;
+  }
+}

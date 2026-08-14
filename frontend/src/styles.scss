@@ -4,6 +4,7 @@
 @use 'styles/utilities';
 @use 'app/core/layout/app-shell';
 @use 'styles/feature-budget-overflow';
+@use 'styles/demo-workspace';
 
 // PrimeNG owns accessible component behavior; these bridge rules keep application-owned
 // elements and Prime components visually aligned to the same Loquela token contract.

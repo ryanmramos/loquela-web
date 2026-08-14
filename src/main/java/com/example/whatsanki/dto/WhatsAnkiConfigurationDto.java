@@ -89,6 +89,10 @@ public class WhatsAnkiConfigurationDto {
     @NotNull
     private Languages languages = new Languages();
 
+    @Valid
+    @NotNull
+    private Demo demo = new Demo();
+
     @Getter
     @Setter
     public static class Twilio {
@@ -460,5 +464,45 @@ public class WhatsAnkiConfigurationDto {
         @NotEmpty
         private List<@NotBlank String> supportedPairs =
                 new ArrayList<>(List.of("es:en", "en:es", "es:es", "en:en"));
+    }
+
+    @Getter
+    @Setter
+    public static class Demo {
+        private boolean enabled;
+        private boolean ingestionEnabled = true;
+        @NotNull private Duration inactivityTimeout = Duration.ofHours(2);
+        @NotNull private Duration absoluteLifetime = Duration.ofHours(8);
+        @Positive private int maxWorkspaces = 100;
+        @Positive private int ingestionWorkers = 1;
+        @Positive private int ingestionQueueCapacity = 8;
+        @Positive private long pdfMaxBytes = 5L * 1024 * 1024;
+        @Positive private int pdfMaxPages = 100;
+        @Positive private int pdfMaxExtractedCharacters = 100_000;
+        @NotNull private Duration youtubeMaxDuration = Duration.ofMinutes(30);
+        @Positive private int pastedTextMaxCharacters = 20_000;
+        @Positive private int workspaceMaxIndexedCharacters = 250_000;
+        @Positive private int maxUniqueLookups = 50;
+        @Positive private int lookupBurstPerMinute = 10;
+        @Positive private int maxCards = 20;
+        @Positive private int maxExportGenerations = 10;
+        @Positive private int exportGenerationsPerIpMinute = 2;
+        @Positive private int sessionsPerIpHour = 5;
+        @Positive private int ingestionsPerIpHour = 10;
+
+        @AssertTrue(message = "whatsanki.demo durations and limits must be internally consistent")
+        public boolean isInternallyConsistent() {
+            return positive(inactivityTimeout)
+                    && positive(absoluteLifetime)
+                    && positive(youtubeMaxDuration)
+                    && inactivityTimeout.compareTo(absoluteLifetime) <= 0
+                    && pdfMaxExtractedCharacters <= workspaceMaxIndexedCharacters
+                    && pastedTextMaxCharacters <= workspaceMaxIndexedCharacters
+                    && maxCards <= 20;
+        }
+
+        private boolean positive(Duration duration) {
+            return duration != null && !duration.isZero() && !duration.isNegative();
+        }
     }
 }

@@ -13,6 +13,34 @@
     "browserSession" : [ ]
   } ],
   "paths" : {
+    "/api/v1/demo/languages" : {
+      "put" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "updateDemoLanguages",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LanguagesRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sources" : {
       "get" : {
         "tags" : [ "browser-source-controller" ],
@@ -425,6 +453,314 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/BrowserLookupSaveDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/workspace" : {
+      "get" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "getDemoWorkspace",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "startDemoWorkspace",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/workspace/reset" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "resetDemoWorkspace",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/workspace/exit" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "exitDemoWorkspace",
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/demo/sources/{source-type}/retry" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "retryDemoSource",
+        "parameters" : [ {
+          "name" : "source-type",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "YOUTUBE", "PDF", "PASTED_TEXT" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/sources/youtube" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "createDemoYouTubeSource",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/YouTubeRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/sources/pdf" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "createDemoPdfSource",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "file" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/sources/pasted-text" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "createDemoPastedTextSource",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PastedTextRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/lookups" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "createDemoLookup",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LookupRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LookupView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/exports" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "createDemoExport",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ExportView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/exports/download" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "createAndDownloadDemoExport",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/cards" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "createDemoCard",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SaveCardRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CardMutation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/cards/{card-reference}/undo" : {
+      "post" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "undoDemoCardDeletion",
+        "parameters" : [ {
+          "name" : "card-reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "[0-9a-fA-F-]{36}"
+          }
+        }, {
+          "name" : "token",
+          "in" : "query",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "[0-9a-fA-F-]{36}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CardMutation"
                 }
               }
             }
@@ -1441,6 +1777,52 @@
         }
       }
     },
+    "/api/v1/demo/exports/{export-reference}/download" : {
+      "get" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "downloadDemoExport",
+        "parameters" : [ {
+          "name" : "export-reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "[0-9a-fA-F-]{36}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/capabilities" : {
+      "get" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "getDemoCapabilities",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Capabilities"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/dashboard" : {
       "get" : {
         "tags" : [ "dashboard-controller" ],
@@ -1562,10 +1944,259 @@
           }
         }
       }
+    },
+    "/api/v1/demo/sources/{source-type}" : {
+      "delete" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "deleteDemoSource",
+        "parameters" : [ {
+          "name" : "source-type",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "YOUTUBE", "PDF", "PASTED_TEXT" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkspaceView"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/demo/cards/{card-reference}" : {
+      "delete" : {
+        "tags" : [ "demo-workspace-controller" ],
+        "operationId" : "deleteDemoCard",
+        "parameters" : [ {
+          "name" : "card-reference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "[0-9a-fA-F-]{36}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CardRemoval"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components" : {
     "schemas" : {
+      "LanguagesRequest" : {
+        "type" : "object",
+        "properties" : {
+          "sourceLanguage" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "targetLanguage" : {
+            "type" : "string",
+            "maxLength" : 16,
+            "minLength" : 0
+          },
+          "confirmSourceChange" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "sourceLanguage", "targetLanguage" ]
+      },
+      "CardView" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "DEFINITION", "CONTEXT" ]
+          },
+          "term" : {
+            "type" : "string"
+          },
+          "definition" : {
+            "type" : "string"
+          },
+          "example" : {
+            "type" : "string"
+          },
+          "sourceLabel" : {
+            "type" : "string"
+          },
+          "languagePair" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "ContextView" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "sourceLabel" : {
+            "type" : "string"
+          },
+          "sourceType" : {
+            "type" : "string",
+            "enum" : [ "YOUTUBE", "PDF", "PASTED_TEXT" ]
+          },
+          "location" : {
+            "type" : "object",
+            "additionalProperties" : { }
+          }
+        }
+      },
+      "DefinitionView" : {
+        "type" : "object",
+        "properties" : {
+          "partOfSpeech" : {
+            "type" : "string"
+          },
+          "definition" : {
+            "type" : "string"
+          }
+        }
+      },
+      "LookupView" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "term" : {
+            "type" : "string"
+          },
+          "definitions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DefinitionView"
+            }
+          },
+          "contexts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ContextView"
+            }
+          },
+          "cached" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SourceView" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "enum" : [ "YOUTUBE", "PDF", "PASTED_TEXT" ]
+          },
+          "reference" : {
+            "type" : "string"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "state" : {
+            "type" : "string",
+            "enum" : [ "QUEUED", "PROCESSING", "READY", "FAILED" ]
+          },
+          "safeErrorCode" : {
+            "type" : "string"
+          },
+          "youtubeVideoId" : {
+            "type" : "string"
+          },
+          "characterCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "passageCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "WorkspaceView" : {
+        "type" : "object",
+        "properties" : {
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "inactivityExpiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "absoluteExpiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "sourceLanguage" : {
+            "type" : "string"
+          },
+          "targetLanguage" : {
+            "type" : "string"
+          },
+          "corpusRevision" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "sources" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SourceView"
+            }
+          },
+          "indexedCharacters" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "latestLookup" : {
+            "$ref" : "#/components/schemas/LookupView"
+          },
+          "cards" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CardView"
+            }
+          },
+          "deckRevision" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "exportReady" : {
+            "type" : "boolean"
+          }
+        }
+      },
       "CreatePastedTextSourceRequestDto" : {
         "type" : "object",
         "properties" : {
@@ -1858,6 +2489,81 @@
           },
           "deckReference" : {
             "type" : "string"
+          }
+        }
+      },
+      "YouTubeRequest" : {
+        "type" : "object",
+        "properties" : {
+          "url" : {
+            "type" : "string",
+            "maxLength" : 2048,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "url" ]
+      },
+      "PastedTextRequest" : {
+        "type" : "object",
+        "properties" : {
+          "text" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "text" ]
+      },
+      "LookupRequest" : {
+        "type" : "object",
+        "properties" : {
+          "term" : {
+            "type" : "string",
+            "maxLength" : 256,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "term" ]
+      },
+      "ExportView" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "reused" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SaveCardRequest" : {
+        "type" : "object",
+        "properties" : {
+          "lookupReference" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "DEFINITION", "CONTEXT" ]
+          },
+          "selectionReference" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "kind", "lookupReference" ]
+      },
+      "CardMutation" : {
+        "type" : "object",
+        "properties" : {
+          "card" : {
+            "$ref" : "#/components/schemas/CardView"
+          },
+          "alreadyAdded" : {
+            "type" : "boolean"
           }
         }
       },
@@ -2732,6 +3438,63 @@
           }
         }
       },
+      "Capabilities" : {
+        "type" : "object",
+        "properties" : {
+          "enabled" : {
+            "type" : "boolean"
+          },
+          "ingestionEnabled" : {
+            "type" : "boolean"
+          },
+          "supportedLanguagePairs" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "limits" : {
+            "$ref" : "#/components/schemas/Limits"
+          }
+        }
+      },
+      "Limits" : {
+        "type" : "object",
+        "properties" : {
+          "pdfBytes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pdfPages" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pdfCharacters" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "youtubeMinutes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "pastedTextCharacters" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "totalIndexedCharacters" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "uniqueLookups" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "cards" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "BrowserDeckListDto" : {
         "type" : "object",
         "properties" : {
@@ -2977,6 +3740,18 @@
           }
         },
         "required" : [ "status", "updatedAt" ]
+      },
+      "CardRemoval" : {
+        "type" : "object",
+        "properties" : {
+          "undoToken" : {
+            "type" : "string"
+          },
+          "undoExpiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
       }
     },
     "securitySchemes" : {

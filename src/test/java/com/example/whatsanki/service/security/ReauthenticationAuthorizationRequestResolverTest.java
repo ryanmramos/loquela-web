@@ -1,5 +1,6 @@
 package com.example.whatsanki.service.security;
 
+import com.example.whatsanki.service.demo.DemoWorkspaceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -9,11 +10,14 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class ReauthenticationAuthorizationRequestResolverTest {
 
+    private final DemoWorkspaceService demoWorkspaceService = mock(DemoWorkspaceService.class);
     private final ReauthenticationAuthorizationRequestResolver resolver =
-            new ReauthenticationAuthorizationRequestResolver(repository());
+            new ReauthenticationAuthorizationRequestResolver(repository(), demoWorkspaceService);
 
     @Test
     void forwardsLoginPromptForExplicitReauthenticationRequest() {
@@ -25,6 +29,7 @@ class ReauthenticationAuthorizationRequestResolverTest {
         assertThat(result).isNotNull();
         assertThat(result.getAdditionalParameters()).containsEntry("prompt", "login");
         assertThat(result.getAuthorizationRequestUri()).contains("prompt=login");
+        verify(demoWorkspaceService).cleanupForSignIn(request.getSession());
     }
 
     @Test
@@ -36,6 +41,7 @@ class ReauthenticationAuthorizationRequestResolverTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getAdditionalParameters()).doesNotContainKey("prompt");
+        verify(demoWorkspaceService).cleanupForSignIn(request.getSession());
     }
 
     private MockHttpServletRequest authorizationRequest() {
@@ -45,6 +51,7 @@ class ReauthenticationAuthorizationRequestResolverTest {
         request.setScheme("https");
         request.setServerName("loquela.example");
         request.setServerPort(443);
+        request.getSession();
         return request;
     }
 
