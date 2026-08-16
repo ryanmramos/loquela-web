@@ -8,6 +8,6 @@ export interface SourceView {
   reference?: string;
   safeErrorCode?: string;
   state?: 'QUEUED' | 'PROCESSING' | 'READY' | 'FAILED';
-  type?: 'YOUTUBE' | 'PDF' | 'PASTED_TEXT';
+  type?: 'YOUTUBE' | 'TIMED_TRANSCRIPT' | 'PDF' | 'PASTED_TEXT';
   youtubeVideoId?: string;
 }

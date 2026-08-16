@@ -135,17 +135,18 @@ public class BrowserLookupServiceImpl implements BrowserLookupService {
     private BrowserLookupDto.ContextDto context(NumberedContextExampleDto value) {
         Map<String, Object> location = value.location();
         Integer page = number(location.get("pageNumber"));
-        Long startMs = longNumber(location.get("playbackStartMs"));
-        if (startMs == null) {
-            startMs = longNumber(location.get("startMs"));
-        }
         String videoId = string(location.get("videoId"));
         if (videoId == null) {
             videoId = string(location.get("providerVideoId"));
         }
+        Long startMs = videoId == null
+                ? longNumber(location.get("originTimestampMs"))
+                : longNumber(location.get("playbackStartMs"));
+        if (startMs == null) startMs = longNumber(location.get("startMs"));
         String youtube = videoId != null && YOUTUBE_ID.matcher(videoId).matches() && startMs != null && startMs >= 0
                 ? "https://www.youtube.com/watch?v=" + videoId + "&t=" + startMs / 1000 + "s"
                 : null;
+        String genericOrigin = youtube == null ? string(location.get("originUrl")) : null;
         return new BrowserLookupDto.ContextDto(
                 value.number(),
                 SourceReferenceCodec.encode(new SourceId(value.sourceId())),
@@ -155,7 +156,8 @@ public class BrowserLookupServiceImpl implements BrowserLookupService {
                 value.displayText(),
                 page,
                 startMs,
-                youtube
+                youtube,
+                genericOrigin
         );
     }
 

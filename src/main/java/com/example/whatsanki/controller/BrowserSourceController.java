@@ -4,7 +4,6 @@ import com.example.whatsanki.dto.AcceptedSourceDto;
 import com.example.whatsanki.dto.BrowserSourceDetailsDto;
 import com.example.whatsanki.dto.BrowserSourceSummaryDto;
 import com.example.whatsanki.dto.CreatePastedTextSourceRequestDto;
-import com.example.whatsanki.dto.CreateYouTubeSourceRequestDto;
 import com.example.whatsanki.dto.PastedTextSourceDto;
 import com.example.whatsanki.dto.RenameSourceRequestDto;
 import com.example.whatsanki.dto.SourceListDto;
@@ -59,25 +58,6 @@ public class BrowserSourceController {
     ) {
         return ResponseEntity.accepted().body(
                 browserSourceService.createPastedText(authentication.getName(), requestDto.text())
-        );
-    }
-
-    @PostMapping("/youtube")
-    @Operation(operationId = "createYouTubeSource", summary = "Create a YouTube subtitle source")
-    @ApiResponse(
-            responseCode = "202",
-            description = "Source accepted",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = AcceptedSourceDto.class)
-            )
-    )
-    public ResponseEntity<AcceptedSourceDto> createYouTube(
-            @Parameter(hidden = true) Authentication authentication,
-            @Valid @RequestBody CreateYouTubeSourceRequestDto requestDto
-    ) {
-        return ResponseEntity.accepted().body(
-                browserSourceService.createYouTube(authentication.getName(), requestDto.url())
         );
     }
 

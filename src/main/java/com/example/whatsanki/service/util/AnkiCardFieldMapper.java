@@ -24,7 +24,9 @@ public class AnkiCardFieldMapper {
     public AnkiCardFieldsDto map(DictionaryEntryDto entry, NumberedContextExampleDto context) {
         ContextSplit split = splitContext(entry, context.displayText());
         DictionarySenseDto primarySense = entry.senses().get(0);
-        boolean videoContext = context.sourceKind() == SourceDocumentEntity.Kind.YOUTUBE_VIDEO;
+        boolean videoContext = context.sourceKind() == SourceDocumentEntity.Kind.YOUTUBE_VIDEO
+                || (context.sourceKind() == SourceDocumentEntity.Kind.TIMED_TRANSCRIPT
+                    && "YOUTUBE".equals(context.location().get("provider")));
         String videoUrl = videoContext ? videoUrl(context.location()) : "";
 
         return new AnkiCardFieldsDto(
@@ -107,7 +109,7 @@ public class AnkiCardFieldMapper {
         if (page instanceof Number number && number.intValue() > 0) {
             return "p. " + number.intValue();
         }
-        Object startMs = location.get("startMs");
+        Object startMs = location.getOrDefault("originTimestampMs", location.get("startMs"));
         if (startMs instanceof Number number && number.longValue() >= 0) {
             return timestamp(number.longValue());
         }
@@ -115,7 +117,9 @@ public class AnkiCardFieldMapper {
     }
 
     private String sourceName(NumberedContextExampleDto context) {
-        if (context.sourceKind() != SourceDocumentEntity.Kind.YOUTUBE_VIDEO) {
+        if (context.sourceKind() != SourceDocumentEntity.Kind.YOUTUBE_VIDEO
+                && !(context.sourceKind() == SourceDocumentEntity.Kind.TIMED_TRANSCRIPT
+                    && "YOUTUBE".equals(context.location().get("provider")))) {
             return context.sourceDisplayName();
         }
         Object channelName = context.location().get("channelName");

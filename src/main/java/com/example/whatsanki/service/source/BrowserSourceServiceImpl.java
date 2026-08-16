@@ -22,6 +22,7 @@ import com.example.whatsanki.dto.YouTubeSourceAcceptanceDto;
 import com.example.whatsanki.repository.SourceDocumentRepository;
 import com.example.whatsanki.repository.PassageRepository;
 import com.example.whatsanki.repository.VideoSourceRepository;
+import com.example.whatsanki.repository.TimedTranscriptMetadataRepository;
 import com.example.whatsanki.service.BrowserSourceService;
 import com.example.whatsanki.service.SourceManagementService;
 import com.example.whatsanki.service.UserIdentityService;
@@ -56,6 +57,7 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
     private final SourceDocumentRepository sourceDocumentRepository;
     private final PassageRepository passageRepository;
     private final VideoSourceRepository videoSourceRepository;
+    private final TimedTranscriptMetadataRepository timedTranscriptMetadataRepository;
     private final SourceManagementService sourceManagementService;
     private final BackgroundJobService backgroundJobService;
     private final TextNormalizer textNormalizer;
@@ -149,9 +151,11 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
         VideoSourceEntity video = source.getKind() == SourceDocumentEntity.Kind.YOUTUBE_VIDEO
                 ? videoSourceRepository.findBySourceIdAndUserId(source.getId(), userId.value()).orElse(null)
                 : null;
+        var timed = source.getKind() == SourceDocumentEntity.Kind.TIMED_TRANSCRIPT
+                ? timedTranscriptMetadataRepository.findBySourceIdAndUserId(source.getId(), userId.value()).orElse(null)
+                : null;
         long totalWords = passageRepository.totalWordCountByUserIdAndSourceId(userId.value(), source.getId());
-        long databaseSizeBytes = sourceDocumentRepository.storedBytesByIdAndUserId(source.getId(), userId.value())
-                + passageRepository.totalStoredBytesByUserIdAndSourceId(userId.value(), source.getId());
+        long databaseSizeBytes = sourceDocumentRepository.storedBytesByIdAndUserId(source.getId(), userId.value());
         return new BrowserSourceDetailsDto(
                 SourceReferenceCodec.encode(new SourceId(source.getId())),
                 source.getKind(),
@@ -168,6 +172,15 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
                         video.getChannelName(),
                         video.getDurationMs(),
                         video.getCaptionKind().name()
+                ),
+                timed == null ? null : new BrowserSourceDetailsDto.TimedTranscriptDetailsDto(
+                        timed.getFormat().name(), timed.getOriginalFilename(), timed.getCueCount(),
+                        timed.getNormalizedCharacterCount(), timed.getTimelineEndMs(), timed.getParserVersion(),
+                        timed.getNormalizerVersion(), timed.getOriginUrl(),
+                        timed.getOriginProvider() == null ? null : timed.getOriginProvider().name(),
+                        timed.getOriginProviderId(), timed.getTimelineOffsetMs(),
+                        timed.getIgnoredStructuralBlockCount(), timed.getStrippedMarkupCount(),
+                        timed.getEmptyCueCount(), timed.getCoalescedCueCount()
                 ),
                 source.getCreatedAt(),
                 source.getUpdatedAt(),
@@ -220,6 +233,8 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
             source.setStatus(SourceDocumentEntity.Status.RECEIVED);
             type = BackgroundJobEntity.Type.FETCH_VIDEO_SUBTITLES;
             payload = FetchVideoSubtitlesJobPayloadDto.create(sourceId).toMap();
+        } else if (source.getKind() == SourceDocumentEntity.Kind.TIMED_TRANSCRIPT) {
+            throw new BrowserSourceConflictException("SOURCE_NOT_RETRYABLE");
         } else {
             source.setStatus(SourceDocumentEntity.Status.STORED);
             type = BackgroundJobEntity.Type.EXTRACT_DOCUMENT;
@@ -284,8 +299,7 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
     }
 
     private long databaseSizeBytes(UserId userId, SourceDocumentEntity source) {
-        return sourceDocumentRepository.storedBytesByIdAndUserId(source.getId(), userId.value())
-                + passageRepository.totalStoredBytesByUserIdAndSourceId(userId.value(), source.getId());
+        return sourceDocumentRepository.storedBytesByIdAndUserId(source.getId(), userId.value());
     }
 
     private boolean isRetryable(SourceDocumentEntity source) {

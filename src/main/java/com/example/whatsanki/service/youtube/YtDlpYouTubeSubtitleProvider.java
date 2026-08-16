@@ -27,6 +27,7 @@ import java.util.Locale;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Deprecated(forRemoval = true)
 public class YtDlpYouTubeSubtitleProvider implements YouTubeSubtitleProvider {
     private final YtDlpProcessRunner processRunner;
     private final WebVttCaptionParser captionParser;

@@ -10,11 +10,10 @@ import com.example.whatsanki.service.exception.YouTubeSubtitleException;
 import com.example.whatsanki.service.youtube.YouTubeIngestionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-@Service
 @RequiredArgsConstructor
 @Slf4j
+@Deprecated(forRemoval = true)
 public class FetchVideoSubtitlesBackgroundJobHandler implements BackgroundJobHandler {
     private final YouTubeIngestionService ingestionService;
 

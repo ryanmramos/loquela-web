@@ -5,6 +5,7 @@ export interface ContextDto {
   displayText?: string;
   number?: number;
   ordinal?: number;
+  originUrl?: string;
   pageNumber?: number;
   sourceDisplayName?: string;
   sourceKind?: string;

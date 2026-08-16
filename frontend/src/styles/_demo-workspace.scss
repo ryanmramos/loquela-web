@@ -80,6 +80,15 @@
   border-color: var(--color-primary-strong) !important;
   background: var(--color-primary-strong) !important;
 }
+
+.demo button.loquela-button.deck-actions__download:disabled {
+  border-color: var(--color-border) !important;
+  background: var(--color-surface-subtle) !important;
+  box-shadow: none;
+  color: var(--color-text-muted) !important;
+  filter: grayscale(0.3);
+  opacity: 0.62;
+}
 .demo .loquela-button.demo__sign-in:hover:not(:disabled),
 .demo .loquela-button.deck-actions__exit:hover:not(:disabled) {
   border-color: var(--color-primary) !important;
@@ -186,6 +195,117 @@
   border-style: dashed;
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
+}
+.demo .source-composer--transcript {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'icon copy'
+    'help help'
+    'origin origin'
+    'advanced advanced'
+    'footer footer'
+    'notice notice';
+  align-items: start;
+}
+.demo .source-composer--transcript > app-icon {
+  grid-area: icon;
+}
+.demo .source-composer--transcript > .source-composer__file-copy {
+  grid-area: copy;
+  min-width: 0;
+}
+.demo .source-composer--transcript > app-timed-transcript-help {
+  display: block;
+  grid-area: help;
+  min-width: 0;
+  width: 100%;
+}
+.demo .source-composer--transcript > app-timed-transcript-help .transcript-help {
+  margin-block: 0;
+}
+.demo .source-composer--transcript > label {
+  display: grid;
+  grid-area: origin;
+  min-width: 0;
+  gap: 0.15rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.demo .source-composer--transcript > details {
+  grid-area: advanced;
+  min-width: 0;
+}
+.demo .source-composer__advanced {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface-panel) 58%, transparent);
+}
+.demo .source-composer__advanced > summary {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-primary-strong);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  list-style: none;
+}
+.demo .source-composer__advanced > summary::-webkit-details-marker {
+  display: none;
+}
+.demo .source-composer__advanced > summary::after {
+  content: '⌄';
+  display: inline-grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 1.25rem;
+  place-items: center;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+.demo .source-composer__advanced[open] > summary {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-panel);
+}
+.demo .source-composer__advanced[open] > summary::after {
+  transform: rotate(180deg);
+}
+.demo .source-composer__timing {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+.demo .source-composer__timing-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.demo .source-composer__timing-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.demo .source-composer__timing-fields label {
+  display: grid;
+  gap: 0.15rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.demo .source-composer--transcript > .source-composer__footer {
+  display: flex;
+  grid-area: footer;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: var(--space-2);
+}
+.demo .source-composer--transcript > small {
+  grid-area: notice;
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
 }
 .demo .source-composer__file-copy {
   display: grid;
@@ -505,6 +625,24 @@ body .loquela-confirm-dialog .p-dialog-header-close:hover {
   }
   .demo .source-composer--file {
     grid-template-columns: auto minmax(0, 1fr);
+  }
+  .demo .source-composer--transcript {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'icon'
+      'copy'
+      'help'
+      'origin'
+      'advanced'
+      'footer'
+      'notice';
+  }
+  .demo .source-composer--transcript > .source-composer__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .demo .source-composer--transcript > .source-composer__footer button {
+    width: 100%;
   }
   .demo .source-composer--file button {
     grid-column: 1 / -1;

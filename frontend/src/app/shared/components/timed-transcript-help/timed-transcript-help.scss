@@ -1,0 +1,76 @@
+.transcript-help {
+  margin-block: var(--space-3);
+}
+summary {
+  list-style: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: 700;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+.transcript-help__body {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+}
+ol {
+  display: grid;
+  gap: var(--space-4);
+  padding-inline-start: 1.25rem;
+}
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-panel);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+button {
+  margin-top: var(--space-2);
+}
+button.loquela-button {
+  min-width: 8.5rem;
+  padding-inline: var(--space-4);
+  white-space: nowrap;
+}
+.command-generator > button.loquela-button {
+  min-width: 12rem;
+}
+.command-generator {
+  margin-top: var(--space-4);
+}
+.command-generator__fields {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) minmax(12rem, 1fr);
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  margin-top: var(--space-3);
+}
+.command-generator input,
+.command-generator select {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-panel);
+  color: inherit;
+}
+.copy-status {
+  min-height: 1.5rem;
+}
+@media (max-width: 36rem) {
+  button.loquela-button,
+  .command-generator > button.loquela-button {
+    width: 100%;
+  }
+  .command-generator__fields {
+    grid-template-columns: 1fr;
+  }
+}

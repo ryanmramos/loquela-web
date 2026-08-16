@@ -345,6 +345,16 @@ public class GlobalExceptionHandler {
             case "INVALID_YOUTUBE_URL" -> "Enter one HTTPS YouTube video URL. Playlists are not supported.";
             case "YOUTUBE_INGESTION_DISABLED" ->
                     "YouTube ingestion is temporarily unavailable. Try again later.";
+            case "TIMED_TRANSCRIPT_DISABLED" -> "Timed transcript uploads are temporarily unavailable.";
+            case "TIMED_TRANSCRIPT_FORMAT_UNSUPPORTED" -> "Choose a WebVTT (.vtt) or SubRip (.srt) file.";
+            case "TIMED_TRANSCRIPT_TOO_LARGE" -> "Choose a timed transcript within the displayed size limit.";
+            case "TIMED_TRANSCRIPT_INVALID_UTF8" -> "Save the timed transcript as UTF-8 and try again.";
+            case "TIMED_TRANSCRIPT_MALFORMED" -> "The file does not contain valid timed caption cues.";
+            case "TIMED_TRANSCRIPT_EMPTY" -> "The file contains no readable caption cues.";
+            case "TIMED_TRANSCRIPT_CUE_LIMIT", "TIMED_TRANSCRIPT_TEXT_LIMIT", "TIMED_TRANSCRIPT_TIMELINE_LIMIT" ->
+                    "Choose a timed transcript within the displayed limits.";
+            case "TIMED_TRANSCRIPT_ORIGIN_INVALID" -> "Enter a safe HTTPS origin URL or leave it blank.";
+            case "TIMED_TRANSCRIPT_PROCESSING_FAILED" -> "The timed transcript could not be processed.";
             default -> "Review the source and try again.";
         };
     }

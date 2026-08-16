@@ -87,6 +87,10 @@ public class WhatsAnkiConfigurationDto {
 
     @Valid
     @NotNull
+    private TimedTranscript timedTranscript = new TimedTranscript();
+
+    @Valid
+    @NotNull
     private Languages languages = new Languages();
 
     @Valid
@@ -96,7 +100,7 @@ public class WhatsAnkiConfigurationDto {
     @Getter
     @Setter
     public static class Twilio {
-        private boolean enabled = true;
+        private boolean enabled;
         private String accountSid = "";
         private String authToken = "";
         private String whatsappFrom = "";
@@ -434,7 +438,7 @@ public class WhatsAnkiConfigurationDto {
     @Getter
     @Setter
     public static class Youtube {
-        private boolean enabled = true;
+        private boolean enabled;
         @NotBlank private String executable = "yt-dlp";
         private String expectedVersion = "";
         private boolean automaticCaptionFallback = true;
@@ -448,6 +452,23 @@ public class WhatsAnkiConfigurationDto {
         @AssertTrue(message = "whatsanki.youtube durations must be non-negative and timeout must be positive")
         public boolean areDurationsValid() {
             return processTimeout != null && !processTimeout.isZero() && !processTimeout.isNegative()
+                    && playbackLead != null && !playbackLead.isNegative();
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class TimedTranscript {
+        private boolean enabled;
+        @Positive private long maxFileBytes = 5L * 1024 * 1024;
+        @Positive private int maxCues = 50_000;
+        @Positive private long maxNormalizedCharacters = 2_000_000L;
+        @NotNull private Duration maxTimeline = Duration.ofHours(12);
+        @NotNull private Duration playbackLead = Duration.ofSeconds(3);
+
+        @AssertTrue(message = "whatsanki.timed-transcript durations must be valid")
+        public boolean areDurationsValid() {
+            return maxTimeline != null && !maxTimeline.isZero() && !maxTimeline.isNegative()
                     && playbackLead != null && !playbackLead.isNegative();
         }
     }
@@ -471,6 +492,7 @@ public class WhatsAnkiConfigurationDto {
     public static class Demo {
         private boolean enabled;
         private boolean ingestionEnabled = true;
+        private boolean timedTranscriptEnabled;
         @NotNull private Duration inactivityTimeout = Duration.ofHours(2);
         @NotNull private Duration absoluteLifetime = Duration.ofHours(8);
         @Positive private int maxWorkspaces = 100;
@@ -479,7 +501,12 @@ public class WhatsAnkiConfigurationDto {
         @Positive private long pdfMaxBytes = 5L * 1024 * 1024;
         @Positive private int pdfMaxPages = 100;
         @Positive private int pdfMaxExtractedCharacters = 100_000;
-        @NotNull private Duration youtubeMaxDuration = Duration.ofMinutes(30);
+        @Positive private long timedTranscriptMaxFileBytes = 1L * 1024 * 1024;
+        @Positive private int timedTranscriptMaxCues = 10_000;
+        @Positive private int timedTranscriptMaxNormalizedCharacters = 250_000;
+        @NotNull private Duration timedTranscriptMaxTimeline = Duration.ofHours(2);
+        /** Legacy direct-YouTube demo limit, retained only while old in-memory workspaces drain. */
+        @Deprecated private Duration youtubeMaxDuration = Duration.ofMinutes(30);
         @Positive private int pastedTextMaxCharacters = 20_000;
         @Positive private int workspaceMaxIndexedCharacters = 250_000;
         @Positive private int maxUniqueLookups = 50;
@@ -494,10 +521,11 @@ public class WhatsAnkiConfigurationDto {
         public boolean isInternallyConsistent() {
             return positive(inactivityTimeout)
                     && positive(absoluteLifetime)
-                    && positive(youtubeMaxDuration)
+                    && positive(timedTranscriptMaxTimeline)
                     && inactivityTimeout.compareTo(absoluteLifetime) <= 0
                     && pdfMaxExtractedCharacters <= workspaceMaxIndexedCharacters
                     && pastedTextMaxCharacters <= workspaceMaxIndexedCharacters
+                    && timedTranscriptMaxNormalizedCharacters <= workspaceMaxIndexedCharacters
                     && maxCards <= 20;
         }
 

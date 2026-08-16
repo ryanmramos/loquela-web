@@ -14,6 +14,7 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
+@Deprecated(forRemoval = true)
 public class YouTubePassageBuilder {
     private final TextNormalizer textNormalizer;
     private final WhatsAnkiConfigurationDto configuration;

@@ -208,7 +208,7 @@ class BrowserSecurityIntegrationTest extends PostgreSqlIntegrationTest {
                                         && method != RequestMethod.OPTIONS))
                         .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        assertThat(externalMutations).hasSize(44);
+        assertThat(externalMutations).hasSize(46);
         externalMutations.forEach((mapping, handler) -> {
             ExternalEndpointSecurity methodClassification = handler.getMethodAnnotation(
                     ExternalEndpointSecurity.class

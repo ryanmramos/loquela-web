@@ -3,7 +3,6 @@ import { from, map, Observable, switchMap } from 'rxjs';
 
 import { Api } from '@api/generated/api';
 import { createPastedTextSource } from '@api/generated/fn/browser-source-controller/create-pasted-text-source';
-import { createYouTubeSource } from '@api/generated/fn/browser-source-controller/create-you-tube-source';
 import { deleteSource } from '@api/generated/fn/browser-source-controller/delete-source';
 import { getSource } from '@api/generated/fn/browser-source-controller/get-source';
 import {
@@ -14,6 +13,8 @@ import { renameSource } from '@api/generated/fn/browser-source-controller/rename
 import { retrySource } from '@api/generated/fn/browser-source-controller/retry-source';
 import { completeSourceUpload } from '@api/generated/fn/browser-source-upload-controller/complete-source-upload';
 import { createSourceUpload } from '@api/generated/fn/browser-source-upload-controller/create-source-upload';
+import { createTimedTranscriptUpload } from '@api/generated/fn/timed-transcript-upload-controller/create-timed-transcript-upload';
+import { completeTimedTranscriptUpload } from '@api/generated/fn/timed-transcript-upload-controller/complete-timed-transcript-upload';
 import {
   AcceptedSourceDto,
   BrowserSourceDetailsDto,
@@ -44,10 +45,6 @@ export class SourceApi {
     return this.api
       .invoke(createPastedTextSource, { body: { text } })
       .pipe(map((response) => ({ ...response })));
-  }
-
-  createYouTube(url: string): Observable<AcceptedSource> {
-    return this.api.invoke(createYouTubeSource, { body: { url } });
   }
 
   list(query: SourceListQuery): Observable<SourcePage> {
@@ -88,6 +85,36 @@ export class SourceApi {
       ),
       switchMap((intent) =>
         this.api.invoke(completeSourceUpload, {
+          uploadReference: intent.uploadReference,
+          body: { file },
+        }),
+      ),
+    );
+  }
+
+  uploadTimedTranscript(
+    file: File,
+    language: string,
+    originUrl: string,
+    timelineOffsetMs: number,
+  ): Observable<AcceptedSource> {
+    return from(file.arrayBuffer()).pipe(
+      switchMap((bytes) => from(crypto.subtle.digest('SHA-256', bytes))),
+      switchMap((bytes) =>
+        this.api.invoke(createTimedTranscriptUpload, {
+          body: {
+            fileName: file.name,
+            mediaType: file.type || 'text/plain',
+            size: file.size,
+            sha256: this.hex(new Uint8Array(bytes)),
+            language,
+            originUrl: originUrl.trim() || undefined,
+            timelineOffsetMs,
+          },
+        }),
+      ),
+      switchMap((intent) =>
+        this.api.invoke(completeTimedTranscriptUpload, {
           uploadReference: intent.uploadReference,
           body: { file },
         }),

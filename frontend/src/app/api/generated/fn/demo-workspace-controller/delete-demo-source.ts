@@ -10,7 +10,7 @@ import { RequestBuilder } from '../../request-builder';
 import { WorkspaceView } from '../../models/workspace-view';
 
 export interface DeleteDemoSource$Params {
-  'source-type': 'YOUTUBE' | 'PDF' | 'PASTED_TEXT';
+  'source-type': 'YOUTUBE' | 'TIMED_TRANSCRIPT' | 'PDF' | 'PASTED_TEXT';
 }
 
 export function deleteDemoSource(http: HttpClient, rootUrl: string, params: DeleteDemoSource$Params, context?: HttpContext): Observable<StrictHttpResponse<WorkspaceView>> {

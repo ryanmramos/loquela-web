@@ -8,6 +8,7 @@ import com.example.whatsanki.domain.UserId;
 import com.example.whatsanki.repository.BackgroundJobRepository;
 import com.example.whatsanki.repository.InboundMessageRepository;
 import com.example.whatsanki.repository.SourceDocumentRepository;
+import com.example.whatsanki.repository.TimedTranscriptMetadataRepository;
 import com.example.whatsanki.service.SourceDeletionService;
 import com.example.whatsanki.service.exception.ObjectStoreException;
 import com.example.whatsanki.service.exception.SourceDeletionException;
@@ -28,6 +29,7 @@ import java.util.Objects;
 public class SourceDeletionServiceImpl implements SourceDeletionService {
 
     private final SourceDocumentRepository sourceDocumentRepository;
+    private final TimedTranscriptMetadataRepository timedTranscriptMetadataRepository;
     private final BackgroundJobRepository backgroundJobRepository;
     private final InboundMessageRepository inboundMessageRepository;
     private final ObjectStore objectStore;
@@ -58,6 +60,11 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
         }
 
         String objectKey = source.getObjectKey();
+        if (objectKey == null && source.getKind() == SourceDocumentEntity.Kind.TIMED_TRANSCRIPT) {
+            objectKey = timedTranscriptMetadataRepository.findBySourceIdAndUserId(sourceId.value(), userId.value())
+                    .map(com.example.whatsanki.domain.TimedTranscriptMetadataEntity::getTemporaryObjectKey)
+                    .orElse(null);
+        }
         if (objectKey == null && isObjectBacked(source.getKind())) {
             objectKey = objectKeyFactory.originalSource(userId, sourceId);
         }

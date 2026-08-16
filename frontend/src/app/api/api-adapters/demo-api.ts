@@ -1,19 +1,22 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
-export type DemoSourceType = 'YOUTUBE' | 'PDF' | 'PASTED_TEXT';
+export type DemoSourceType = 'YOUTUBE' | 'TIMED_TRANSCRIPT' | 'PDF' | 'PASTED_TEXT';
 export type DemoSourceState = 'QUEUED' | 'PROCESSING' | 'READY' | 'FAILED';
 export type DemoCardKind = 'DEFINITION' | 'CONTEXT';
 
 export interface DemoCapabilities {
   enabled: boolean;
   ingestionEnabled: boolean;
+  timedTranscriptEnabled: boolean;
   supportedLanguagePairs: string[];
   limits: {
     pdfBytes: number;
     pdfPages: number;
     pdfCharacters: number;
-    youtubeMinutes: number;
+    timedTranscriptBytes: number;
+    timedTranscriptCues: number;
+    timedTranscriptCharacters: number;
     pastedTextCharacters: number;
     totalIndexedCharacters: number;
     uniqueLookups: number;
@@ -107,8 +110,12 @@ export class DemoApi {
     body.append('file', file);
     return this.http.post<DemoWorkspace>(`${this.root}/sources/pdf`, body);
   }
-  youtube(url: string) {
-    return this.http.post<DemoWorkspace>(`${this.root}/sources/youtube`, { url });
+  timedTranscript(file: File, originUrl: string, timelineOffsetMs: number) {
+    const body = new FormData();
+    body.append('file', file);
+    body.append('originUrl', originUrl);
+    body.append('timelineOffsetMs', String(timelineOffsetMs));
+    return this.http.post<DemoWorkspace>(`${this.root}/sources/timed-transcript`, body);
   }
   deleteSource(type: DemoSourceType) {
     return this.http.delete<DemoWorkspace>(`${this.root}/sources/${type}`);

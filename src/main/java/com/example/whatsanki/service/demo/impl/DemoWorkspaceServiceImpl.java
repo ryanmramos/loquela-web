@@ -11,20 +11,18 @@ import com.example.whatsanki.dto.LanguagePairDto;
 import com.example.whatsanki.dto.NumberedContextExampleDto;
 import com.example.whatsanki.dto.PassageDraftDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
-import com.example.whatsanki.dto.YouTubeSubtitleResultDto;
 import com.example.whatsanki.dto.demo.DemoDtos;
 import com.example.whatsanki.service.demo.DemoBotVerificationService;
 import com.example.whatsanki.service.demo.DemoWorkspaceService;
 import com.example.whatsanki.service.dictionary.DictionaryProvider;
 import com.example.whatsanki.service.dictionary.DictionaryProviderSelector;
 import com.example.whatsanki.service.exception.DemoException;
+import com.example.whatsanki.service.exception.TimedTranscriptException;
 import com.example.whatsanki.service.export.DeckExporter;
 import com.example.whatsanki.service.util.AnkiCardFieldMapper;
 import com.example.whatsanki.service.util.PassageSegmenter;
 import com.example.whatsanki.service.util.TextNormalizer;
-import com.example.whatsanki.service.util.YouTubeUrlPolicy;
-import com.example.whatsanki.service.youtube.YouTubePassageBuilder;
-import com.example.whatsanki.service.youtube.YouTubeSubtitleProvider;
+import com.example.whatsanki.service.timedtranscript.*;
 import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -40,6 +38,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -82,10 +84,10 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
     private final DictionaryProvider dictionaryProvider;
     private final AnkiCardFieldMapper cardFieldMapper;
     private final DeckExporter deckExporter;
-    private final YouTubeUrlPolicy youTubeUrlPolicy;
-    private final DemoYouTubeMetadataProbe youTubeMetadataProbe;
-    private final YouTubeSubtitleProvider youTubeSubtitleProvider;
-    private final YouTubePassageBuilder youTubePassageBuilder;
+    private final List<TimedTranscriptParser> timedTranscriptParsers;
+    private final RollingCaptionNormalizer rollingCaptionNormalizer;
+    private final TimedTranscriptPassageBuilder timedTranscriptPassageBuilder;
+    private final OriginUrlPolicy originUrlPolicy;
     private final ThreadPoolExecutor ingestionExecutor;
     private final Semaphore exportSemaphore = new Semaphore(1);
 
@@ -99,10 +101,10 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
             DictionaryProviderSelector dictionaryProviderSelector,
             AnkiCardFieldMapper cardFieldMapper,
             DeckExporter deckExporter,
-            YouTubeUrlPolicy youTubeUrlPolicy,
-            DemoYouTubeMetadataProbe youTubeMetadataProbe,
-            YouTubeSubtitleProvider youTubeSubtitleProvider,
-            YouTubePassageBuilder youTubePassageBuilder
+            List<TimedTranscriptParser> timedTranscriptParsers,
+            RollingCaptionNormalizer rollingCaptionNormalizer,
+            TimedTranscriptPassageBuilder timedTranscriptPassageBuilder,
+            OriginUrlPolicy originUrlPolicy
     ) {
         this.configuration = configuration;
         this.store = store;
@@ -113,10 +115,10 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
         this.dictionaryProvider = dictionaryProviderSelector.activeProvider();
         this.cardFieldMapper = cardFieldMapper;
         this.deckExporter = deckExporter;
-        this.youTubeUrlPolicy = youTubeUrlPolicy;
-        this.youTubeMetadataProbe = youTubeMetadataProbe;
-        this.youTubeSubtitleProvider = youTubeSubtitleProvider;
-        this.youTubePassageBuilder = youTubePassageBuilder;
+        this.timedTranscriptParsers = List.copyOf(timedTranscriptParsers);
+        this.rollingCaptionNormalizer = rollingCaptionNormalizer;
+        this.timedTranscriptPassageBuilder = timedTranscriptPassageBuilder;
+        this.originUrlPolicy = originUrlPolicy;
         AtomicInteger sequence = new AtomicInteger();
         this.ingestionExecutor = new ThreadPoolExecutor(
                 configuration.getDemo().getIngestionWorkers(),
@@ -137,9 +139,11 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
         WhatsAnkiConfigurationDto.Demo demo = configuration.getDemo();
         return new DemoDtos.Capabilities(
                 demo.isEnabled(), demo.isEnabled() && demo.isIngestionEnabled(),
+                demo.isEnabled() && demo.isTimedTranscriptEnabled(),
                 List.copyOf(configuration.getLanguages().getSupportedPairs()),
                 new DemoDtos.Limits(demo.getPdfMaxBytes(), demo.getPdfMaxPages(),
-                        demo.getPdfMaxExtractedCharacters(), (int) demo.getYoutubeMaxDuration().toMinutes(),
+                        demo.getPdfMaxExtractedCharacters(), demo.getTimedTranscriptMaxFileBytes(),
+                        demo.getTimedTranscriptMaxCues(), demo.getTimedTranscriptMaxNormalizedCharacters(),
                         demo.getPastedTextMaxCharacters(), demo.getWorkspaceMaxIndexedCharacters(),
                         demo.getMaxUniqueLookups(), demo.getMaxCards())
         );
@@ -238,15 +242,14 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
     }
 
     @Override
-    public DemoDtos.WorkspaceView ingestYouTube(HttpSession session, DemoDtos.YouTubeRequest request,
-                                                HttpServletRequest servletRequest) {
+    public DemoDtos.WorkspaceView ingestTimedTranscript(HttpSession session, MultipartFile file, String originUrl,
+                                                        long timelineOffsetMs, HttpServletRequest servletRequest) {
+        requireTimedTranscriptEnabled();
         requireIngestion(servletRequest);
         DemoWorkspace workspace = requireWorkspace(session);
-        String videoId;
-        try { videoId = youTubeUrlPolicy.parse(request.url()).videoId(); }
-        catch (IllegalArgumentException exception) { throw problem(HttpStatus.BAD_REQUEST, "INVALID_YOUTUBE_URL"); }
-        queue(workspace, DemoDtos.SourceType.YOUTUBE, "YouTube video", videoId,
-                () -> youTubePassages(videoId, workspace.sourceLanguage));
+        TimedInput input = timedInput(file, originUrl, timelineOffsetMs);
+        queue(workspace, DemoDtos.SourceType.TIMED_TRANSCRIPT, file.getOriginalFilename(), input,
+                () -> timedTranscriptPassages(input));
         return view(workspace);
     }
 
@@ -297,8 +300,11 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
                 yield view(workspace);
             }
             case YOUTUBE -> {
-                queue(workspace, type, "YouTube video", retry,
-                        () -> youTubePassages((String) retry, workspace.sourceLanguage));
+                throw problem(HttpStatus.CONFLICT, "DEMO_SOURCE_NOT_RETRYABLE");
+            }
+            case TIMED_TRANSCRIPT -> {
+                queue(workspace, type, "Timed transcript", retry,
+                        () -> timedTranscriptPassages((TimedInput) retry));
                 yield view(workspace);
             }
         };
@@ -609,16 +615,29 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
         }
     }
 
-    private PassageResult youTubePassages(String videoId, String language) {
-        youTubeMetadataProbe.requireAllowedDuration(videoId);
-        YouTubeSubtitleResultDto result = youTubeSubtitleProvider.fetch(
-                videoId, language, configuration.getYoutube().isAutomaticCaptionFallback());
-        if (result.durationMs() != null
-                && result.durationMs() > configuration.getDemo().getYoutubeMaxDuration().toMillis()) {
-            throw problem(HttpStatus.PAYLOAD_TOO_LARGE, "YOUTUBE_TOO_LONG");
+    private PassageResult timedTranscriptPassages(TimedInput input) {
+        TimedTranscriptParser parser = timedTranscriptParsers.stream()
+                .filter(candidate -> candidate.format() == input.format()).findFirst()
+                .orElseThrow(() -> new IllegalStateException("Timed transcript parser is unavailable"));
+        String text;
+        try {
+            text = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(input.bytes())).toString();
+        } catch (CharacterCodingException exception) {
+            throw problem(HttpStatus.UNPROCESSABLE_ENTITY, "TIMED_TRANSCRIPT_INVALID_UTF8");
         }
-        List<PassageDraftDto> drafts = youTubePassageBuilder.build(videoId, result.channelName(), result.cues());
-        return passageResult(result.title(), drafts, Map.of(), null);
+        try {
+            TimedTranscriptParseResult parsed = parser.parse(text,
+                    configuration.getDemo().getTimedTranscriptMaxCues(),
+                    configuration.getDemo().getTimedTranscriptMaxNormalizedCharacters(),
+                    configuration.getDemo().getTimedTranscriptMaxTimeline().toMillis());
+            RollingCaptionNormalizer.Result normalized = rollingCaptionNormalizer.normalize(parsed.cues());
+            List<PassageDraftDto> drafts = timedTranscriptPassageBuilder.build(
+                    normalized.cues(), input.origin(), input.timelineOffsetMs());
+            return passageResult("Timed transcript", drafts, Map.of(), null);
+        } catch (TimedTranscriptException exception) {
+            throw problem(HttpStatus.UNPROCESSABLE_ENTITY, exception.errorCode());
+        }
     }
 
     private PassageResult passageResult(String label, List<PassageDraftDto> drafts,
@@ -762,6 +781,13 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
                 Duration.ofHours(1));
     }
 
+    private void requireTimedTranscriptEnabled() {
+        requireEnabled();
+        if (!configuration.getDemo().isTimedTranscriptEnabled()) {
+            throw problem(HttpStatus.SERVICE_UNAVAILABLE, "TIMED_TRANSCRIPT_DISABLED");
+        }
+    }
+
     private LanguagePairDto pair(String source, String target) {
         try { return new LanguagePairDto(source, target); }
         catch (IllegalArgumentException exception) { throw problem(HttpStatus.BAD_REQUEST, "UNSUPPORTED_LANGUAGE_PAIR"); }
@@ -798,7 +824,8 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
     }
 
     private String youtubeVideoId(DemoWorkspace.Source source) {
-        if (source.type() != DemoDtos.SourceType.YOUTUBE) return null;
+        if (source.type() != DemoDtos.SourceType.YOUTUBE
+                && source.type() != DemoDtos.SourceType.TIMED_TRANSCRIPT) return null;
         return source.passages().stream()
                 .map(DemoWorkspace.Passage::location)
                 .map(location -> location.get("videoId"))
@@ -843,7 +870,10 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
     private void failCurrent(DemoWorkspace workspace, DemoDtos.SourceType type, long revision, String code) {
         DemoWorkspace.Source current = workspace.sources.get(type);
         if (current != null && current.revision() == revision) {
-            boolean retryable = retryableIngestion(code);
+            // Demo transcripts live only in memory, so retaining a retry input
+            // would retain the user's raw caption bytes. A retry requires a new
+            // upload, regardless of the failure code (including DEMO_BUSY).
+            boolean retryable = type != DemoDtos.SourceType.TIMED_TRANSCRIPT && retryableIngestion(code);
             if (!retryable && current.retryInput() instanceof Path path) delete(path);
             workspace.sources.put(type, new DemoWorkspace.Source(current.reference(), revision, type,
                     current.label(), DemoDtos.SourceState.FAILED, code, 0, List.of(),
@@ -903,6 +933,7 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
         return switch (type) {
             case PDF -> "INVALID_PDF";
             case YOUTUBE -> "YOUTUBE_VIDEO_UNAVAILABLE";
+            case TIMED_TRANSCRIPT -> "TIMED_TRANSCRIPT_PROCESSING_FAILED";
             case PASTED_TEXT -> "DEMO_INGESTION_FAILED";
         };
     }
@@ -915,6 +946,7 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
     private SourceDocumentEntity.Kind sourceKind(DemoDtos.SourceType type) {
         return switch (type) {
             case YOUTUBE -> SourceDocumentEntity.Kind.YOUTUBE_VIDEO;
+            case TIMED_TRANSCRIPT -> SourceDocumentEntity.Kind.TIMED_TRANSCRIPT;
             case PDF -> SourceDocumentEntity.Kind.PDF;
             case PASTED_TEXT -> SourceDocumentEntity.Kind.PASTED_TEXT;
         };
@@ -952,6 +984,31 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
         } catch (IOException ignored) { }
     }
 
+    private TimedInput timedInput(MultipartFile file, String rawOriginUrl, long timelineOffsetMs) {
+        if (file == null || file.isEmpty()) throw problem(HttpStatus.BAD_REQUEST, "TIMED_TRANSCRIPT_EMPTY");
+        if (file.getSize() > configuration.getDemo().getTimedTranscriptMaxFileBytes()) {
+            throw problem(HttpStatus.PAYLOAD_TOO_LARGE, "TIMED_TRANSCRIPT_TOO_LARGE");
+        }
+        if (timelineOffsetMs < 0) throw problem(HttpStatus.BAD_REQUEST, "TIMED_TRANSCRIPT_MALFORMED");
+        String filename = Objects.requireNonNullElse(file.getOriginalFilename(), "").toLowerCase(Locale.ROOT);
+        TimedTranscriptFormat format;
+        if (filename.endsWith(".vtt")) format = TimedTranscriptFormat.VTT;
+        else if (filename.endsWith(".srt")) format = TimedTranscriptFormat.SRT;
+        else throw problem(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "TIMED_TRANSCRIPT_FORMAT_UNSUPPORTED");
+        OriginUrlPolicy.Origin origin;
+        try { origin = originUrlPolicy.validate(rawOriginUrl); }
+        catch (TimedTranscriptException exception) { throw problem(HttpStatus.BAD_REQUEST, exception.errorCode()); }
+        try {
+            byte[] bytes = file.getBytes();
+            if (bytes.length > configuration.getDemo().getTimedTranscriptMaxFileBytes()) {
+                throw problem(HttpStatus.PAYLOAD_TOO_LARGE, "TIMED_TRANSCRIPT_TOO_LARGE");
+            }
+            return new TimedInput(format, bytes, origin, timelineOffsetMs);
+        } catch (IOException exception) {
+            throw new DemoException(HttpStatus.UNPROCESSABLE_ENTITY, "TIMED_TRANSCRIPT_PROCESSING_FAILED", null, exception);
+        }
+    }
+
     @FunctionalInterface
     private interface PassageSupplier { PassageResult get(); }
     private record PassageResult(String label, List<DemoWorkspace.Passage> passages,
@@ -959,5 +1016,10 @@ public class DemoWorkspaceServiceImpl implements DemoWorkspaceService {
         void cleanup() {
             if (cleanupPath != null) try { Files.deleteIfExists(cleanupPath); } catch (IOException ignored) { }
         }
+    }
+    private record TimedInput(TimedTranscriptFormat format, byte[] bytes,
+                              OriginUrlPolicy.Origin origin, long timelineOffsetMs) {
+        TimedInput { bytes = bytes.clone(); }
+        @Override public byte[] bytes() { return bytes.clone(); }
     }
 }

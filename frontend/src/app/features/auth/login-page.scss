@@ -101,7 +101,6 @@ app-alert {
 }
 
 .legal,
-.phone-note,
 .local-login p {
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
@@ -173,10 +172,6 @@ app-alert {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-}
-
-.phone-note {
-  margin-top: var(--space-10);
 }
 
 .login-art {

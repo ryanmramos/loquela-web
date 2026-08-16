@@ -9,7 +9,7 @@ export interface ActivityItemDto {
   operation: 'INGEST_SOURCE' | 'DELETE_SOURCE' | 'LOOKUP' | 'EXPORT_DECK';
   reference: string;
   resourceLabel?: string;
-  status: 'RECEIVED' | 'FETCHING' | 'STORED' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED' | 'PENDING' | 'EXPIRED' | 'QUEUED' | 'RUNNING';
+  status: 'RECEIVED' | 'FETCHING' | 'STORED' | 'PARSING' | 'NORMALIZING' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED' | 'PENDING' | 'EXPIRED' | 'QUEUED' | 'RUNNING';
   target?: string;
   updatedAt: string;
 }

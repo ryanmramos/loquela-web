@@ -12,15 +12,16 @@ import java.util.Map;
 public final class DemoDtos {
     private DemoDtos() { }
 
-    public enum SourceType { YOUTUBE, PDF, PASTED_TEXT }
+    public enum SourceType { YOUTUBE, TIMED_TRANSCRIPT, PDF, PASTED_TEXT }
     public enum SourceState { QUEUED, PROCESSING, READY, FAILED }
     public enum CardKind { DEFINITION, CONTEXT }
 
-    public record Limits(long pdfBytes, int pdfPages, int pdfCharacters, int youtubeMinutes,
+    public record Limits(long pdfBytes, int pdfPages, int pdfCharacters,
+                         long timedTranscriptBytes, int timedTranscriptCues, int timedTranscriptCharacters,
                          int pastedTextCharacters, int totalIndexedCharacters,
                          int uniqueLookups, int cards) { }
 
-    public record Capabilities(boolean enabled, boolean ingestionEnabled,
+    public record Capabilities(boolean enabled, boolean ingestionEnabled, boolean timedTranscriptEnabled,
                                List<String> supportedLanguagePairs, Limits limits) { }
 
     public record LanguagesRequest(@NotBlank @Size(max = 16) String sourceLanguage,
@@ -28,7 +29,6 @@ public final class DemoDtos {
                                    boolean confirmSourceChange) { }
 
     public record PastedTextRequest(@NotBlank @Size(max = 20_000) String text) { }
-    public record YouTubeRequest(@NotBlank @Size(max = 2_048) String url) { }
     public record LookupRequest(@NotBlank @Size(max = 256) String term) { }
     public record SaveCardRequest(@NotBlank @Size(max = 64) String lookupReference,
                                   @NotNull CardKind kind,

@@ -37,6 +37,7 @@ import { AppIcon, AppIconName } from '@app/shared/components/icon/app-icon';
 import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/status-badge';
 import { Skeleton } from '@app/shared/components/skeleton/skeleton';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { TimedTranscriptHelp } from '@app/shared/components/timed-transcript-help/timed-transcript-help';
 
 type DemoMessageKey =
   | 'demo.errorUnavailable'
@@ -70,6 +71,7 @@ const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/u;
     StatusBadge,
     Skeleton,
     UiState,
+    TimedTranscriptHelp,
   ],
   templateUrl: './demo-page.html',
   styleUrl: './demo-page.scss',
@@ -93,13 +95,16 @@ export class DemoPage implements OnInit, OnDestroy {
   readonly notice = signal<'demo.alreadyAdded' | 'demo.cardAdded' | null>(null);
   readonly undo = signal<{ reference: string; token: string } | null>(null);
   readonly downloadStatus = signal<'demo.downloadStarting' | null>(null);
-  readonly sourceTypes: readonly DemoSourceType[] = ['PASTED_TEXT', 'PDF', 'YOUTUBE'];
+  readonly sourceTypes: readonly DemoSourceType[] = ['PASTED_TEXT', 'PDF', 'TIMED_TRANSCRIPT'];
 
   sourceLanguage = 'es';
   targetLanguage = 'en';
   selectedSourceType: DemoSourceType = 'PASTED_TEXT';
   pastedText = '';
-  youtubeUrl = '';
+  transcriptOriginUrl = '';
+  transcriptOffsetHours = 0;
+  transcriptOffsetMinutes = 0;
+  transcriptOffsetSeconds = 0;
   lookupTerm = '';
 
   ngOnInit(): void {
@@ -205,11 +210,27 @@ export class DemoPage implements OnInit, OnDestroy {
     });
   }
 
-  addYouTube(): void {
-    this.run(this.api.youtube(this.youtubeUrl), (workspace) => {
-      this.youtubeUrl = '';
-      this.acceptWorkspace(workspace);
-    });
+  addTimedTranscript(input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    if (!file) return;
+    this.run(
+      this.api.timedTranscript(file, this.transcriptOriginUrl, this.transcriptOffsetMilliseconds()),
+      (workspace) => {
+        input.value = '';
+        this.acceptWorkspace(workspace);
+      },
+    );
+  }
+
+  private transcriptOffsetMilliseconds(): number {
+    const hours = this.nonNegativeNumber(this.transcriptOffsetHours);
+    const minutes = Math.min(59, this.nonNegativeNumber(this.transcriptOffsetMinutes));
+    const seconds = Math.min(59, this.nonNegativeNumber(this.transcriptOffsetSeconds));
+    return Math.round((hours * 3600 + minutes * 60 + seconds) * 1000);
+  }
+
+  private nonNegativeNumber(value: number): number {
+    return Number.isFinite(value) ? Math.max(0, value) : 0;
   }
 
   removeSource(type: DemoSourceType): void {
@@ -288,7 +309,9 @@ export class DemoPage implements OnInit, OnDestroy {
   }
 
   sourceIcon(type: DemoSourceType): AppIconName {
-    return ({ PASTED_TEXT: 'type', PDF: 'document', YOUTUBE: 'video' } as const)[type];
+    return (
+      { PASTED_TEXT: 'type', PDF: 'document', YOUTUBE: 'video', TIMED_TRANSCRIPT: 'video' } as const
+    )[type];
   }
 
   sourceStateTone(state: DemoSourceState): StatusTone {
@@ -304,6 +327,7 @@ export class DemoPage implements OnInit, OnDestroy {
           PASTED_TEXT: 'demo.source.PASTED_TEXT',
           PDF: 'demo.source.PDF',
           YOUTUBE: 'demo.source.YOUTUBE',
+          TIMED_TRANSCRIPT: 'demo.source.TIMED_TRANSCRIPT',
         } as const
       )[type],
     );
@@ -311,10 +335,11 @@ export class DemoPage implements OnInit, OnDestroy {
 
   sourceDisplayName(source: DemoSource): string {
     if (
-      source.type === 'YOUTUBE' &&
+      (source.type === 'YOUTUBE' || source.type === 'TIMED_TRANSCRIPT') &&
       source.state === 'READY' &&
       source.label.trim() !== '' &&
-      source.label !== 'YouTube video'
+      source.label !== 'YouTube video' &&
+      source.label !== 'Timed transcript'
     ) {
       return source.label;
     }
@@ -325,13 +350,21 @@ export class DemoPage implements OnInit, OnDestroy {
     return this.translations.translate(this.messageForCode(code));
   }
 
+  formatMegabytes(bytes: number): string {
+    const megabytes = bytes / 1024 ** 2;
+    return Number.isInteger(megabytes) ? String(megabytes) : megabytes.toFixed(1);
+  }
+
   youtubeThumbnail(source: DemoSource): string | null {
-    const videoId = source.type === 'YOUTUBE' ? this.youtubeVideoId(source.youtubeVideoId) : null;
+    const videoId =
+      source.type === 'YOUTUBE' || source.type === 'TIMED_TRANSCRIPT'
+        ? this.youtubeVideoId(source.youtubeVideoId)
+        : null;
     return videoId ? `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg` : null;
   }
 
   youtubeContextUrl(context: DemoContext): string | null {
-    if (context.sourceType !== 'YOUTUBE') return null;
+    if (context.sourceType !== 'YOUTUBE' && context.sourceType !== 'TIMED_TRANSCRIPT') return null;
     const videoId = this.youtubeVideoId(context.location['videoId']);
     const startMs = this.contextStartMs(context);
     return videoId && startMs !== null
@@ -368,7 +401,10 @@ export class DemoPage implements OnInit, OnDestroy {
   }
 
   private contextStartMs(context: DemoContext): number | null {
-    const value = context.location['playbackStartMs'] ?? context.location['startMs'];
+    const hasYouTubeVideo = this.youtubeVideoId(context.location['videoId']) !== null;
+    const value = hasYouTubeVideo
+      ? (context.location['playbackStartMs'] ?? context.location['startMs'])
+      : (context.location['originTimestampMs'] ?? context.location['startMs']);
     return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
   }
 
@@ -504,6 +540,10 @@ export class DemoPage implements OnInit, OnDestroy {
       PDF_TOO_MANY_PAGES: 'demo.errorLimit',
       PDF_TEXT_TOO_LARGE: 'demo.errorLimit',
       YOUTUBE_TOO_LONG: 'demo.errorLimit',
+      TIMED_TRANSCRIPT_TOO_LARGE: 'demo.errorLimit',
+      TIMED_TRANSCRIPT_CUE_LIMIT: 'demo.errorLimit',
+      TIMED_TRANSCRIPT_TEXT_LIMIT: 'demo.errorLimit',
+      TIMED_TRANSCRIPT_TIMELINE_LIMIT: 'demo.errorLimit',
       INVALID_PDF: 'demo.errorInvalidPdf',
       ENCRYPTED_DOCUMENT: 'demo.errorInvalidPdf',
       MEDIA_TYPE_MISMATCH: 'demo.errorInvalidPdf',
@@ -511,6 +551,12 @@ export class DemoPage implements OnInit, OnDestroy {
       INVALID_YOUTUBE_URL: 'demo.errorInvalidVideo',
       YOUTUBE_VIDEO_UNAVAILABLE: 'demo.errorInvalidVideo',
       NO_VIDEO_CAPTIONS: 'demo.errorNoCaptions',
+      TIMED_TRANSCRIPT_FORMAT_UNSUPPORTED: 'demo.errorSource',
+      TIMED_TRANSCRIPT_INVALID_UTF8: 'demo.errorSource',
+      TIMED_TRANSCRIPT_MALFORMED: 'demo.errorSource',
+      TIMED_TRANSCRIPT_EMPTY: 'demo.errorSource',
+      TIMED_TRANSCRIPT_ORIGIN_INVALID: 'demo.errorSource',
+      TIMED_TRANSCRIPT_PROCESSING_FAILED: 'demo.errorSource',
       INVALID_LOOKUP_TERM: 'demo.errorLookup',
       DEFINITION_NOT_FOUND: 'demo.errorLookup',
       DEMO_INGESTION_FAILED: 'demo.errorSource',

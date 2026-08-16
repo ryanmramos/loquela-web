@@ -8,16 +8,19 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 import { AcceptedSourceDto } from '../../models/accepted-source-dto';
-import { CreateYouTubeSourceRequestDto } from '../../models/create-you-tube-source-request-dto';
 
-export interface CreateYouTubeSource$Params {
-      body: CreateYouTubeSourceRequestDto
+export interface CompleteTimedTranscriptUpload$Params {
+  uploadReference: string;
+      body?: {
+'file': Blob;
+}
 }
 
-export function createYouTubeSource(http: HttpClient, rootUrl: string, params: CreateYouTubeSource$Params, context?: HttpContext): Observable<StrictHttpResponse<AcceptedSourceDto>> {
-  const rb = new RequestBuilder(rootUrl, createYouTubeSource.PATH, 'post');
+export function completeTimedTranscriptUpload(http: HttpClient, rootUrl: string, params: CompleteTimedTranscriptUpload$Params, context?: HttpContext): Observable<StrictHttpResponse<AcceptedSourceDto>> {
+  const rb = new RequestBuilder(rootUrl, completeTimedTranscriptUpload.PATH, 'post');
   if (params) {
-    rb.body(params.body, 'application/json');
+    rb.path('uploadReference', params.uploadReference, {});
+    rb.body(params.body, 'multipart/form-data');
   }
 
   return http.request(
@@ -30,4 +33,4 @@ export function createYouTubeSource(http: HttpClient, rootUrl: string, params: C
   );
 }
 
-createYouTubeSource.PATH = '/api/v1/sources/youtube';
+completeTimedTranscriptUpload.PATH = '/api/v1/timed-transcript-uploads/{uploadReference}/complete';

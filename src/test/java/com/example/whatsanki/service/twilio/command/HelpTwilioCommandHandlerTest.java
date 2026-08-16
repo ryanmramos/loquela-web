@@ -29,7 +29,7 @@ class HelpTwilioCommandHandlerTest {
                 .contains("*ADD* <text>")
                 .contains("text-layer PDF")
                 .contains("*LOOKUP* <word or phrase>")
-                .contains("*YOUTUBE* <video URL>")
+                .doesNotContain("*YOUTUBE* <video URL>")
                 .contains("*EXPORT* [deck name]")
                 .contains("*STATUS*");
     }

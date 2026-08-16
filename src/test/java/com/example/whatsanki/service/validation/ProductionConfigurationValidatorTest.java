@@ -34,6 +34,7 @@ class ProductionConfigurationValidatorTest {
     @Test
     void rejectsMissingSecretsAndNonHttpsEndpoints() {
         WhatsAnkiConfigurationDto configuration = new WhatsAnkiConfigurationDto();
+        configuration.getTwilio().setEnabled(true);
         ProductionConfigurationValidator validator = new ProductionConfigurationValidator(configuration);
 
         assertThatThrownBy(validator::validate)

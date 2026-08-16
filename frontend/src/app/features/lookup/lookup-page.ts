@@ -251,6 +251,7 @@ export class LookupPage {
   sourceKindLabel(kind: string | undefined): string {
     const keys = {
       YOUTUBE_VIDEO: 'lookup.videoType',
+      TIMED_TRANSCRIPT: 'lookup.timedTranscriptType',
       PASTED_TEXT: 'lookup.pastedType',
       TXT: 'lookup.txtSourceType',
       PDF: 'lookup.pdfSourceType',
@@ -261,7 +262,7 @@ export class LookupPage {
       : this.translations.translate('lookup.genericSource');
   }
   sourceIcon(kind: string | undefined): string {
-    if (kind === 'YOUTUBE_VIDEO') return '▶';
+    if (kind === 'YOUTUBE_VIDEO' || kind === 'TIMED_TRANSCRIPT') return '▶';
     if (kind === 'PDF') return 'PDF';
     if (kind === 'EPUB') return 'EPUB';
     return 'T';
@@ -281,6 +282,8 @@ export class LookupPage {
   sourceLocation(context: NonNullable<BrowserLookupDto['contexts']>[number]): string {
     if (context.youtubeUrl && context.startMs !== undefined)
       return `${this.translations.translate('lookup.video')} · ${this.formatDuration(context.startMs)}`;
+    if (context.startMs !== undefined)
+      return `${this.sourceKindLabel(context.sourceKind)} · ${this.formatDuration(context.startMs)}`;
     if (context.pageNumber !== undefined)
       return `${this.sourceKindLabel(context.sourceKind)} · ${this.translations.translate('lookup.page')} ${context.pageNumber}`;
     return `${this.sourceKindLabel(context.sourceKind)} · ${this.translations.translate('lookup.context')} ${context.ordinal ?? ''}`;

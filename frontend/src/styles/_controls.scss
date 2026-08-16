@@ -98,3 +98,50 @@
   cursor: not-allowed;
   opacity: 0.52;
 }
+
+// PrimeNG's host directive adds its own button rules. Keep the product control
+// contract stronger than those defaults so appButton never collapses to plain text.
+button.loquela-button,
+a.loquela-button {
+  appearance: none;
+  display: inline-flex;
+  min-height: var(--control-min-size);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 750;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button.loquela-button.loquela-button--secondary,
+a.loquela-button.loquela-button--secondary {
+  border-color: var(--color-border);
+  background: var(--color-surface-panel);
+  color: var(--color-text);
+}
+
+button.loquela-button.loquela-button--ghost,
+a.loquela-button.loquela-button--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-primary);
+}
+
+button.loquela-button.loquela-button--danger,
+a.loquela-button.loquela-button--danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+}
+
+button.loquela-button:disabled,
+a.loquela-button[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.52;
+}

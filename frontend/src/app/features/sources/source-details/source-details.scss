@@ -100,6 +100,39 @@ dd {
   text-align: right;
 }
 
+.youtube-origin-preview {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.youtube-origin-preview img {
+  display: block;
+  width: 9rem;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-subtle);
+  object-fit: cover;
+}
+
+.youtube-origin-preview span {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.youtube-origin-preview small {
+  color: var(--color-text-muted);
+}
+
+.youtube-origin-preview:hover strong {
+  color: var(--color-primary-strong);
+  text-decoration: underline;
+}
+
 .manage-row {
   align-items: end;
   gap: var(--space-3);
@@ -139,5 +172,13 @@ dd {
   .danger-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .youtube-origin-preview {
+    grid-template-columns: 7rem minmax(0, 1fr);
+  }
+
+  .youtube-origin-preview img {
+    width: 7rem;
   }
 }

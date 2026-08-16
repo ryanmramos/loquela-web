@@ -10,6 +10,8 @@ import com.example.whatsanki.dto.SourceMutationDto;
 public interface BrowserSourceService {
     PastedTextSourceDto createPastedText(String googleSubject, String text);
 
+    /** @deprecated Direct YouTube acquisition is retired; retained for legacy internal compatibility only. */
+    @Deprecated(forRemoval = true)
     AcceptedSourceDto createYouTube(String googleSubject, String url);
 
     SourceListDto list(
@@ -35,7 +37,9 @@ public interface BrowserSourceService {
 
     enum SortDirection { ASC, DESC }
 
-    enum SourceKind { PASTED_TEXT, TXT, PDF, EPUB, YOUTUBE_VIDEO }
+    enum SourceKind { PASTED_TEXT, TXT, PDF, EPUB, YOUTUBE_VIDEO, TIMED_TRANSCRIPT }
 
-    enum SourceStatus { RECEIVED, FETCHING, STORED, EXTRACTING, INDEXING, READY, FAILED, DELETING, DELETED }
+    enum SourceStatus {
+        RECEIVED, FETCHING, STORED, PARSING, NORMALIZING, EXTRACTING, INDEXING, READY, FAILED, DELETING, DELETED
+    }
 }

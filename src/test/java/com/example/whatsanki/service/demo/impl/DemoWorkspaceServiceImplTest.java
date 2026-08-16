@@ -3,18 +3,16 @@ package com.example.whatsanki.service.demo.impl;
 import com.example.whatsanki.dto.ExportedDeckDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.dto.TimedCaptionCueDto;
-import com.example.whatsanki.dto.YouTubeSubtitleResultDto;
 import com.example.whatsanki.dto.demo.DemoDtos;
-import com.example.whatsanki.domain.VideoSourceEntity;
 import com.example.whatsanki.service.dictionary.DictionaryProviderSelector;
 import com.example.whatsanki.service.dictionary.FakeDictionaryProvider;
 import com.example.whatsanki.service.export.DeckExporter;
+import com.example.whatsanki.service.exception.DemoException;
 import com.example.whatsanki.service.util.AnkiCardFieldMapper;
 import com.example.whatsanki.service.util.PassageSegmenterImpl;
 import com.example.whatsanki.service.util.TextNormalizerImpl;
 import com.example.whatsanki.service.util.YouTubeUrlPolicy;
-import com.example.whatsanki.service.youtube.YouTubePassageBuilder;
-import com.example.whatsanki.service.youtube.YouTubeSubtitleProvider;
+import com.example.whatsanki.service.timedtranscript.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,13 +45,12 @@ class DemoWorkspaceServiceImplTest {
     private InMemoryDemoWorkspaceStore store;
     private DemoWorkspaceServiceImpl service;
     private AtomicReference<Map<String, Object>> exportedSnapshot;
-    private DemoYouTubeMetadataProbe metadataProbe;
-    private YouTubeSubtitleProvider youtubeProvider;
 
     @BeforeEach
     void setUp() throws Exception {
         configuration = new WhatsAnkiConfigurationDto();
         configuration.getDemo().setEnabled(true);
+        configuration.getDemo().setTimedTranscriptEnabled(true);
         configuration.getDemo().setInactivityTimeout(Duration.ofHours(2));
         configuration.getDemo().setAbsoluteLifetime(Duration.ofHours(8));
         store = new InMemoryDemoWorkspaceStore(configuration);
@@ -68,14 +65,16 @@ class DemoWorkspaceServiceImplTest {
             exportedSnapshot.set(snapshot);
             return new ExportedDeckDto(artifact, 9, digest);
         };
-        metadataProbe = mock(DemoYouTubeMetadataProbe.class);
-        youtubeProvider = mock(YouTubeSubtitleProvider.class);
+        CaptionTextCleaner cleaner = new CaptionTextCleaner();
+        OriginTimestampResolver timestampResolver = new OriginTimestampResolver(configuration);
         service = new DemoWorkspaceServiceImpl(
                 configuration, store, new DemoRateLimiter(), new NoOpDemoBotVerificationService(),
                 normalizer, new PassageSegmenterImpl(configuration), selector,
-                new AnkiCardFieldMapper(), exporter, new YouTubeUrlPolicy(),
-                metadataProbe, youtubeProvider,
-                new YouTubePassageBuilder(normalizer, configuration)
+                new AnkiCardFieldMapper(), exporter,
+                java.util.List.of(new WebVttTimedTranscriptParser(cleaner), new SrtTimedTranscriptParser(cleaner)),
+                new RollingCaptionNormalizer(),
+                new TimedTranscriptPassageBuilder(normalizer, configuration, timestampResolver),
+                new OriginUrlPolicy(new YouTubeUrlPolicy())
         );
     }
 
@@ -238,24 +237,52 @@ class DemoWorkspaceServiceImplTest {
     }
 
     @Test
-    void probesYouTubeDurationBeforeBuildingCaptionPassages() throws Exception {
+    void failedTimedTranscriptDoesNotRetainRawBytesForRetry() throws Exception {
         MockHttpServletRequest request = request();
         MockHttpSession session = (MockHttpSession) request.getSession();
         service.start(request);
-        when(youtubeProvider.fetch("dQw4w9WgXcQ", "es", true)).thenReturn(new YouTubeSubtitleResultDto(
-                "A short lesson", "Example channel", 60_000L, "es",
-                VideoSourceEntity.CaptionKind.MANUAL, "test", Instant.now(),
-                java.util.List.of(new TimedCaptionCueDto(0, 2_000, "Quiero vivir bien."))));
-
-        service.ingestYouTube(session,
-                new DemoDtos.YouTubeRequest("https://www.youtube.com/watch?v=dQw4w9WgXcQ"), request);
+        service.ingestTimedTranscript(session,
+                new MockMultipartFile("file", "broken.vtt", "text/vtt", "not webvtt".getBytes()),
+                null, 0, request);
 
         assertThat(awaitReady(session).sources()).singleElement().satisfies(source -> {
-            assertThat(source.type()).isEqualTo(DemoDtos.SourceType.YOUTUBE);
-            assertThat(source.label()).isEqualTo("A short lesson");
-            assertThat(source.youtubeVideoId()).isEqualTo("dQw4w9WgXcQ");
+            assertThat(source.state()).isEqualTo(DemoDtos.SourceState.FAILED);
+            assertThat(source.safeErrorCode()).isEqualTo("TIMED_TRANSCRIPT_MALFORMED");
         });
-        org.mockito.Mockito.verify(metadataProbe).requireAllowedDuration("dQw4w9WgXcQ");
+        assertThatThrownBy(() -> service.retrySource(
+                session, DemoDtos.SourceType.TIMED_TRANSCRIPT, request))
+                .isInstanceOfSatisfying(DemoException.class,
+                        exception -> assertThat(exception.getProblemCode())
+                                .isEqualTo("DEMO_SOURCE_NOT_RETRYABLE"));
+    }
+
+    @Test
+    void busyTimedTranscriptDoesNotRetainRawBytesForRetry() {
+        MockHttpServletRequest request = request();
+        MockHttpSession session = (MockHttpSession) request.getSession();
+        service.start(request);
+        // A stopped executor deterministically exercises the same rejection path
+        // as a saturated bounded demo queue.
+        service.shutdown();
+
+        assertThatThrownBy(() -> service.ingestTimedTranscript(session,
+                new MockMultipartFile("file", "lesson.vtt", "text/vtt", ("""
+                        WEBVTT
+
+                        00:00:01.000 --> 00:00:02.000
+                        Hola.
+                        """).getBytes()), null, 0, request))
+                .isInstanceOfSatisfying(DemoException.class,
+                        exception -> assertThat(exception.getProblemCode()).isEqualTo("DEMO_BUSY"));
+        assertThat(service.get(session).sources()).singleElement().satisfies(source -> {
+            assertThat(source.state()).isEqualTo(DemoDtos.SourceState.FAILED);
+            assertThat(source.safeErrorCode()).isEqualTo("DEMO_BUSY");
+        });
+        assertThatThrownBy(() -> service.retrySource(
+                session, DemoDtos.SourceType.TIMED_TRANSCRIPT, request))
+                .isInstanceOfSatisfying(DemoException.class,
+                        exception -> assertThat(exception.getProblemCode())
+                                .isEqualTo("DEMO_SOURCE_NOT_RETRYABLE"));
     }
 
     private DemoDtos.WorkspaceView awaitReady(MockHttpSession session) throws InterruptedException {

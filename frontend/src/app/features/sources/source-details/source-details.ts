@@ -13,6 +13,7 @@ import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 import { AppIcon } from '@app/shared/components/icon/app-icon';
+import { formatBytes } from '@app/shared/utils/format-bytes';
 
 import { SourceDetailsState } from './source-details-state';
 
@@ -74,6 +75,7 @@ export class SourceDetails {
         PDF: this.translations.translate('sourceDetails.pdf'),
         EPUB: this.translations.translate('sourceDetails.epub'),
         YOUTUBE_VIDEO: this.translations.translate('sourceDetails.youtube'),
+        TIMED_TRANSCRIPT: this.translations.translate('sources.timedTranscript'),
       } as const
     )[kind];
   }
@@ -84,6 +86,8 @@ export class SourceDetails {
       RECEIVED: 'sourceDetails.statusReceived',
       FETCHING: 'sourceDetails.statusFetching',
       STORED: 'sourceDetails.statusStored',
+      PARSING: 'sources.parsing',
+      NORMALIZING: 'sources.normalizing',
       EXTRACTING: 'sourceDetails.statusExtracting',
       INDEXING: 'sourceDetails.statusIndexing',
       FAILED: 'sourceDetails.statusFailed',
@@ -115,18 +119,42 @@ export class SourceDetails {
 
   languageName(tag: string): string {
     try {
-      const name = new Intl.DisplayNames([tag], { type: 'language' }).of(tag) ?? tag;
-      return name.charAt(0).toLocaleUpperCase(tag) + name.slice(1);
+      const locale = this.translations.language();
+      const name = new Intl.DisplayNames([locale], { type: 'language' }).of(tag) ?? tag;
+      return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1);
     } catch {
       return tag;
     }
   }
 
   formatBytes(bytes: number | undefined): string {
-    if (bytes === undefined) return '—';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+    return formatBytes(bytes);
+  }
+
+  youtubeThumbnail(videoId: string): string | null {
+    return /^[A-Za-z0-9_-]{11}$/u.test(videoId)
+      ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+      : null;
+  }
+
+  youtubePreviewVideoId(timed: NonNullable<SourceDetailsModel['timedTranscript']>): string | null {
+    if (timed.originProvider === 'YOUTUBE' && timed.originProviderId) {
+      return this.youtubeThumbnail(timed.originProviderId) ? timed.originProviderId : null;
+    }
+    if (!timed.originUrl) return null;
+    try {
+      const url = new URL(timed.originUrl);
+      const host = url.hostname.toLowerCase();
+      const videoId =
+        host === 'youtu.be'
+          ? url.pathname.slice(1)
+          : ['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(host)
+            ? url.searchParams.get('v')
+            : null;
+      return videoId && this.youtubeThumbnail(videoId) ? videoId : null;
+    } catch {
+      return null;
+    }
   }
 
   formatDate(value: string): string {
@@ -137,5 +165,13 @@ export class SourceDetails {
           dateStyle: 'medium',
           timeStyle: 'short',
         }).format(date);
+  }
+
+  formatDuration(milliseconds: number): string {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return [hours, minutes, seconds].map((value) => value.toString().padStart(2, '0')).join(':');
   }
 }

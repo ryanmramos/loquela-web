@@ -39,42 +39,102 @@
       </form>
     </section>
 
-    <section class="intake-card" aria-labelledby="youtube-heading">
+    <section class="intake-card" aria-labelledby="transcript-heading">
       <div class="card-mark"><app-icon name="video" [size]="23" /></div>
-      <h2 id="youtube-heading">{{ 'sourcesIntake.youtubeCaptions' | translate }}</h2>
-      <p>{{ 'sourcesIntake.youtubeDescription' | translate }}</p>
-      <form [formGroup]="youtube" (ngSubmit)="submitYouTube()">
+      <h2 id="transcript-heading">{{ 'sourcesIntake.timedTranscript' | translate }}</h2>
+      <p>{{ 'sourcesIntake.transcriptDescription' | translate }}</p>
+      <form [formGroup]="transcript" (ngSubmit)="submitTranscript()">
         <app-form-field
-          inputId="youtube-url"
-          [label]="'sourcesIntake.youtubeUrl' | translate"
-          [hint]="'sourcesIntake.youtubeHint' | translate"
+          inputId="transcript-file"
+          [label]="'sourcesIntake.transcriptFile' | translate"
+          [hint]="'sourcesIntake.transcriptHint' | translate"
           [required]="true"
-          [error]="
-            youtube.controls.url.touched && youtube.controls.url.invalid
-              ? ('sourcesIntake.enterYoutubeUrl' | translate)
-              : undefined
-          "
+        >
+          <input
+            id="transcript-file"
+            type="file"
+            accept=".vtt,.srt,text/vtt,application/x-subrip,text/srt"
+            (change)="selectTranscriptFile($event)"
+          />
+        </app-form-field>
+        @if (selectedTranscriptFile(); as file) {
+          <p class="selected-file" aria-live="polite">{{ file.name }} · {{ file.size }} bytes</p>
+        }
+        <app-timed-transcript-help [supportedLanguages]="supportedLanguages()" />
+        <app-form-field
+          inputId="transcript-language"
+          [label]="'sourcesIntake.language' | translate"
+          [required]="true"
+        >
+          <select id="transcript-language" formControlName="language">
+            @for (language of supportedLanguages(); track language) {
+              <option [value]="language">{{ languageName(language) }} ({{ language }})</option>
+            }
+          </select>
+        </app-form-field>
+        <app-form-field
+          inputId="origin-url"
+          [label]="'sourcesIntake.originUrl' | translate"
+          [hint]="'sourcesIntake.originHint' | translate"
         >
           <input
             pInputText
-            id="youtube-url"
+            id="origin-url"
             type="url"
-            formControlName="url"
-            placeholder="https://www.youtube.com/watch?v=…"
+            formControlName="originUrl"
+            placeholder="https://…"
           />
         </app-form-field>
-        <aside
-          class="youtube-preview"
-          [attr.aria-label]="'sourcesIntake.videoPreviewAria' | translate"
-        >
-          <span class="youtube-preview__badge">{{ 'sourcesIntake.comingSoon' | translate }}</span>
-          <strong>{{ 'sourcesIntake.videoPreview' | translate }}</strong>
-          <p>{{ 'sourcesIntake.videoPreviewDescription' | translate }}</p>
-        </aside>
+        <details>
+          <summary>{{ 'sourcesIntake.advanced' | translate }}</summary>
+          <div class="timeline-offset">
+            <span class="timeline-offset__label">{{
+              'sourcesIntake.timingOffset' | translate
+            }}</span>
+            <div class="timeline-offset__fields">
+              <label>
+                <span>{{ 'sourcesIntake.offsetHours' | translate }}</span>
+                <input
+                  pInputText
+                  type="number"
+                  min="0"
+                  step="1"
+                  formControlName="timelineOffsetHours"
+                />
+              </label>
+              <label>
+                <span>{{ 'sourcesIntake.offsetMinutes' | translate }}</span>
+                <input
+                  pInputText
+                  type="number"
+                  min="0"
+                  max="59"
+                  step="1"
+                  formControlName="timelineOffsetMinutes"
+                />
+              </label>
+              <label>
+                <span>{{ 'sourcesIntake.offsetSeconds' | translate }}</span>
+                <input
+                  pInputText
+                  type="number"
+                  min="0"
+                  max="59"
+                  step="1"
+                  formControlName="timelineOffsetSeconds"
+                />
+              </label>
+            </div>
+            <small>{{ 'sourcesIntake.offsetHint' | translate }}</small>
+          </div>
+        </details>
+        <p class="rights-notice">{{ 'sourcesIntake.rightsNotice' | translate }}</p>
         <button appButton type="submit" [disabled]="status() === 'submitting'">
           {{
-            (status() === 'submitting' ? 'sourcesIntake.adding' : 'sourcesIntake.addCaptions')
-              | translate
+            (status() === 'submitting'
+              ? 'sourcesIntake.validating'
+              : 'sourcesIntake.uploadTranscript'
+            ) | translate
           }}
         </button>
       </form>

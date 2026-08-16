@@ -13,12 +13,15 @@ describe('DemoPage', () => {
   const capabilitiesValue = {
     enabled: true,
     ingestionEnabled: true,
+    timedTranscriptEnabled: true,
     supportedLanguagePairs: ['es:en', 'en:es', 'es:es', 'en:en'],
     limits: {
       pdfBytes: 5_242_880,
       pdfPages: 100,
       pdfCharacters: 100_000,
-      youtubeMinutes: 30,
+      timedTranscriptBytes: 1_048_576,
+      timedTranscriptCues: 10_000,
+      timedTranscriptCharacters: 250_000,
       pastedTextCharacters: 20_000,
       totalIndexedCharacters: 250_000,
       uniqueLookups: 50,
@@ -171,7 +174,9 @@ describe('DemoPage', () => {
     const fixture = TestBed.createComponent(DemoPage);
     const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:anki-export');
     const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL');
-    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
 
     fixture.componentInstance.downloadDeck(new Blob(['anki']));
 
@@ -275,6 +280,30 @@ describe('DemoPage', () => {
     expect(text).not.toContain('PDF_NEEDS_OCR');
   });
 
+  it('does not offer retry for a failed timed transcript', () => {
+    const fixture = TestBed.createComponent(DemoPage);
+    fixture.detectChanges();
+    fixture.componentInstance.workspace.set({
+      ...workspace,
+      sources: [
+        {
+          reference: 'source-1',
+          type: 'TIMED_TRANSCRIPT',
+          label: 'lesson.vtt',
+          state: 'FAILED',
+          safeErrorCode: 'TIMED_TRANSCRIPT_MALFORMED',
+          characterCount: 0,
+          passageCount: 0,
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.source-item__actions button'),
+    ).toHaveLength(1);
+  });
+
   it('uses a product confirmation dialog before clearing a populated workspace', () => {
     const fixture = TestBed.createComponent(DemoPage);
     fixture.detectChanges();
@@ -357,13 +386,17 @@ describe('DemoPage', () => {
     );
     expect(page.contextTimestamp(context)).toBe('1:23');
     expect(page.youtubeThumbnail({ ...source, youtubeVideoId: 'not-a-video-id' })).toBeNull();
-    expect(page.youtubeContextUrl({ ...context, location: { videoId: 'not-a-video-id' } })).toBeNull();
+    expect(
+      page.youtubeContextUrl({ ...context, location: { videoId: 'not-a-video-id' } }),
+    ).toBeNull();
   });
 
   it('renders lookup matches as safe highlight segments', () => {
     const fixture = TestBed.createComponent(DemoPage);
 
-    expect(fixture.componentInstance.highlightedContext('El Pepinillo y el pepinillo.', 'pepinillo')).toEqual([
+    expect(
+      fixture.componentInstance.highlightedContext('El Pepinillo y el pepinillo.', 'pepinillo'),
+    ).toEqual([
       { text: 'El ', highlighted: false },
       { text: 'Pepinillo', highlighted: true },
       { text: ' y el ', highlighted: false },

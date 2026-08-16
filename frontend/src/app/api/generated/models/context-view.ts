@@ -7,6 +7,6 @@ export interface ContextView {
 };
   reference?: string;
   sourceLabel?: string;
-  sourceType?: 'YOUTUBE' | 'PDF' | 'PASTED_TEXT';
+  sourceType?: 'YOUTUBE' | 'TIMED_TRANSCRIPT' | 'PDF' | 'PASTED_TEXT';
   text?: string;
 }

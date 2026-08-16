@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Deprecated(forRemoval = true)
 public class YouTubeTwilioCommandHandler implements TwilioCommandHandler {
     private static final String ACCEPTED =
             "YouTube captions accepted for indexing. Send *STATUS* to check progress.";
@@ -31,21 +32,10 @@ public class YouTubeTwilioCommandHandler implements TwilioCommandHandler {
 
     @Override
     public TwilioWebhookResponseDto handle(TwilioCommandContextDto context) {
-        try {
-            YouTubeSourceAcceptanceDto result = youTubeSourceService.accept(
-                    context.userId(), context.inboundMessageId(), context.command().argument()
-            );
-            log.info("Processed YOUTUBE command userId={} sourceId={} existing={}",
-                    context.userId().value(), result.sourceId().value(), result.existing());
-            return new TwilioWebhookResponseDto(ACCEPTED);
-        } catch (YouTubeIngestionDisabledException exception) {
-            log.info("Rejected YOUTUBE command userId={} errorCode=YOUTUBE_INGESTION_DISABLED",
-                    context.userId().value());
-            return new TwilioWebhookResponseDto(DISABLED);
-        } catch (IllegalArgumentException exception) {
-            log.info("Rejected YOUTUBE command userId={} errorCode=INVALID_YOUTUBE_URL",
-                    context.userId().value());
-            return new TwilioWebhookResponseDto(INVALID);
-        }
+        log.info("Rejected retired YOUTUBE command userId={} errorCode=YOUTUBE_INGESTION_RETIRED",
+                context.userId().value());
+        return new TwilioWebhookResponseDto(
+                "Direct YouTube ingestion has been retired. Upload a VTT or SRT file in the Loquela website."
+        );
     }
 }

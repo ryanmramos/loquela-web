@@ -1,6 +1,7 @@
 package com.example.whatsanki.service.storage;
 
 import com.example.whatsanki.dto.StoredObjectMetadataDto;
+import com.example.whatsanki.dto.StoredObjectReferenceDto;
 import com.example.whatsanki.dto.WhatsAnkiConfigurationDto;
 import com.example.whatsanki.service.exception.ObjectStoreException;
 import jakarta.annotation.PreDestroy;
@@ -27,6 +28,8 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -71,8 +74,10 @@ public class S3ObjectStoreImpl implements ObjectStore {
                     .metadata(Map.of("sha256", metadata.sha256Hex()))
                     .build();
             s3Client.putObject(request, RequestBody.fromFile(source));
-            log.info("Stored object objectKey={} byteCount={} mediaType={}",
-                    objectKey, metadata.contentLength(), metadata.mediaType());
+            // Object keys contain private ownership identifiers, so operational logs
+            // intentionally include only non-identifying storage metadata.
+            log.info("Stored private object byteCount={} mediaType={}",
+                    metadata.contentLength(), metadata.mediaType());
         } catch (RuntimeException exception) {
             throw new ObjectStoreException("Could not store object", exception);
         }
@@ -98,7 +103,7 @@ public class S3ObjectStoreImpl implements ObjectStore {
             // S3 DeleteObject is idempotent: deleting a missing key is successful. This
             // property lets background retries resume source/account deletion safely.
             s3Client.deleteObject(builder -> builder.bucket(bucket).key(objectKey));
-            log.info("Deleted object objectKey={}", objectKey);
+            log.info("Deleted private object");
         } catch (RuntimeException exception) {
             throw new ObjectStoreException("Could not delete object", exception);
         }
@@ -119,6 +124,28 @@ public class S3ObjectStoreImpl implements ObjectStore {
             return presigner.presignGetObject(request).url().toURI();
         } catch (Exception exception) {
             throw new ObjectStoreException("Could not create presigned URL", exception);
+        }
+    }
+
+    @Override
+    public List<StoredObjectReferenceDto> list(String prefix, int maximum) {
+        validateObjectKey(prefix);
+        if (maximum <= 0) throw new IllegalArgumentException("maximum must be positive");
+        try {
+            List<StoredObjectReferenceDto> objects = new ArrayList<>();
+            String continuationToken = null;
+            do {
+                String requestToken = continuationToken;
+                var response = s3Client.listObjectsV2(builder -> builder.bucket(bucket).prefix(prefix)
+                        .maxKeys(Math.min(1_000, maximum - objects.size()))
+                        .continuationToken(requestToken));
+                response.contents().forEach(object -> objects.add(
+                        new StoredObjectReferenceDto(object.key(), object.lastModified())));
+                continuationToken = response.isTruncated() ? response.nextContinuationToken() : null;
+            } while (continuationToken != null && objects.size() < maximum);
+            return List.copyOf(objects);
+        } catch (RuntimeException exception) {
+            throw new ObjectStoreException("Could not list objects", exception);
         }
     }
 

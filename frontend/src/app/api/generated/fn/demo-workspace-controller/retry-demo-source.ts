@@ -10,7 +10,7 @@ import { RequestBuilder } from '../../request-builder';
 import { WorkspaceView } from '../../models/workspace-view';
 
 export interface RetryDemoSource$Params {
-  'source-type': 'YOUTUBE' | 'PDF' | 'PASTED_TEXT';
+  'source-type': 'YOUTUBE' | 'TIMED_TRANSCRIPT' | 'PDF' | 'PASTED_TEXT';
 }
 
 export function retryDemoSource(http: HttpClient, rootUrl: string, params: RetryDemoSource$Params, context?: HttpContext): Observable<StrictHttpResponse<WorkspaceView>> {

@@ -169,9 +169,42 @@ export function validateBrowserOpenApi(contract) {
     );
   }
 
-  const youtubeCreate = contract.paths?.['/api/v1/sources/youtube']?.post;
-  if (!isRecord(youtubeCreate) || youtubeCreate.operationId !== 'createYouTubeSource') {
-    errors.push('POST /api/v1/sources/youtube must keep operationId "createYouTubeSource".');
+  const timedTranscriptUploadCreate = contract.paths?.['/api/v1/timed-transcript-uploads']?.post;
+  const timedTranscriptUploadComplete =
+    contract.paths?.['/api/v1/timed-transcript-uploads/{uploadReference}/complete']?.post;
+  if (
+    !isRecord(timedTranscriptUploadCreate) ||
+    timedTranscriptUploadCreate.operationId !== 'createTimedTranscriptUpload'
+  ) {
+    errors.push(
+      'POST /api/v1/timed-transcript-uploads must keep operationId "createTimedTranscriptUpload".',
+    );
+  }
+  if (
+    !isRecord(timedTranscriptUploadComplete) ||
+    timedTranscriptUploadComplete.operationId !== 'completeTimedTranscriptUpload'
+  ) {
+    errors.push(
+      'POST /api/v1/timed-transcript-uploads/{uploadReference}/complete must keep operationId "completeTimedTranscriptUpload".',
+    );
+  }
+  if (isRecord(timedTranscriptUploadCreate)) {
+    requireSchemaReference(
+      timedTranscriptUploadCreate,
+      '200',
+      'application/json',
+      '#/components/schemas/SourceUploadIntentDto',
+      errors,
+    );
+  }
+  if (isRecord(timedTranscriptUploadComplete)) {
+    requireSchemaReference(
+      timedTranscriptUploadComplete,
+      '202',
+      'application/json',
+      '#/components/schemas/AcceptedSourceDto',
+      errors,
+    );
   }
 
   const uploadCreate = contract.paths?.['/api/v1/source-uploads']?.post;

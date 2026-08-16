@@ -41,6 +41,78 @@
         }
       }
     },
+    "/api/v1/timed-transcript-uploads" : {
+      "post" : {
+        "tags" : [ "timed-transcript-upload-controller" ],
+        "summary" : "Create a timed transcript upload intent",
+        "operationId" : "createTimedTranscriptUpload",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateTimedTranscriptUploadRequestDto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Upload intent",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SourceUploadIntentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/timed-transcript-uploads/{uploadReference}/complete" : {
+      "post" : {
+        "tags" : [ "timed-transcript-upload-controller" ],
+        "summary" : "Upload and queue a timed transcript",
+        "operationId" : "completeTimedTranscriptUpload",
+        "parameters" : [ {
+          "name" : "uploadReference",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "file" ]
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Timed transcript accepted",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AcceptedSourceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sources" : {
       "get" : {
         "tags" : [ "browser-source-controller" ],
@@ -82,7 +154,7 @@
           "required" : false,
           "schema" : {
             "type" : "string",
-            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO" ]
+            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO", "TIMED_TRANSCRIPT" ]
           }
         }, {
           "name" : "status",
@@ -90,7 +162,7 @@
           "required" : false,
           "schema" : {
             "type" : "string",
-            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "PARSING", "NORMALIZING", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
           }
         }, {
           "name" : "sort",
@@ -172,35 +244,6 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/SourceMutationDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/sources/youtube" : {
-      "post" : {
-        "tags" : [ "browser-source-controller" ],
-        "summary" : "Create a YouTube subtitle source",
-        "operationId" : "createYouTubeSource",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreateYouTubeSourceRequestDto"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "202" : {
-            "description" : "Source accepted",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/AcceptedSourceDto"
                 }
               }
             }
@@ -533,7 +576,7 @@
           "required" : true,
           "schema" : {
             "type" : "string",
-            "enum" : [ "YOUTUBE", "PDF", "PASTED_TEXT" ]
+            "enum" : [ "YOUTUBE", "TIMED_TRANSCRIPT", "PDF", "PASTED_TEXT" ]
           }
         } ],
         "responses" : {
@@ -550,19 +593,42 @@
         }
       }
     },
-    "/api/v1/demo/sources/youtube" : {
+    "/api/v1/demo/sources/timed-transcript" : {
       "post" : {
         "tags" : [ "demo-workspace-controller" ],
-        "operationId" : "createDemoYouTubeSource",
+        "operationId" : "createDemoTimedTranscriptSource",
+        "parameters" : [ {
+          "name" : "originUrl",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "timelineOffsetMs",
+          "in" : "query",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64",
+            "default" : 0
+          }
+        } ],
         "requestBody" : {
           "content" : {
-            "application/json" : {
+            "multipart/form-data" : {
               "schema" : {
-                "$ref" : "#/components/schemas/YouTubeRequest"
+                "type" : "object",
+                "properties" : {
+                  "file" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                },
+                "required" : [ "file" ]
               }
             }
-          },
-          "required" : true
+          }
         },
         "responses" : {
           "200" : {
@@ -1955,7 +2021,7 @@
           "required" : true,
           "schema" : {
             "type" : "string",
-            "enum" : [ "YOUTUBE", "PDF", "PASTED_TEXT" ]
+            "enum" : [ "YOUTUBE", "TIMED_TRANSCRIPT", "PDF", "PASTED_TEXT" ]
           }
         } ],
         "responses" : {
@@ -2066,7 +2132,7 @@
           },
           "sourceType" : {
             "type" : "string",
-            "enum" : [ "YOUTUBE", "PDF", "PASTED_TEXT" ]
+            "enum" : [ "YOUTUBE", "TIMED_TRANSCRIPT", "PDF", "PASTED_TEXT" ]
           },
           "location" : {
             "type" : "object",
@@ -2116,7 +2182,7 @@
         "properties" : {
           "type" : {
             "type" : "string",
-            "enum" : [ "YOUTUBE", "PDF", "PASTED_TEXT" ]
+            "enum" : [ "YOUTUBE", "TIMED_TRANSCRIPT", "PDF", "PASTED_TEXT" ]
           },
           "reference" : {
             "type" : "string"
@@ -2197,6 +2263,92 @@
           }
         }
       },
+      "CreateTimedTranscriptUploadRequestDto" : {
+        "type" : "object",
+        "properties" : {
+          "fileName" : {
+            "type" : "string",
+            "maxLength" : 512,
+            "minLength" : 0
+          },
+          "mediaType" : {
+            "type" : "string",
+            "maxLength" : 128,
+            "minLength" : 0
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "sha256" : {
+            "type" : "string",
+            "minLength" : 1,
+            "pattern" : "^[0-9a-fA-F]{64}$"
+          },
+          "language" : {
+            "type" : "string",
+            "maxLength" : 35,
+            "minLength" : 0
+          },
+          "originUrl" : {
+            "type" : "string",
+            "maxLength" : 2048,
+            "minLength" : 0
+          },
+          "timelineOffsetMs" : {
+            "type" : "integer",
+            "format" : "int64",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "fileName", "language", "mediaType", "sha256" ]
+      },
+      "SourceUploadIntentDto" : {
+        "type" : "object",
+        "properties" : {
+          "uploadReference" : {
+            "type" : "string"
+          },
+          "uploadMode" : {
+            "type" : "string",
+            "enum" : [ "APPLICATION" ]
+          },
+          "completionPath" : {
+            "type" : "string"
+          },
+          "maxBytes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "acceptedMediaTypes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "expiresAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "acceptedMediaTypes", "completionPath", "expiresAt", "maxBytes", "uploadMode", "uploadReference" ]
+      },
+      "AcceptedSourceDto" : {
+        "type" : "object",
+        "properties" : {
+          "reference" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "PARSING", "NORMALIZING", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+          },
+          "existing" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "existing", "reference", "status" ]
+      },
       "CreatePastedTextSourceRequestDto" : {
         "type" : "object",
         "properties" : {
@@ -2237,40 +2389,13 @@
           },
           "status" : {
             "type" : "string",
-            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "PARSING", "NORMALIZING", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
           },
           "jobReference" : {
             "type" : "string"
           }
         },
         "required" : [ "reference", "status" ]
-      },
-      "CreateYouTubeSourceRequestDto" : {
-        "type" : "object",
-        "properties" : {
-          "url" : {
-            "type" : "string",
-            "maxLength" : 2048,
-            "minLength" : 0
-          }
-        },
-        "required" : [ "url" ]
-      },
-      "AcceptedSourceDto" : {
-        "type" : "object",
-        "properties" : {
-          "reference" : {
-            "type" : "string"
-          },
-          "status" : {
-            "type" : "string",
-            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
-          },
-          "existing" : {
-            "type" : "boolean"
-          }
-        },
-        "required" : [ "existing", "reference", "status" ]
       },
       "CreateSourceUploadRequestDto" : {
         "type" : "object",
@@ -2296,36 +2421,6 @@
           }
         },
         "required" : [ "fileName", "mediaType", "sha256" ]
-      },
-      "SourceUploadIntentDto" : {
-        "type" : "object",
-        "properties" : {
-          "uploadReference" : {
-            "type" : "string"
-          },
-          "uploadMode" : {
-            "type" : "string",
-            "enum" : [ "APPLICATION" ]
-          },
-          "completionPath" : {
-            "type" : "string"
-          },
-          "maxBytes" : {
-            "type" : "integer",
-            "format" : "int64"
-          },
-          "acceptedMediaTypes" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "expiresAt" : {
-            "type" : "string",
-            "format" : "date-time"
-          }
-        },
-        "required" : [ "acceptedMediaTypes", "completionPath", "expiresAt", "maxBytes", "uploadMode", "uploadReference" ]
       },
       "CreatePracticeSessionRequestDto" : {
         "type" : "object",
@@ -2491,17 +2586,6 @@
             "type" : "string"
           }
         }
-      },
-      "YouTubeRequest" : {
-        "type" : "object",
-        "properties" : {
-          "url" : {
-            "type" : "string",
-            "maxLength" : 2048,
-            "minLength" : 0
-          }
-        },
-        "required" : [ "url" ]
       },
       "PastedTextRequest" : {
         "type" : "object",
@@ -2809,7 +2893,7 @@
           },
           "status" : {
             "type" : "string",
-            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED", "PENDING", "EXPIRED", "QUEUED", "RUNNING" ]
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "PARSING", "NORMALIZING", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED", "PENDING", "EXPIRED", "QUEUED", "RUNNING" ]
           },
           "resourceLabel" : {
             "type" : "string"
@@ -2896,11 +2980,11 @@
           },
           "kind" : {
             "type" : "string",
-            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO" ]
+            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO", "TIMED_TRANSCRIPT" ]
           },
           "status" : {
             "type" : "string",
-            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "PARSING", "NORMALIZING", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
           },
           "displayName" : {
             "type" : "string"
@@ -3170,11 +3254,11 @@
           },
           "kind" : {
             "type" : "string",
-            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO" ]
+            "enum" : [ "PASTED_TEXT", "TXT", "PDF", "EPUB", "YOUTUBE_VIDEO", "TIMED_TRANSCRIPT" ]
           },
           "status" : {
             "type" : "string",
-            "enum" : [ "RECEIVED", "FETCHING", "STORED", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
+            "enum" : [ "RECEIVED", "FETCHING", "STORED", "PARSING", "NORMALIZING", "EXTRACTING", "INDEXING", "READY", "FAILED", "DELETING", "DELETED" ]
           },
           "displayName" : {
             "type" : "string"
@@ -3199,6 +3283,9 @@
           "youtube" : {
             "$ref" : "#/components/schemas/YouTubeDetailsDto"
           },
+          "timedTranscript" : {
+            "$ref" : "#/components/schemas/TimedTranscriptDetailsDto"
+          },
           "createdAt" : {
             "type" : "string",
             "format" : "date-time"
@@ -3213,6 +3300,65 @@
           }
         },
         "required" : [ "createdAt", "displayName", "kind", "language", "reference", "retryable", "status", "updatedAt", "version" ]
+      },
+      "TimedTranscriptDetailsDto" : {
+        "type" : "object",
+        "properties" : {
+          "format" : {
+            "type" : "string"
+          },
+          "originalFilename" : {
+            "type" : "string"
+          },
+          "cueCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "normalizedCharacterCount" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "timelineEndMs" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "parserVersion" : {
+            "type" : "string"
+          },
+          "normalizerVersion" : {
+            "type" : "string"
+          },
+          "originUrl" : {
+            "type" : "string"
+          },
+          "originProvider" : {
+            "type" : "string"
+          },
+          "originProviderId" : {
+            "type" : "string"
+          },
+          "timelineOffsetMs" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ignoredStructuralBlockCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "strippedMarkupCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "emptyCueCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "coalescedCueCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "coalescedCueCount", "cueCount", "emptyCueCount", "format", "ignoredStructuralBlockCount", "normalizedCharacterCount", "normalizerVersion", "parserVersion", "strippedMarkupCount", "timelineEndMs" ]
       },
       "YouTubeDetailsDto" : {
         "type" : "object",
@@ -3359,6 +3505,9 @@
           },
           "youtubeUrl" : {
             "type" : "string"
+          },
+          "originUrl" : {
+            "type" : "string"
           }
         }
       },
@@ -3447,6 +3596,9 @@
           "ingestionEnabled" : {
             "type" : "boolean"
           },
+          "timedTranscriptEnabled" : {
+            "type" : "boolean"
+          },
           "supportedLanguagePairs" : {
             "type" : "array",
             "items" : {
@@ -3473,7 +3625,15 @@
             "type" : "integer",
             "format" : "int32"
           },
-          "youtubeMinutes" : {
+          "timedTranscriptBytes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "timedTranscriptCues" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "timedTranscriptCharacters" : {
             "type" : "integer",
             "format" : "int32"
           },

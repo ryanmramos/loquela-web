@@ -8,16 +8,21 @@ import { StrictHttpResponse } from '../../strict-http-response';
 import { RequestBuilder } from '../../request-builder';
 
 import { WorkspaceView } from '../../models/workspace-view';
-import { YouTubeRequest } from '../../models/you-tube-request';
 
-export interface CreateDemoYouTubeSource$Params {
-      body: YouTubeRequest
+export interface CreateDemoTimedTranscriptSource$Params {
+  originUrl?: string;
+  timelineOffsetMs?: number;
+      body?: {
+'file': Blob;
+}
 }
 
-export function createDemoYouTubeSource(http: HttpClient, rootUrl: string, params: CreateDemoYouTubeSource$Params, context?: HttpContext): Observable<StrictHttpResponse<WorkspaceView>> {
-  const rb = new RequestBuilder(rootUrl, createDemoYouTubeSource.PATH, 'post');
+export function createDemoTimedTranscriptSource(http: HttpClient, rootUrl: string, params?: CreateDemoTimedTranscriptSource$Params, context?: HttpContext): Observable<StrictHttpResponse<WorkspaceView>> {
+  const rb = new RequestBuilder(rootUrl, createDemoTimedTranscriptSource.PATH, 'post');
   if (params) {
-    rb.body(params.body, 'application/json');
+    rb.query('originUrl', params.originUrl, {});
+    rb.query('timelineOffsetMs', params.timelineOffsetMs, {});
+    rb.body(params.body, 'multipart/form-data');
   }
 
   return http.request(
@@ -30,4 +35,4 @@ export function createDemoYouTubeSource(http: HttpClient, rootUrl: string, param
   );
 }
 
-createDemoYouTubeSource.PATH = '/api/v1/demo/sources/youtube';
+createDemoTimedTranscriptSource.PATH = '/api/v1/demo/sources/timed-transcript';

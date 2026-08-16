@@ -7,12 +7,12 @@ export interface BrowserSourceSummaryDto {
   databaseSizeBytes: number;
   displayName: string;
   errorCode?: string;
-  kind: 'PASTED_TEXT' | 'TXT' | 'PDF' | 'EPUB' | 'YOUTUBE_VIDEO';
+  kind: 'PASTED_TEXT' | 'TXT' | 'PDF' | 'EPUB' | 'YOUTUBE_VIDEO' | 'TIMED_TRANSCRIPT';
   language: string;
   passageCount?: number;
   reference: string;
   retryable: boolean;
-  status: 'RECEIVED' | 'FETCHING' | 'STORED' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED';
+  status: 'RECEIVED' | 'FETCHING' | 'STORED' | 'PARSING' | 'NORMALIZING' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED';
   updatedAt: string;
   version: number;
 }

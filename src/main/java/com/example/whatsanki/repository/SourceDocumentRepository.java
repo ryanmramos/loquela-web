@@ -18,10 +18,43 @@ public interface SourceDocumentRepository extends Repository<SourceDocumentEntit
     SourceDocumentEntity save(SourceDocumentEntity source);
     SourceDocumentEntity saveAndFlush(SourceDocumentEntity source);
     Optional<SourceDocumentEntity> findByIdAndUserId(UUID id, UUID userId);
+    /**
+     * Estimates row storage for data owned by a source and deleted with it.
+     * Operational history, inbound messages, cards, and audit records are
+     * intentionally excluded because they survive source deletion.
+     */
     @Query(value = """
-            select pg_column_size(source_document)
-            from source_document
-            where id = :sourceId and user_id = :userId
+            select source.source_bytes
+                 + coalesce((
+                       select sum(pg_column_size(passage))
+                       from passage
+                       where passage.source_id = source.id
+                         and passage.user_id = source.user_id
+                   ), 0)
+                 + coalesce((
+                       select sum(pg_column_size(metadata))
+                       from timed_transcript_metadata metadata
+                       where metadata.source_id = source.id
+                         and metadata.user_id = source.user_id
+                   ), 0)
+                 + coalesce((
+                       select sum(pg_column_size(video))
+                       from video_source video
+                       where video.source_id = source.id
+                         and video.user_id = source.user_id
+                   ), 0)
+                 + coalesce((
+                       select sum(pg_column_size(upload))
+                       from source_upload upload
+                       where upload.source_id = source.id
+                         and upload.user_id = source.user_id
+                   ), 0)
+                 as stored_bytes
+            from (
+                select source.id, source.user_id, pg_column_size(source) as source_bytes
+                from source_document source
+                where source.id = :sourceId and source.user_id = :userId
+            ) source
             """, nativeQuery = true)
     long storedBytesByIdAndUserId(@Param("sourceId") UUID sourceId, @Param("userId") UUID userId);
     Optional<SourceDocumentEntity> findByUserIdAndInboundMessageId(UUID userId, UUID inboundMessageId);
@@ -51,31 +84,75 @@ public interface SourceDocumentRepository extends Repository<SourceDocumentEntit
     long countByUserIdAndStatusIn(UUID userId, Set<SourceDocumentEntity.Status> statuses);
     @Query(value = """
             select
-                coalesce(sum(pg_column_size(source)), 0)
-                + coalesce((
-                    select sum(pg_column_size(passage))
-                    from passage
-                    join source_document passage_source
-                      on passage_source.id = passage.source_id
-                     and passage_source.user_id = passage.user_id
-                    where passage.user_id = :userId
-                      and passage_source.status <> 'DELETED'
+                coalesce(sum(
+                    source.source_bytes
+                    + coalesce((
+                          select sum(pg_column_size(passage))
+                          from passage
+                          where passage.source_id = source.id
+                            and passage.user_id = source.user_id
+                      ), 0)
+                    + coalesce((
+                          select sum(pg_column_size(metadata))
+                          from timed_transcript_metadata metadata
+                          where metadata.source_id = source.id
+                            and metadata.user_id = source.user_id
+                      ), 0)
+                    + coalesce((
+                          select sum(pg_column_size(video))
+                          from video_source video
+                          where video.source_id = source.id
+                            and video.user_id = source.user_id
+                      ), 0)
+                    + coalesce((
+                          select sum(pg_column_size(upload))
+                          from source_upload upload
+                          where upload.source_id = source.id
+                            and upload.user_id = source.user_id
+                      ), 0)
                 ), 0)
-            from source_document source
-            where source.user_id = :userId
-              and source.status <> 'DELETED'
+            from (
+                select source.id, source.user_id, pg_column_size(source) as source_bytes
+                from source_document source
+                where source.user_id = :userId
+                  and source.status <> 'DELETED'
+            ) source
             """, nativeQuery = true)
     long totalCorpusStoredBytesByUserId(@Param("userId") UUID userId);
     @Query(value = """
             select source.id as "sourceId",
-                   pg_column_size(source) + coalesce(sum(pg_column_size(passage)), 0) as "storedBytes"
-            from source_document source
-            left join passage
-              on passage.source_id = source.id
-             and passage.user_id = source.user_id
-            where source.user_id = :userId
-              and source.id in (:sourceIds)
-            group by source.id
+                   source.source_bytes
+                   + coalesce((
+                         select sum(pg_column_size(passage))
+                         from passage
+                         where passage.source_id = source.id
+                           and passage.user_id = source.user_id
+                     ), 0)
+                   + coalesce((
+                         select sum(pg_column_size(metadata))
+                         from timed_transcript_metadata metadata
+                         where metadata.source_id = source.id
+                           and metadata.user_id = source.user_id
+                     ), 0)
+                   + coalesce((
+                         select sum(pg_column_size(video))
+                         from video_source video
+                         where video.source_id = source.id
+                           and video.user_id = source.user_id
+                     ), 0)
+                   + coalesce((
+                         select sum(pg_column_size(upload))
+                         from source_upload upload
+                         where upload.source_id = source.id
+                           and upload.user_id = source.user_id
+                     ), 0)
+                   as "storedBytes"
+            from (
+                select source.id, source.user_id, pg_column_size(source) as source_bytes
+                from source_document source
+                where source.user_id = :userId
+                  and source.id in (:sourceIds)
+            ) source
             """, nativeQuery = true)
     List<SourceStorageProjection> findStoredBytesByUserIdAndSourceIdIn(
             @Param("userId") UUID userId,

@@ -23,6 +23,7 @@ public record BrowserSourceDetailsDto(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         boolean retryable,
         YouTubeDetailsDto youtube,
+        TimedTranscriptDetailsDto timedTranscript,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
         Instant createdAt,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -52,6 +53,27 @@ public record BrowserSourceDetailsDto(
         public YouTubeDetailsDto {
             Objects.requireNonNull(canonicalUrl, "canonicalUrl must not be null");
             Objects.requireNonNull(captionKind, "captionKind must not be null");
+        }
+    }
+
+    public record TimedTranscriptDetailsDto(
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String format,
+            String originalFilename,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int cueCount,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long normalizedCharacterCount,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) long timelineEndMs,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String parserVersion,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String normalizerVersion,
+            String originUrl, String originProvider, String originProviderId, Long timelineOffsetMs,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int ignoredStructuralBlockCount,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int strippedMarkupCount,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int emptyCueCount,
+            @Schema(requiredMode = Schema.RequiredMode.REQUIRED) int coalescedCueCount
+    ) {
+        public TimedTranscriptDetailsDto {
+            Objects.requireNonNull(format, "format must not be null");
+            Objects.requireNonNull(parserVersion, "parserVersion must not be null");
+            Objects.requireNonNull(normalizerVersion, "normalizerVersion must not be null");
         }
     }
 }

@@ -18,6 +18,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Deprecated(forRemoval = true)
 class DemoYouTubeMetadataProbe {
     private final YtDlpProcessRunner runner;
     private final ObjectMapper objectMapper;

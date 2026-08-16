@@ -33,6 +33,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Deprecated(forRemoval = true)
 public class YouTubeSourceServiceImpl implements YouTubeSourceService {
     private final AppUserRepository appUserRepository;
     private final InboundMessageRepository inboundMessageRepository;

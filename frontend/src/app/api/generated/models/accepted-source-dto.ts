@@ -4,5 +4,5 @@
 export interface AcceptedSourceDto {
   existing: boolean;
   reference: string;
-  status: 'RECEIVED' | 'FETCHING' | 'STORED' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED';
+  status: 'RECEIVED' | 'FETCHING' | 'STORED' | 'PARSING' | 'NORMALIZING' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED';
 }

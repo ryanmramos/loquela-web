@@ -111,6 +111,48 @@
         </section>
       }
 
+      @if (source.timedTranscript; as timed) {
+        <section class="panel" aria-labelledby="transcript-heading">
+          <h2 id="transcript-heading">{{ 'sourceDetails.transcriptMetadata' | translate }}</h2>
+          <dl>
+            <div>
+              <dt>{{ 'sourceDetails.format' | translate }}</dt>
+              <dd>{{ timed.format }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'sourceDetails.timeline' | translate }}</dt>
+              <dd>{{ formatDuration(timed.timelineEndMs) }}</dd>
+            </div>
+            @if (timed.timelineOffsetMs) {
+              <div>
+                <dt>{{ 'sourceDetails.offset' | translate }}</dt>
+                <dd>{{ timed.timelineOffsetMs | number }} ms</dd>
+              </div>
+            }
+          </dl>
+          @if (youtubePreviewVideoId(timed); as videoId) {
+            @if (youtubeThumbnail(videoId); as thumbnail) {
+              <a
+                class="youtube-origin-preview"
+                [href]="timed.originUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img [src]="thumbnail" [alt]="timed.originalFilename ?? ''" loading="lazy" />
+                <span>
+                  <strong>{{ 'sourceDetails.youtubePreview' | translate }}</strong>
+                  <small>{{ 'sourceDetails.openYoutube' | translate }}</small>
+                </span>
+              </a>
+            }
+          } @else if (timed.originUrl) {
+            <a [href]="timed.originUrl" target="_blank" rel="noopener noreferrer">{{
+              'sourceDetails.openOrigin' | translate
+            }}</a>
+          }
+        </section>
+      }
+
       <section class="panel panel--wide" aria-labelledby="manage-heading">
         <h2 id="manage-heading">{{ 'sourceDetails.manage' | translate }}</h2>
         <div class="manage-row">

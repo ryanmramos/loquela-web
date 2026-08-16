@@ -71,13 +71,11 @@ class BrowserSourceServiceImplTest {
         when(passageRepository.totalWordCountByUserIdAndSourceId(userId.value(), sourceId.value()))
                 .thenReturn(42L);
         when(sourceDocumentRepository.storedBytesByIdAndUserId(sourceId.value(), userId.value())).thenReturn(128L);
-        when(passageRepository.totalStoredBytesByUserIdAndSourceId(userId.value(), sourceId.value()))
-                .thenReturn(2_048L);
         when(videoSourceRepository.findBySourceIdAndUserId(sourceId.value(), userId.value())).thenReturn(Optional.empty());
 
         var result = service.get("subject", SourceReferenceCodec.encode(sourceId));
 
         assertThat(result.totalWords()).isEqualTo(42);
-        assertThat(result.databaseSizeBytes()).isEqualTo(2_176);
+        assertThat(result.databaseSizeBytes()).isEqualTo(128);
     }
 }

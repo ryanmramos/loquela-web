@@ -28,7 +28,7 @@ export class LookupSourceFilters {
     () => this.selectedKinds().length + this.selectedSources().length,
   );
   readonly kinds = [
-    { value: 'YOUTUBE_VIDEO', label: 'lookup.videoType' },
+    { value: 'TIMED_TRANSCRIPT', label: 'lookup.timedTranscriptType' },
     { value: 'PASTED_TEXT', label: 'lookup.pastedType' },
     { value: 'TXT', label: 'lookup.txtType' },
     { value: 'PDF', label: 'lookup.pdfType' },
@@ -46,6 +46,7 @@ export class LookupSourceFilters {
   sourceKindLabel(kind: string | undefined): string {
     const keys = {
       YOUTUBE_VIDEO: 'lookup.videoType',
+      TIMED_TRANSCRIPT: 'lookup.timedTranscriptType',
       PASTED_TEXT: 'lookup.pastedType',
       TXT: 'lookup.txtSourceType',
       PDF: 'lookup.pdfSourceType',
@@ -57,7 +58,7 @@ export class LookupSourceFilters {
   }
 
   sourceIcon(kind: string | undefined): string {
-    if (kind === 'YOUTUBE_VIDEO') return '▶';
+    if (kind === 'YOUTUBE_VIDEO' || kind === 'TIMED_TRANSCRIPT') return '▶';
     if (kind === 'PDF') return 'PDF';
     if (kind === 'EPUB') return 'EPUB';
     return 'T';

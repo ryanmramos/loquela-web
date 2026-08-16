@@ -19,7 +19,6 @@ public class HelpTwilioCommandHandler implements TwilioCommandHandler {
             *LANGUAGE* <source> <definition>
             *ADD* <text>
             *LOOKUP* <word or phrase>
-            *YOUTUBE* <video URL>
             *SAVE* <number>
             *SOURCES*
             *DELETE SOURCE* <source-id>

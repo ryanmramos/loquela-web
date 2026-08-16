@@ -38,7 +38,7 @@ public class AppUserEntity {
     private boolean automaticCaptionFallback = true;
 
     @Column(name = "export_deck_prefix", nullable = false, length = 100)
-    private String exportDeckPrefix = "Loquela — ";
+    private String exportDeckPrefix = "Loquela::";
 
     @Column(name = "export_include_provenance", nullable = false)
     private boolean exportIncludeProvenance = true;

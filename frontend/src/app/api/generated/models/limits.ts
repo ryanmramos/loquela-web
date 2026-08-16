@@ -7,7 +7,9 @@ export interface Limits {
   pdfBytes?: number;
   pdfCharacters?: number;
   pdfPages?: number;
+  timedTranscriptBytes?: number;
+  timedTranscriptCharacters?: number;
+  timedTranscriptCues?: number;
   totalIndexedCharacters?: number;
   uniqueLookups?: number;
-  youtubeMinutes?: number;
 }

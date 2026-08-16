@@ -14,6 +14,7 @@ import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/sta
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import { formatBytes } from '@app/shared/utils/format-bytes';
 
 import { SourceListState } from './source-list-state';
 
@@ -55,7 +56,7 @@ export class SourceList {
   readonly kindOptions = computed(() => [
     { label: this.translations.translate('sources.allTypes'), value: '' },
     { label: this.translations.translate('sources.pastedText'), value: 'PASTED_TEXT' },
-    { label: this.translations.translate('sources.youtube'), value: 'YOUTUBE_VIDEO' },
+    { label: this.translations.translate('sources.timedTranscript'), value: 'TIMED_TRANSCRIPT' },
     { label: 'PDF', value: 'PDF' },
     { label: 'TXT', value: 'TXT' },
     { label: 'EPUB', value: 'EPUB' },
@@ -67,6 +68,8 @@ export class SourceList {
     { label: this.translations.translate('sources.received'), value: 'RECEIVED' },
     { label: this.translations.translate('sources.fetching'), value: 'FETCHING' },
     { label: this.translations.translate('sources.stored'), value: 'STORED' },
+    { label: this.translations.translate('sources.parsing'), value: 'PARSING' },
+    { label: this.translations.translate('sources.normalizing'), value: 'NORMALIZING' },
     { label: this.translations.translate('sources.extracting'), value: 'EXTRACTING' },
     { label: this.translations.translate('sources.indexing'), value: 'INDEXING' },
     { label: this.translations.translate('sources.failed'), value: 'FAILED' },
@@ -135,6 +138,7 @@ export class SourceList {
         PDF: 'PDF',
         EPUB: 'EPUB',
         YOUTUBE_VIDEO: this.translations.translate('sources.youtube'),
+        TIMED_TRANSCRIPT: this.translations.translate('sources.timedTranscript'),
       } as const
     )[kind];
   }
@@ -145,6 +149,8 @@ export class SourceList {
       RECEIVED: 'sources.received',
       FETCHING: 'sources.fetching',
       STORED: 'sources.stored',
+      PARSING: 'sources.parsing',
+      NORMALIZING: 'sources.normalizing',
       EXTRACTING: 'sources.extracting',
       INDEXING: 'sources.indexing',
       FAILED: 'sources.failed',
@@ -169,19 +175,8 @@ export class SourceList {
     }).format(new Date(value));
   }
 
-  formatStorage(bytes: number): string {
-    if (bytes < 1_000) return `${bytes} B`;
-    const units = ['KB', 'MB', 'GB', 'TB'];
-    let value = bytes / 1_000;
-    let unitIndex = 0;
-    while (value >= 1_000 && unitIndex < units.length - 1) {
-      value /= 1_000;
-      unitIndex += 1;
-    }
-    const formatted = new Intl.NumberFormat(document.documentElement.lang || navigator.language, {
-      maximumFractionDigits: value < 10 ? 1 : 0,
-    }).format(value);
-    return `${formatted} ${units[unitIndex]}`;
+  formatStorage(bytes: number | undefined): string {
+    return formatBytes(bytes);
   }
 
   private queryFromRoute(): SourceListQuery {

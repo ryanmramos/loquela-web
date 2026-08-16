@@ -49,6 +49,8 @@ class YouTubeSourceServiceImplTest {
     @BeforeEach
     void setUp() {
         configuration = new WhatsAnkiConfigurationDto();
+        // Legacy compatibility tests opt in explicitly; production defaults stay off.
+        configuration.getYoutube().setEnabled(true);
         service = new YouTubeSourceServiceImpl(
                 appUserRepository, inboundMessageRepository, sourceDocumentRepository,
                 videoSourceRepository, backgroundJobRepository, backgroundJobService,

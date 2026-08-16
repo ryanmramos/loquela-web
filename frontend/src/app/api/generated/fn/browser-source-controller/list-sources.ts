@@ -13,8 +13,8 @@ export interface ListSources$Params {
   page?: number;
   pageSize?: number;
   search?: string;
-  kind?: 'PASTED_TEXT' | 'TXT' | 'PDF' | 'EPUB' | 'YOUTUBE_VIDEO';
-  status?: 'RECEIVED' | 'FETCHING' | 'STORED' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED';
+  kind?: 'PASTED_TEXT' | 'TXT' | 'PDF' | 'EPUB' | 'YOUTUBE_VIDEO' | 'TIMED_TRANSCRIPT';
+  status?: 'RECEIVED' | 'FETCHING' | 'STORED' | 'PARSING' | 'NORMALIZING' | 'EXTRACTING' | 'INDEXING' | 'READY' | 'FAILED' | 'DELETING' | 'DELETED';
   sort?: 'CREATED_AT' | 'UPDATED_AT' | 'DISPLAY_NAME';
   direction?: 'ASC' | 'DESC';
 }

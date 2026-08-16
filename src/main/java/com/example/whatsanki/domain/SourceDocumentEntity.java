@@ -58,6 +58,8 @@ public class SourceDocumentEntity {
 
     @PreUpdate void preUpdate() { updatedAt = Instant.now(); }
 
-    public enum Kind { PASTED_TEXT, TXT, PDF, EPUB, YOUTUBE_VIDEO }
-    public enum Status { RECEIVED, FETCHING, STORED, EXTRACTING, INDEXING, READY, FAILED, DELETING, DELETED }
+    public enum Kind { PASTED_TEXT, TXT, PDF, EPUB, YOUTUBE_VIDEO, TIMED_TRANSCRIPT }
+    public enum Status {
+        RECEIVED, FETCHING, STORED, PARSING, NORMALIZING, EXTRACTING, INDEXING, READY, FAILED, DELETING, DELETED
+    }
 }

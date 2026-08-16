@@ -15,6 +15,8 @@ import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 import { ActivityMonitor } from '@core/activity/activity-monitor';
 import { AppIcon } from '@app/shared/components/icon/app-icon';
+import { TimedTranscriptHelp } from '@app/shared/components/timed-transcript-help/timed-transcript-help';
+import { SettingsApi } from '@api/api-adapters/settings-api';
 
 type IntakeStatus = 'idle' | 'submitting' | 'error';
 
@@ -30,6 +32,7 @@ type IntakeStatus = 'idle' | 'submitting' | 'error';
     RouterLink,
     Textarea,
     TranslatePipe,
+    TimedTranscriptHelp,
   ],
   templateUrl: './source-intake.html',
   styleUrl: './source-intake.scss',
@@ -37,27 +40,67 @@ type IntakeStatus = 'idle' | 'submitting' | 'error';
 })
 export class SourceIntake {
   private static readonly MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+  private static readonly MAX_TIMED_TRANSCRIPT_BYTES = 5 * 1024 * 1024;
   private readonly sourceApi = inject(SourceApi);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translations = inject(TranslationService);
   private readonly activityMonitor = inject(ActivityMonitor);
+  private readonly settingsApi = inject(SettingsApi);
 
   readonly status = signal<IntakeStatus>('idle');
   readonly errorMessage = signal<string | null>(null);
   readonly selectedFile = signal<File | null>(null);
+  readonly selectedTranscriptFile = signal<File | null>(null);
+  readonly supportedLanguages = signal<readonly string[]>([]);
   readonly pastedText = new FormGroup({
     text: new FormControl('', {
       nonNullable: true,
       validators: [(control) => Validators.required(control), Validators.maxLength(2_000_000)],
     }),
   });
-  readonly youtube = new FormGroup({
-    url: new FormControl('', {
+  readonly transcript = new FormGroup({
+    language: new FormControl('', {
       nonNullable: true,
-      validators: [(control) => Validators.required(control), Validators.maxLength(2048)],
+      validators: [(control) => Validators.required(control)],
+    }),
+    originUrl: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(2048)] }),
+    timelineOffsetHours: new FormControl(0, {
+      nonNullable: true,
+      validators: [(control) => Validators.required(control), Validators.min(0)],
+    }),
+    timelineOffsetMinutes: new FormControl(0, {
+      nonNullable: true,
+      validators: [
+        (control) => Validators.required(control),
+        Validators.min(0),
+        Validators.max(59),
+      ],
+    }),
+    timelineOffsetSeconds: new FormControl(0, {
+      nonNullable: true,
+      validators: [
+        (control) => Validators.required(control),
+        Validators.min(0),
+        Validators.max(59),
+      ],
     }),
   });
+
+  constructor() {
+    this.settingsApi
+      .getLanguages()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ languagePair, supportedPairs }) => {
+        this.transcript.controls.language.setValue(languagePair.sourceLanguage);
+        this.supportedLanguages.set([
+          ...new Set([
+            languagePair.sourceLanguage,
+            ...supportedPairs.map((pair) => pair.sourceLanguage),
+          ]),
+        ]);
+      });
+  }
 
   submitPastedText(): void {
     if (this.pastedText.invalid) {
@@ -67,12 +110,63 @@ export class SourceIntake {
     this.submit(this.sourceApi.createPastedText(this.pastedText.getRawValue().text));
   }
 
-  submitYouTube(): void {
-    if (this.youtube.invalid) {
-      this.youtube.markAllAsTouched();
+  submitTranscript(): void {
+    const file = this.selectedTranscriptFile();
+    if (!file || this.transcript.invalid) {
+      this.transcript.markAllAsTouched();
+      if (!file)
+        this.errorMessage.set(this.translations.translate('sourcesIntake.transcriptFileType'));
       return;
     }
-    this.submit(this.sourceApi.createYouTube(this.youtube.getRawValue().url));
+    const value = this.transcript.getRawValue();
+    this.submit(
+      this.sourceApi.uploadTimedTranscript(
+        file,
+        value.language.trim(),
+        value.originUrl,
+        this.timelineOffsetMilliseconds(value),
+      ),
+    );
+  }
+
+  private timelineOffsetMilliseconds(value: {
+    timelineOffsetHours: number;
+    timelineOffsetMinutes: number;
+    timelineOffsetSeconds: number;
+  }): number {
+    return Math.round(
+      (Math.max(0, value.timelineOffsetHours) * 3600 +
+        Math.min(59, Math.max(0, value.timelineOffsetMinutes)) * 60 +
+        Math.min(59, Math.max(0, value.timelineOffsetSeconds))) *
+        1000,
+    );
+  }
+
+  selectTranscriptFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.item(0) ?? null;
+    this.errorMessage.set(null);
+    if (!file) {
+      this.selectedTranscriptFile.set(null);
+      return;
+    }
+    if (file.size > SourceIntake.MAX_TIMED_TRANSCRIPT_BYTES) {
+      this.selectedTranscriptFile.set(null);
+      this.errorMessage.set(this.translations.translate('sourcesIntake.transcriptTooLarge'));
+      input.value = '';
+      return;
+    }
+    const lower = file.name.toLowerCase();
+    if (!lower.endsWith('.vtt') && !lower.endsWith('.srt')) {
+      this.selectedTranscriptFile.set(null);
+      this.errorMessage.set(this.translations.translate('sourcesIntake.transcriptFileType'));
+      input.value = '';
+      return;
+    }
+    const mediaType = file.type || (lower.endsWith('.vtt') ? 'text/vtt' : 'application/x-subrip');
+    this.selectedTranscriptFile.set(
+      file.type ? file : new File([file], file.name, { type: mediaType }),
+    );
   }
 
   selectFile(event: Event): void {
@@ -145,5 +239,15 @@ export class SourceIntake {
     if (normalized.endsWith('.txt')) return 'text/plain';
     if (normalized.endsWith('.epub')) return 'application/epub+zip';
     return '';
+  }
+
+  languageName(tag: string): string {
+    try {
+      const locale = this.translations.language();
+      const name = new Intl.DisplayNames([locale], { type: 'language' }).of(tag) ?? tag;
+      return name.charAt(0).toLocaleUpperCase(locale) + name.slice(1);
+    } catch {
+      return tag;
+    }
   }
 }

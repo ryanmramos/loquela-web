@@ -15,7 +15,13 @@
         >
           <app-icon name="more" [size]="18" />
         </button>
-        <button appButton class="demo__sign-in" variant="secondary" type="button" (click)="confirmSignIn()">
+        <button
+          appButton
+          class="demo__sign-in"
+          variant="secondary"
+          type="button"
+          (click)="confirmSignIn()"
+        >
           {{ 'demo.signIn' | translate }} <app-icon name="arrow-left" [size]="17" />
         </button>
       </nav>
@@ -59,7 +65,13 @@
             {{ errorMessage()! | translate }}
           </app-alert>
         }
-        <button appButton class="demo-welcome__start" type="button" [disabled]="busy()" (click)="start()">
+        <button
+          appButton
+          class="demo-welcome__start"
+          type="button"
+          [disabled]="busy()"
+          (click)="start()"
+        >
           @if (busy()) {
             <app-icon class="app-icon--spin" name="loading" [size]="18" />
             {{ 'common.loading' | translate }}
@@ -226,32 +238,89 @@
               />
             </div>
           } @else {
-            <div class="source-composer">
-              <label class="visually-hidden" for="demo-youtube-url">{{
-                'demo.youtubeLabel' | translate
-              }}</label>
-              <input
-                id="demo-youtube-url"
-                type="url"
-                [(ngModel)]="youtubeUrl"
-                [placeholder]="'demo.youtubePlaceholder' | translate"
-              />
-              <div class="source-composer__footer">
+            <div class="source-composer source-composer--file source-composer--transcript">
+              <app-icon name="upload" [size]="24" />
+              <div class="source-composer__file-copy">
+                <strong>{{ 'demo.transcriptTitle' | translate }}</strong>
                 <span>{{
-                  'demo.youtubeLimit'
-                    | translate: { minutes: capabilities()!.limits.youtubeMinutes }
+                  'demo.transcriptLimit'
+                    | translate
+                      : {
+                          size: formatMegabytes(capabilities()!.limits.timedTranscriptBytes),
+                        }
                 }}</span>
+              </div>
+              <app-timed-transcript-help [supportedLanguages]="sourceLanguageOptions()" />
+              <label>
+                <span>{{ 'demo.originUrl' | translate }}</span>
+                <input type="url" [(ngModel)]="transcriptOriginUrl" placeholder="https://…" />
+              </label>
+              <details class="source-composer__advanced">
+                <summary>{{ 'sourcesIntake.advanced' | translate }}</summary>
+                <div class="source-composer__timing">
+                  <span class="source-composer__timing-label">{{
+                    'sourcesIntake.timingOffset' | translate
+                  }}</span>
+                  <div class="source-composer__timing-fields">
+                    <label>
+                      <span>{{ 'sourcesIntake.offsetHours' | translate }}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        [(ngModel)]="transcriptOffsetHours"
+                        [ngModelOptions]="{ standalone: true }"
+                      />
+                    </label>
+                    <label>
+                      <span>{{ 'sourcesIntake.offsetMinutes' | translate }}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        step="1"
+                        [(ngModel)]="transcriptOffsetMinutes"
+                        [ngModelOptions]="{ standalone: true }"
+                      />
+                    </label>
+                    <label>
+                      <span>{{ 'sourcesIntake.offsetSeconds' | translate }}</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        step="1"
+                        [(ngModel)]="transcriptOffsetSeconds"
+                        [ngModelOptions]="{ standalone: true }"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </details>
+              <div class="source-composer__footer">
                 <button
                   appButton
                   class="source-composer__submit"
+                  variant="secondary"
                   type="button"
-                  [disabled]="busy() || !youtubeUrl.trim() || !capabilities()!.ingestionEnabled"
-                  (click)="addYouTube()"
+                  [disabled]="
+                    busy() ||
+                    !capabilities()!.ingestionEnabled ||
+                    !capabilities()!.timedTranscriptEnabled
+                  "
+                  (click)="transcriptInput.click()"
                 >
-                  <app-icon name="plus" [size]="17" />
-                  {{ source('YOUTUBE') ? ('demo.replace' | translate) : ('demo.add' | translate) }}
+                  {{ 'demo.chooseTranscript' | translate }}
                 </button>
               </div>
+              <input
+                #transcriptInput
+                class="visually-hidden"
+                type="file"
+                accept=".vtt,.srt,text/vtt,application/x-subrip,text/srt"
+                (change)="addTimedTranscript(transcriptInput)"
+              />
+              <small>{{ 'sourcesIntake.rightsNotice' | translate }}</small>
             </div>
           }
 
@@ -283,11 +352,13 @@
                       <small>{{ sourceFailureGuidance(item.safeErrorCode) }}</small>
                     }
                   </div>
-                  <app-status-badge class="source-item__status" [tone]="sourceStateTone(item.state)">{{
-                    sourceStateKey(item.state) | translate
-                  }}</app-status-badge>
+                  <app-status-badge
+                    class="source-item__status"
+                    [tone]="sourceStateTone(item.state)"
+                    >{{ sourceStateKey(item.state) | translate }}</app-status-badge
+                  >
                   <div class="source-item__actions">
-                    @if (item.state === 'FAILED') {
+                    @if (item.state === 'FAILED' && item.type !== 'TIMED_TRANSCRIPT') {
                       <button
                         appIconButton
                         type="button"
@@ -379,8 +450,7 @@
                         target="_blank"
                         rel="noopener noreferrer"
                         [attr.aria-label]="
-                          'demo.openVideoAt'
-                            | translate: { timestamp: contextTimestamp(context) }
+                          'demo.openVideoAt' | translate: { timestamp: contextTimestamp(context) }
                         "
                       >
                         <app-icon name="video" [size]="16" />

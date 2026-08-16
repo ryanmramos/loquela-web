@@ -17,8 +17,8 @@ public interface DemoWorkspaceService {
     DemoDtos.WorkspaceView ingestPastedText(HttpSession session, DemoDtos.PastedTextRequest request,
                                             HttpServletRequest servletRequest);
     DemoDtos.WorkspaceView ingestPdf(HttpSession session, MultipartFile file, HttpServletRequest servletRequest);
-    DemoDtos.WorkspaceView ingestYouTube(HttpSession session, DemoDtos.YouTubeRequest request,
-                                         HttpServletRequest servletRequest);
+    DemoDtos.WorkspaceView ingestTimedTranscript(HttpSession session, MultipartFile file, String originUrl,
+                                                 long timelineOffsetMs, HttpServletRequest servletRequest);
     DemoDtos.WorkspaceView removeSource(HttpSession session, DemoDtos.SourceType type);
     DemoDtos.WorkspaceView retrySource(HttpSession session, DemoDtos.SourceType type,
                                        HttpServletRequest servletRequest);

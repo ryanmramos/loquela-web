@@ -166,6 +166,22 @@
                           >
                         </span>
                       </a>
+                    } @else if (context.originUrl) {
+                      <a
+                        class="provenance"
+                        [href]="context.originUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span class="type-icon">{{ sourceIcon(context.sourceKind) }}</span>
+                        <div>
+                          <strong>{{ context.sourceDisplayName }}</strong
+                          ><span
+                            >{{ sourceLocation(context) }} ·
+                            {{ 'lookup.openOrigin' | translate }}</span
+                          >
+                        </div>
+                      </a>
                     } @else {
                       <div class="provenance">
                         <span class="type-icon">{{ sourceIcon(context.sourceKind) }}</span>
@@ -210,12 +226,22 @@
       <article class="side-card">
         <h2>{{ 'lookup.howSavingWorks' | translate }}</h2>
         <ol>
-          <li><span>1</span>{{ 'lookup.stepOne' | translate }}</li>
           <li>
-            <span>2</span>{{ 'lookup.stepTwo' | translate }} <strong>Default</strong>
-            {{ 'lookup.defaultFastOption' | translate }}
+            <span class="side-card__step-number">1</span>
+            <span class="side-card__step-copy">{{ 'lookup.stepOne' | translate }}</span>
           </li>
-          <li><span>3</span>{{ 'lookup.stepThree' | translate }}</li>
+          <li>
+            <span class="side-card__step-number">2</span>
+            <span class="side-card__step-copy"
+              >{{ 'lookup.stepTwo' | translate }}
+              <strong>{{ 'lookup.defaultDeck' | translate }}</strong>
+              {{ 'lookup.defaultFastOption' | translate }}</span
+            >
+          </li>
+          <li>
+            <span class="side-card__step-number">3</span>
+            <span class="side-card__step-copy">{{ 'lookup.stepThree' | translate }}</span>
+          </li>
         </ol>
       </article>
       <article class="side-card">

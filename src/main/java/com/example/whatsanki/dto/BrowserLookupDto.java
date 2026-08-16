@@ -9,5 +9,6 @@ public record BrowserLookupDto(String reference, LookupSessionEntity.Status stat
                                String lemma, List<SenseDto> senses, List<ContextDto> contexts) {
     public record SenseDto(String partOfSpeech, String definition) { }
     public record ContextDto(int number, String sourceReference, String sourceKind, String sourceDisplayName,
-                             int ordinal, String displayText, Integer pageNumber, Long startMs, String youtubeUrl) { }
+                             int ordinal, String displayText, Integer pageNumber, Long startMs,
+                             String youtubeUrl, String originUrl) { }
 }

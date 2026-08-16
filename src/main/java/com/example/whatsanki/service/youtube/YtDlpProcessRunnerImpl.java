@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Deprecated(forRemoval = true)
 public class YtDlpProcessRunnerImpl implements YtDlpProcessRunner {
     private final WhatsAnkiConfigurationDto configuration;
 

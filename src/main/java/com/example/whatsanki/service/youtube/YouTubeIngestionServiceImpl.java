@@ -15,6 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Deprecated(forRemoval = true)
 public class YouTubeIngestionServiceImpl implements YouTubeIngestionService {
     private final YouTubeIngestionLifecycleService lifecycleService;
     private final YouTubeSubtitleProvider subtitleProvider;

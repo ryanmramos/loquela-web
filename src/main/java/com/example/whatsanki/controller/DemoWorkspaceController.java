@@ -91,12 +91,15 @@ public class DemoWorkspaceController {
                 .body(demoWorkspaceService.ingestPdf(session, file, request));
     }
 
-    @PostMapping("/sources/youtube")
-    @Operation(operationId = "createDemoYouTubeSource")
-    public ResponseEntity<DemoDtos.WorkspaceView> youtube(HttpSession session,
-            @Valid @RequestBody DemoDtos.YouTubeRequest body, HttpServletRequest request) {
+    @PostMapping(path = "/sources/timed-transcript", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(operationId = "createDemoTimedTranscriptSource")
+    public ResponseEntity<DemoDtos.WorkspaceView> timedTranscript(HttpSession session,
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(required = false) String originUrl,
+            @RequestParam(defaultValue = "0") long timelineOffsetMs,
+            HttpServletRequest request) {
         return ResponseEntity.accepted().cacheControl(NO_STORE)
-                .body(demoWorkspaceService.ingestYouTube(session, body, request));
+                .body(demoWorkspaceService.ingestTimedTranscript(session, file, originUrl, timelineOffsetMs, request));
     }
 
     @PostMapping("/sources/{source-type}/retry")

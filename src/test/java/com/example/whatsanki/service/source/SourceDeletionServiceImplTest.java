@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 class SourceDeletionServiceImplTest {
 
     @Mock private SourceDocumentRepository sourceDocumentRepository;
+    @Mock private com.example.whatsanki.repository.TimedTranscriptMetadataRepository timedTranscriptMetadataRepository;
     @Mock private BackgroundJobRepository backgroundJobRepository;
     @Mock private InboundMessageRepository inboundMessageRepository;
     @Mock private ObjectStore objectStore;
@@ -48,6 +49,7 @@ class SourceDeletionServiceImplTest {
     void setUp() {
         service = new SourceDeletionServiceImpl(
                 sourceDocumentRepository,
+                timedTranscriptMetadataRepository,
                 backgroundJobRepository,
                 inboundMessageRepository,
                 objectStore,

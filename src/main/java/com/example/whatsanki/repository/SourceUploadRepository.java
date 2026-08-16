@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.Repository;
 
 import java.util.Optional;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public interface SourceUploadRepository extends Repository<SourceUploadEntity, UUID> {
@@ -13,4 +15,5 @@ public interface SourceUploadRepository extends Repository<SourceUploadEntity, U
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<SourceUploadEntity> findForUpdateByIdAndUserId(UUID id, UUID userId);
+    List<SourceUploadEntity> findAllByStateAndExpiresAtBefore(SourceUploadEntity.State state, Instant cutoff);
 }

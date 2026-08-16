@@ -7,4 +7,5 @@ export interface Capabilities {
   ingestionEnabled?: boolean;
   limits?: Limits;
   supportedLanguagePairs?: Array<string>;
+  timedTranscriptEnabled?: boolean;
 }

@@ -25,6 +25,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Deprecated(forRemoval = true)
 public class YouTubeIngestionLifecycleService {
     private final SourceDocumentRepository sourceDocumentRepository;
     private final VideoSourceRepository videoSourceRepository;
