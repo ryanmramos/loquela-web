@@ -9,12 +9,13 @@ import { safeAuthenticatedReturnUrl } from '@core/auth/return-url';
 import { SessionFacade } from '@core/auth/session-facade';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { Alert } from '@app/shared/components/alert/alert';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 import { DemoApi } from '@api/api-adapters/demo-api';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-login-page',
-  imports: [Alert, ButtonDirective, TranslatePipe],
+  imports: [Alert, AppIcon, ButtonDirective, TranslatePipe],
   templateUrl: './login-page.html',
   styleUrl: './login-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

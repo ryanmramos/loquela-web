@@ -1,38 +1,33 @@
 <main class="login-layout">
   <section class="login-panel" aria-labelledby="login-title">
     <div class="login-box">
-      <a class="brand" href="/login" aria-label="Loquela sign in">
+      <a class="brand" href="/login" [attr.aria-label]="'login.brandLabel' | translate">
         <span class="brand__mark" aria-hidden="true">LQ</span>
         <span>Loquela</span>
       </a>
 
-      <p class="eyebrow">Your language workspace</p>
-      <h1 id="login-title">Turn what you read into what you remember.</h1>
-      <p class="intro">
-        Build sources, contextual cards, study sessions, and Anki decks in one focused web
-        workspace.
-      </p>
+      <h1 id="login-title">{{ 'login.title' | translate }}</h1>
+      <p class="intro">{{ 'login.intro' | translate }}</p>
 
       @if (reason === 'session-expired') {
-        <app-alert title="Your session expired" tone="warning">
-          Sign in again to continue where you left off.
+        <app-alert [title]="'login.sessionExpiredTitle' | translate" tone="warning">
+          {{ 'login.sessionExpiredDescription' | translate }}
         </app-alert>
       } @else if (reason === 'account-disabled') {
-        <app-alert title="Account unavailable" tone="danger">
-          This account cannot access Loquela. Contact support if you believe this is a mistake.
+        <app-alert [title]="'login.accountUnavailableTitle' | translate" tone="danger">
+          {{ 'login.accountUnavailableDescription' | translate }}
         </app-alert>
       } @else if (reason === 'account-deleted') {
-        <app-alert title="Account deleted" tone="success">
-          Your account and its Loquela data have been deleted.
+        <app-alert [title]="'login.accountDeletedTitle' | translate" tone="success">
+          {{ 'login.accountDeletedDescription' | translate }}
         </app-alert>
       } @else if (reason === 'oauth-error') {
-        <app-alert title="Google sign-in was not completed" tone="warning">
-          Try again. If the problem continues, contact support.
+        <app-alert [title]="'login.googleErrorTitle' | translate" tone="warning">
+          {{ 'login.googleErrorDescription' | translate }}
         </app-alert>
       } @else if (reason === 'access-denied') {
-        <app-alert title="Account unavailable" tone="danger">
-          This Google account does not have access to Loquela. Contact an administrator if you
-          believe this is a mistake.
+        <app-alert [title]="'login.accessDeniedTitle' | translate" tone="danger">
+          {{ 'login.accessDeniedDescription' | translate }}
         </app-alert>
       } @else if (reason === 'demo-expired') {
         <app-alert [title]="'demo.expiredTitle' | translate" tone="warning">
@@ -41,14 +36,14 @@
       }
 
       @if (loginFailed()) {
-        <app-alert title="Local sign-in failed" tone="danger">
-          Confirm the local backend is running with local login enabled, then try again.
+        <app-alert [title]="'login.localFailedTitle' | translate" tone="danger">
+          {{ 'login.localFailedDescription' | translate }}
         </app-alert>
       }
 
       <a class="google-button" [href]="googleLoginUrl">
         <span class="google-button__mark" aria-hidden="true">G</span>
-        Continue with Google
+        {{ 'login.googleCta' | translate }}
       </a>
 
       @if (demoEnabled()) {
@@ -59,60 +54,82 @@
       }
 
       <p class="legal">
-        By continuing, you agree to Loquela’s Terms of Service and Privacy Policy. Google is used
-        only to verify your identity.
+        {{ 'login.legal' | translate }}
       </p>
 
       @if (localLoginEnabled) {
-        <section class="local-login" aria-labelledby="local-login-title">
-          <div>
-            <p class="eyebrow">Local development</p>
-            <h2 id="local-login-title">Use a test account</h2>
-            <p>These accounts use the local database and never contact Google.</p>
+        <details class="local-login">
+          <summary>
+            <span class="local-login__summary-copy">
+              <strong>{{ 'login.developerSummary' | translate }}</strong>
+              <span>{{ 'login.developerHint' | translate }}</span>
+            </span>
+            <app-icon name="chevron-down" [size]="18" />
+          </summary>
+          <div class="local-login__body">
+            <h2 id="local-login-title">{{ 'login.developerTitle' | translate }}</h2>
+            <p>{{ 'login.developerDescription' | translate }}</p>
+            <div class="local-login__actions">
+              <button
+                appButton
+                variant="secondary"
+                type="button"
+                [disabled]="pendingAccount() !== null"
+                (click)="loginLocally('learner')"
+              >
+                {{
+                  pendingAccount() === 'learner'
+                    ? ('login.signingIn' | translate)
+                    : ('login.localLearner' | translate)
+                }}
+              </button>
+              <button
+                appButton
+                variant="secondary"
+                type="button"
+                [disabled]="pendingAccount() !== null"
+                (click)="loginLocally('reviewer')"
+              >
+                {{
+                  pendingAccount() === 'reviewer'
+                    ? ('login.signingIn' | translate)
+                    : ('login.localReviewer' | translate)
+                }}
+              </button>
+              <button
+                appButton
+                variant="secondary"
+                type="button"
+                [disabled]="pendingAccount() !== null"
+                (click)="loginLocally('admin')"
+              >
+                {{
+                  pendingAccount() === 'admin'
+                    ? ('login.signingIn' | translate)
+                    : ('login.localAdmin' | translate)
+                }}
+              </button>
+            </div>
           </div>
-          <div class="local-login__actions">
-            <button
-              appButton
-              variant="secondary"
-              type="button"
-              [disabled]="pendingAccount() !== null"
-              (click)="loginLocally('learner')"
-            >
-              {{ pendingAccount() === 'learner' ? 'Signing in…' : 'Local Learner' }}
-            </button>
-            <button
-              appButton
-              variant="secondary"
-              type="button"
-              [disabled]="pendingAccount() !== null"
-              (click)="loginLocally('reviewer')"
-            >
-              {{ pendingAccount() === 'reviewer' ? 'Signing in…' : 'Local Reviewer' }}
-            </button>
-            <button
-              appButton
-              variant="secondary"
-              type="button"
-              [disabled]="pendingAccount() !== null"
-              (click)="loginLocally('admin')"
-            >
-              {{ pendingAccount() === 'admin' ? 'Signing in…' : 'Local Admin' }}
-            </button>
-          </div>
-        </section>
+        </details>
       }
     </div>
   </section>
 
-  <aside class="login-art" aria-label="Loquela contextual learning example">
+  <aside class="login-art" [attr.aria-label]="'login.contextAriaLabel' | translate">
     <div class="login-art__content">
-      <p class="eyebrow">From conversation to comprehension</p>
-      <h2>Your reading becomes a personal language corpus.</h2>
+      <h2>{{ 'login.contextTitle' | translate }}</h2>
+      <p class="login-art__description">{{ 'login.contextDescription' | translate }}</p>
       <div class="context-card">
-        <p class="context-card__label">From your source</p>
-        <strong>sobremesa</strong>
-        <span>noun · time spent talking together after a meal</span>
-        <blockquote>“La sobremesa se alargó hasta bien entrada la noche.”</blockquote>
+        <div class="context-card__bar" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="context-card__body">
+          <strong>sobremesa</strong>
+          <span>{{ 'login.contextDefinition' | translate }}</span>
+          <blockquote>{{ 'login.contextQuote' | translate }}</blockquote>
+          <p class="context-card__label">{{ 'login.contextLabel' | translate }}</p>
+        </div>
       </div>
     </div>
   </aside>

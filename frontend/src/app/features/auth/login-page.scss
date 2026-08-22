@@ -9,19 +9,19 @@
 .login-panel {
   display: grid;
   place-items: center;
-  padding: var(--space-10);
+  padding: clamp(var(--space-6), 5vw, var(--space-12));
   background: var(--color-surface-page);
 }
 
 .login-box {
-  width: min(100%, 35rem);
+  width: min(100%, 32rem);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
-  margin-bottom: var(--space-12);
+  margin-bottom: var(--space-10);
   color: var(--color-text);
   font-family: var(--font-family-display);
   font-size: var(--font-size-xl);
@@ -41,27 +41,20 @@
   font-size: var(--font-size-xs);
 }
 
-.eyebrow {
-  margin: 0 0 var(--space-2);
-  color: var(--color-primary);
-  font-size: var(--font-size-xs);
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 h1 {
-  max-width: 13ch;
+  max-width: 14ch;
   margin: 0;
   font-family: var(--font-family-display);
   font-size: var(--font-size-2xl);
-  line-height: var(--line-height-tight);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
 }
 
 .intro {
-  max-width: 34rem;
-  margin: var(--space-5) 0 var(--space-8);
+  max-width: 36rem;
+  margin: var(--space-5) 0 var(--space-7);
   color: var(--color-text-muted);
+  line-height: var(--line-height-body);
 }
 
 app-alert {
@@ -76,17 +69,26 @@ app-alert {
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-primary);
   border-radius: var(--radius-md);
-  background: var(--color-surface-panel);
-  box-shadow: var(--shadow-sm);
-  color: var(--color-text);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   font-weight: 750;
   text-decoration: none;
+  transition:
+    background var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
 }
 
 .google-button:hover {
-  border-color: var(--color-primary);
+  border-color: var(--color-primary-strong);
+  background: var(--color-primary-strong);
+  transform: translateY(-1px);
+}
+
+.google-button:active {
+  transform: translateY(0);
 }
 
 .google-button:focus-visible {
@@ -95,7 +97,7 @@ app-alert {
 }
 
 .google-button__mark {
-  color: var(--color-info);
+  color: var(--color-on-primary);
   font-size: var(--font-size-lg);
   font-weight: 900;
 }
@@ -107,8 +109,10 @@ app-alert {
 }
 
 .legal {
-  margin: var(--space-4) 0 0;
+  max-width: 38rem;
+  margin: var(--space-4) auto 0;
   text-align: center;
+  line-height: var(--line-height-body);
 }
 
 .demo-entry {
@@ -131,16 +135,21 @@ app-alert {
   border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-md);
   background: var(--color-surface-panel) !important;
-  box-shadow: var(--shadow-sm);
   color: var(--color-text) !important;
   font-size: var(--font-size-md);
   font-weight: 750;
+  transition:
+    background var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
 }
 
 .demo-entry__cta.loquela-button:hover:not(:disabled) {
   border-color: var(--color-primary) !important;
   background: var(--color-primary-soft) !important;
   color: var(--color-primary-strong) !important;
+  transform: translateY(-1px);
 }
 
 .demo-entry__cta.loquela-button:focus-visible {
@@ -149,64 +158,136 @@ app-alert {
 }
 
 .local-login {
-  display: grid;
-  gap: var(--space-4);
-  margin-top: var(--space-8);
-  padding: var(--space-5);
+  margin-top: var(--space-7);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-primary-soft);
+  background: color-mix(in srgb, var(--color-primary-soft) 55%, var(--color-surface-panel));
 }
 
-.local-login h2 {
+.local-login > summary {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-primary-strong);
+  cursor: pointer;
+  list-style: none;
+}
+
+.local-login > summary::-webkit-details-marker {
+  display: none;
+}
+
+.local-login > summary app-icon {
+  flex: 0 0 auto;
+  transition: transform var(--motion-fast) var(--ease-standard);
+}
+
+.local-login[open] > summary {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.local-login[open] > summary app-icon {
+  transform: rotate(180deg);
+}
+
+.local-login__summary-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.local-login__summary-copy strong {
+  color: var(--color-text);
+}
+
+.local-login__summary-copy span,
+.local-login__body p {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-body);
+}
+
+.local-login__body {
+  padding: var(--space-4);
+}
+
+.local-login__body h2 {
   margin: 0;
   font-family: var(--font-family-display);
   font-size: var(--font-size-lg);
 }
 
-.local-login p {
+.local-login__body p {
   margin: var(--space-1) 0 0;
 }
 
 .local-login__actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
+  margin-top: var(--space-4);
 }
 
 .login-art {
   display: grid;
   place-items: center;
   overflow: hidden;
-  padding: var(--space-12);
-  background:
-    radial-gradient(circle at 80% 15%, rgb(215 122 43 / 24%), transparent 22rem),
-    var(--color-primary-strong);
-  color: var(--color-on-primary);
+  padding: clamp(var(--space-8), 7vw, var(--space-14));
+  background: var(--color-primary-soft);
+  color: var(--color-text);
 }
 
 .login-art__content {
-  width: min(100%, 31rem);
-}
-
-.login-art .eyebrow {
-  color: var(--color-primary-soft);
+  width: min(100%, 32rem);
 }
 
 .login-art h2 {
-  margin: 0 0 var(--space-8);
+  max-width: 12ch;
+  margin: 0;
   font-family: var(--font-family-display);
   font-size: var(--font-size-2xl);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+.login-art__description {
+  max-width: 31rem;
+  margin: var(--space-4) 0 var(--space-7);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
 }
 
 .context-card {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-on-primary) 18%, transparent);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-strong);
+  box-shadow: var(--shadow-md);
+  color: var(--color-on-primary);
+  transform: rotate(0.8deg);
+  animation: login-context-arrive var(--motion-slow) var(--ease-standard) both;
+}
+
+.context-card__bar {
+  display: flex;
+  gap: 0.35rem;
+  padding: var(--space-4);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-on-primary) 16%, transparent);
+}
+
+.context-card__bar span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-on-primary) 35%, transparent);
+}
+
+.context-card__body {
   display: grid;
   gap: var(--space-3);
-  padding: var(--space-8);
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: var(--radius-lg);
-  background: rgb(255 255 255 / 10%);
-  box-shadow: var(--shadow-md);
+  padding: clamp(var(--space-6), 6vw, var(--space-10));
 }
 
 .context-card__label {
@@ -214,27 +295,38 @@ app-alert {
   margin: 0;
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: var(--color-text);
+  background: var(--color-accent-soft);
+  color: var(--color-warning);
   font-size: var(--font-size-xs);
   font-weight: 800;
 }
 
 .context-card strong {
   font-family: var(--font-family-display);
-  font-size: var(--font-size-xl);
+  font-size: clamp(2.3rem, 5vw, 3.5rem);
 }
 
 .context-card span {
   color: var(--color-primary-soft);
+  line-height: var(--line-height-body);
 }
 
 .context-card blockquote {
-  margin: var(--space-3) 0 0;
-  padding-left: var(--space-4);
-  border-left: 0.2rem solid var(--color-accent);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-on-primary) 10%, transparent);
   font-family: var(--font-family-display);
-  font-size: var(--font-size-lg);
+  line-height: var(--line-height-body);
+}
+
+@keyframes login-context-arrive {
+  from {
+    transform: translateY(0.5rem) rotate(0.8deg);
+  }
+  to {
+    transform: translateY(0) rotate(0.8deg);
+  }
 }
 
 @media (max-width: tokens.$breakpoint-tablet) {
@@ -259,5 +351,6 @@ app-alert {
 
   .local-login__actions {
     display: grid;
+    grid-template-columns: 1fr;
   }
 }
