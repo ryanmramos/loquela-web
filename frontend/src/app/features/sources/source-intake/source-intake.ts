@@ -19,6 +19,7 @@ import { TimedTranscriptHelp } from '@app/shared/components/timed-transcript-hel
 import { SettingsApi } from '@api/api-adapters/settings-api';
 
 type IntakeStatus = 'idle' | 'submitting' | 'error';
+type TimelineOffsetUnit = 'hours' | 'minutes' | 'seconds';
 
 @Component({
   selector: 'app-source-intake',
@@ -127,6 +128,29 @@ export class SourceIntake {
         this.timelineOffsetMilliseconds(value),
       ),
     );
+  }
+
+  adjustTimelineOffset(event: WheelEvent, unit: TimelineOffsetUnit): void {
+    event.preventDefault();
+    this.changeTimelineOffset(unit, event.deltaY < 0 ? 1 : -1);
+  }
+
+  adjustTimelineOffsetKeyboard(event: KeyboardEvent, unit: TimelineOffsetUnit): void {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    this.changeTimelineOffset(unit, event.key === 'ArrowUp' ? 1 : -1);
+  }
+
+  private changeTimelineOffset(unit: TimelineOffsetUnit, delta: number): void {
+    const control =
+      unit === 'hours'
+        ? this.transcript.controls.timelineOffsetHours
+        : unit === 'minutes'
+          ? this.transcript.controls.timelineOffsetMinutes
+          : this.transcript.controls.timelineOffsetSeconds;
+    const maximum = unit === 'hours' ? Number.MAX_SAFE_INTEGER : 59;
+    const value = Math.min(maximum, Math.max(0, (control.value ?? 0) + delta));
+    control.setValue(value);
   }
 
   private timelineOffsetMilliseconds(value: {

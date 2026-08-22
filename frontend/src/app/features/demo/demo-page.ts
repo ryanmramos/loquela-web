@@ -55,6 +55,7 @@ interface HighlightSegment {
   text: string;
   highlighted: boolean;
 }
+type TranscriptOffsetUnit = 'hours' | 'minutes' | 'seconds';
 
 const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/u;
 
@@ -220,6 +221,33 @@ export class DemoPage implements OnInit, OnDestroy {
         this.acceptWorkspace(workspace);
       },
     );
+  }
+
+  adjustTranscriptOffset(event: WheelEvent, unit: TranscriptOffsetUnit): void {
+    event.preventDefault();
+    this.changeTranscriptOffset(unit, event.deltaY < 0 ? 1 : -1);
+  }
+
+  adjustTranscriptOffsetKeyboard(event: KeyboardEvent, unit: TranscriptOffsetUnit): void {
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    this.changeTranscriptOffset(unit, event.key === 'ArrowUp' ? 1 : -1);
+  }
+
+  private changeTranscriptOffset(unit: TranscriptOffsetUnit, delta: number): void {
+    if (unit === 'hours') {
+      this.transcriptOffsetHours = Math.max(0, this.transcriptOffsetHours + delta);
+    } else if (unit === 'minutes') {
+      this.transcriptOffsetMinutes = Math.min(
+        59,
+        Math.max(0, this.transcriptOffsetMinutes + delta),
+      );
+    } else {
+      this.transcriptOffsetSeconds = Math.min(
+        59,
+        Math.max(0, this.transcriptOffsetSeconds + delta),
+      );
+    }
   }
 
   private transcriptOffsetMilliseconds(): number {

@@ -84,6 +84,7 @@ header > p:last-child,
   min-height: 2.5rem;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
   color: var(--color-primary-strong);
   cursor: pointer;
   font-weight: 700;
@@ -94,26 +95,42 @@ header > p:last-child,
   display: none;
 }
 
-.intake-card details > summary::after {
-  content: '⌄';
-  display: inline-grid;
-  width: 1.25rem;
-  height: 1.25rem;
-  flex: 0 0 1.25rem;
-  place-items: center;
-  color: var(--color-primary);
-  line-height: 1;
+.intake-card details > summary app-icon {
+  flex: 0 0 auto;
   transition: transform var(--motion-fast) var(--ease-standard);
 }
 
-.intake-card details[open] > summary::after {
+.intake-card details[open] > summary app-icon {
   transform: rotate(180deg);
+}
+
+.timeline-offset__summary-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.timeline-offset__summary-copy strong {
+  color: var(--color-text);
+}
+
+.timeline-offset__summary-copy span,
+.timeline-offset__heading > span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: var(--line-height-body);
 }
 
 .timeline-offset {
   display: grid;
   gap: var(--space-2);
   padding-top: var(--space-3);
+}
+
+.timeline-offset__heading {
+  display: grid;
+  gap: 0.2rem;
 }
 
 .timeline-offset__label,
@@ -135,6 +152,12 @@ header > p:last-child,
 
 .timeline-offset input {
   width: 100%;
+  min-height: 2.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-offset__label {
+  color: var(--color-text);
 }
 
 .intake-card select {
@@ -146,11 +169,6 @@ header > p:last-child,
   background: var(--color-surface-raised);
   color: var(--color-text);
   font: inherit;
-}
-
-.timeline-offset small {
-  color: var(--color-text-muted);
-  line-height: var(--line-height-body);
 }
 
 .intake-card button {

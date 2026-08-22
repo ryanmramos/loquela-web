@@ -1,106 +1,186 @@
 <details class="transcript-help">
-  <summary>{{ 'timedHelp.title' | translate }}</summary>
+  <summary>
+    <span class="transcript-help__summary-copy">
+      <strong>{{ 'timedHelp.title' | translate }}</strong>
+      <span>{{ 'timedHelp.summary' | translate }}</span>
+    </span>
+    <app-icon name="chevron-down" [size]="18" />
+  </summary>
   <div class="transcript-help__body">
-    <p>
-      {{ 'timedHelp.localOnly' | translate }}
-      <a
-        href="https://github.com/yt-dlp/yt-dlp/wiki/Installation"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {{ 'timedHelp.install' | translate }}
-      </a>
-    </p>
-    <p>{{ 'timedHelp.rights' | translate }}</p>
-    <ol>
-      <li>
+    <div class="transcript-help__intro">
+      <div class="transcript-help__privacy">
+        <app-icon name="shield" [size]="18" />
+        <p>
+          {{ 'timedHelp.localOnly' | translate }}
+          <a
+            href="https://github.com/yt-dlp/yt-dlp/wiki/Installation"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ 'timedHelp.install' | translate }}
+          </a>
+        </p>
+      </div>
+      <p class="transcript-help__rights">{{ 'timedHelp.rights' | translate }}</p>
+    </div>
+
+    <ol class="transcript-steps">
+      <li class="transcript-step">
+        <div class="transcript-step__heading">
+          <span class="transcript-step__number">1</span>
+          <strong>{{ 'timedHelp.stepLanguages' | translate }}</strong>
+        </div>
         <p>{{ 'timedHelp.listLanguages' | translate }}</p>
-        <pre><code>{{ listCommand }}</code></pre>
-        <button appButton type="button" variant="secondary" (click)="copy('list', listCommand)">
-          {{ (copied() === 'list' ? 'timedHelp.copied' : 'timedHelp.copy') | translate }}
-        </button>
+        <details class="transcript-command">
+          <summary>
+            <span>{{ 'timedHelp.showCommand' | translate }}</span>
+            <app-icon name="chevron-down" [size]="16" />
+          </summary>
+          <div class="transcript-command__body">
+            <pre><code>{{ listCommand }}</code></pre>
+            <button appButton type="button" variant="secondary" (click)="copy('list', listCommand)">
+              {{ (copied() === 'list' ? 'timedHelp.copied' : 'timedHelp.copy') | translate }}
+            </button>
+          </div>
+        </details>
       </li>
-      <li>
+
+      <li class="transcript-step">
+        <div class="transcript-step__heading">
+          <span class="transcript-step__number">2</span>
+          <strong>{{ 'timedHelp.stepVtt' | translate }}</strong>
+        </div>
         <p>{{ 'timedHelp.vtt' | translate }}</p>
-        <pre><code>{{ vttCommand }}</code></pre>
-        <button appButton type="button" variant="secondary" (click)="copy('vtt', vttCommand)">
-          {{ (copied() === 'vtt' ? 'timedHelp.copied' : 'timedHelp.copy') | translate }}
-        </button>
+        <details class="transcript-command">
+          <summary>
+            <span>{{ 'timedHelp.showCommand' | translate }}</span>
+            <app-icon name="chevron-down" [size]="16" />
+          </summary>
+          <div class="transcript-command__body">
+            <pre><code>{{ vttCommand }}</code></pre>
+            <button appButton type="button" variant="secondary" (click)="copy('vtt', vttCommand)">
+              {{ (copied() === 'vtt' ? 'timedHelp.copied' : 'timedHelp.copy') | translate }}
+            </button>
+          </div>
+        </details>
       </li>
-      <li>
+
+      <li class="transcript-step">
+        <div class="transcript-step__heading">
+          <span class="transcript-step__number">3</span>
+          <strong>{{ 'timedHelp.stepSrt' | translate }}</strong>
+        </div>
         <p>{{ 'timedHelp.srt' | translate }}</p>
-        <pre><code>{{ srtCommand }}</code></pre>
-        <button appButton type="button" variant="secondary" (click)="copy('srt', srtCommand)">
-          {{ (copied() === 'srt' ? 'timedHelp.copied' : 'timedHelp.copy') | translate }}
-        </button>
+        <details class="transcript-command">
+          <summary>
+            <span>{{ 'timedHelp.showCommand' | translate }}</span>
+            <app-icon name="chevron-down" [size]="16" />
+          </summary>
+          <div class="transcript-command__body">
+            <pre><code>{{ srtCommand }}</code></pre>
+            <button appButton type="button" variant="secondary" (click)="copy('srt', srtCommand)">
+              {{ (copied() === 'srt' ? 'timedHelp.copied' : 'timedHelp.copy') | translate }}
+            </button>
+          </div>
+        </details>
       </li>
     </ol>
-    <p>{{ 'timedHelp.finish' | translate }}</p>
+
+    <p class="transcript-help__finish">{{ 'timedHelp.finish' | translate }}</p>
+
     <details class="command-generator">
-      <summary>{{ 'timedHelp.generatorTitle' | translate }}</summary>
-      <p>{{ 'timedHelp.generatorPrivacy' | translate }}</p>
-      <div class="command-generator__fields">
-        <label for="timed-help-url">{{ 'timedHelp.videoUrl' | translate }}</label>
-        <input
-          id="timed-help-url"
-          type="url"
-          inputmode="url"
-          autocomplete="off"
-          [value]="videoUrl()"
-          (input)="setVideoUrl($any($event.target).value)"
-        />
-        <label for="timed-help-language">{{ 'timedHelp.languageCode' | translate }}</label>
-        <select
-          id="timed-help-language"
-          [value]="languageCode()"
-          (change)="setLanguageCode($any($event.target).value)"
-        >
-          <option value="">{{ 'timedHelp.chooseLanguage' | translate }}</option>
-          @for (code of languageOptions(); track code) {
-            <option [value]="code">{{ languageName(code) }} ({{ code }})</option>
-          }
-        </select>
-        <label for="timed-help-choice">{{ 'timedHelp.subtitleChoice' | translate }}</label>
-        <select
-          id="timed-help-choice"
-          [value]="subtitleChoice()"
-          (change)="setSubtitleChoice($any($event.target).value)"
-        >
-          <option value="prefer-manual">{{ 'timedHelp.preferManual' | translate }}</option>
-          <option value="manual">{{ 'timedHelp.manualOnly' | translate }}</option>
-          <option value="automatic">{{ 'timedHelp.automaticOnly' | translate }}</option>
-        </select>
-        <label for="timed-help-format">{{ 'timedHelp.format' | translate }}</label>
-        <select
-          id="timed-help-format"
-          [value]="format()"
-          (change)="setFormat($any($event.target).value)"
-        >
-          <option value="vtt">VTT</option>
-          <option value="srt">SRT</option>
-        </select>
-        <label for="timed-help-shell">{{ 'timedHelp.shell' | translate }}</label>
-        <select
-          id="timed-help-shell"
-          [value]="shell()"
-          (change)="setShell($any($event.target).value)"
-        >
-          <option value="posix">macOS / Linux</option>
-          <option value="powershell">PowerShell</option>
-        </select>
+      <summary>
+        <span class="command-generator__summary-copy">
+          <strong>{{ 'timedHelp.generatorTitle' | translate }}</strong>
+          <span>{{ 'timedHelp.generatorHint' | translate }}</span>
+        </span>
+        <app-icon name="chevron-down" [size]="18" />
+      </summary>
+      <div class="command-generator__body">
+        <p class="command-generator__privacy">
+          <app-icon name="shield" [size]="18" />
+          <span>{{ 'timedHelp.generatorPrivacy' | translate }}</span>
+        </p>
+        <div class="command-generator__fields">
+          <label class="command-generator__field" for="timed-help-url">
+            <span>{{ 'timedHelp.videoUrl' | translate }}</span>
+            <input
+              id="timed-help-url"
+              type="url"
+              inputmode="url"
+              autocomplete="off"
+              [value]="videoUrl()"
+              (input)="setVideoUrl($any($event.target).value)"
+            />
+          </label>
+          <label class="command-generator__field" for="timed-help-language">
+            <span>{{ 'timedHelp.languageCode' | translate }}</span>
+            <select
+              id="timed-help-language"
+              [value]="languageCode()"
+              (change)="setLanguageCode($any($event.target).value)"
+            >
+              <option value="">{{ 'timedHelp.chooseLanguage' | translate }}</option>
+              @for (code of languageOptions(); track code) {
+                <option [value]="code">{{ languageName(code) }} ({{ code }})</option>
+              }
+            </select>
+          </label>
+          <label class="command-generator__field" for="timed-help-choice">
+            <span>{{ 'timedHelp.subtitleChoice' | translate }}</span>
+            <select
+              id="timed-help-choice"
+              [value]="subtitleChoice()"
+              (change)="setSubtitleChoice($any($event.target).value)"
+            >
+              <option value="prefer-manual">{{ 'timedHelp.preferManual' | translate }}</option>
+              <option value="manual">{{ 'timedHelp.manualOnly' | translate }}</option>
+              <option value="automatic">{{ 'timedHelp.automaticOnly' | translate }}</option>
+            </select>
+          </label>
+          <label class="command-generator__field" for="timed-help-format">
+            <span>{{ 'timedHelp.format' | translate }}</span>
+            <select
+              id="timed-help-format"
+              [value]="format()"
+              (change)="setFormat($any($event.target).value)"
+            >
+              <option value="vtt">VTT</option>
+              <option value="srt">SRT</option>
+            </select>
+          </label>
+          <label class="command-generator__field" for="timed-help-shell">
+            <span>{{ 'timedHelp.shell' | translate }}</span>
+            <select
+              id="timed-help-shell"
+              [value]="shell()"
+              (change)="setShell($any($event.target).value)"
+            >
+              <option value="posix">macOS / Linux</option>
+              <option value="powershell">PowerShell</option>
+            </select>
+          </label>
+        </div>
+        <div class="command-generator__output">
+          <span class="command-generator__output-label">
+            {{ 'timedHelp.generatedCommand' | translate }}
+          </span>
+          <pre><code>{{ generatedCommand() }}</code></pre>
+          <button
+            appButton
+            type="button"
+            variant="secondary"
+            (click)="copy('generated', generatedCommand())"
+          >
+            {{
+              (copied() === 'generated' ? 'timedHelp.copied' : 'timedHelp.copyGenerated')
+                | translate
+            }}
+          </button>
+        </div>
       </div>
-      <pre><code>{{ generatedCommand() }}</code></pre>
-      <button
-        appButton
-        type="button"
-        variant="secondary"
-        (click)="copy('generated', generatedCommand())"
-      >
-        {{
-          (copied() === 'generated' ? 'timedHelp.copied' : 'timedHelp.copyGenerated') | translate
-        }}
-      </button>
     </details>
+
     <p class="copy-status" aria-live="polite">
       @if (copyFailed()) {
         {{ 'timedHelp.copyFailed' | translate }}

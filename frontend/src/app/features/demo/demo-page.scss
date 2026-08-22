@@ -1,8 +1,9 @@
 @use '../../../styles/tokens' as tokens;
 
 .demo {
-  width: min(100% - 2rem, 76rem);
+  width: min(100% - 3rem, 90rem);
   margin: auto;
+  padding-top: var(--space-4);
   padding-bottom: var(--space-12);
 }
 .demo__header,
@@ -98,21 +99,21 @@ h3 {
 .demo-welcome {
   display: grid;
   min-height: calc(100dvh - 9rem);
-  grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.85fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(20rem, 0.95fr);
   align-items: center;
   gap: clamp(var(--space-8), 8vw, var(--space-12));
-  padding: var(--space-8) 0 var(--space-12);
+  padding: var(--space-10) 0 var(--space-12);
 }
 .demo-welcome__copy {
   justify-items: start;
   gap: var(--space-5);
 }
 .demo-welcome h1 {
-  max-width: 10ch;
+  max-width: 12ch;
   margin: 0;
   font-size: clamp(2.5rem, 6vw, 4.25rem);
-  letter-spacing: -0.055em;
-  line-height: 0.98;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
 }
 .demo-welcome__copy > p:not(.eyebrow) {
   max-width: 33rem;
@@ -127,26 +128,25 @@ h3 {
 }
 .demo-preview {
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid color-mix(in srgb, var(--color-on-primary) 18%, transparent);
   border-radius: var(--radius-lg);
-  background:
-    radial-gradient(circle at 90% 5%, rgb(215 122 43 / 30%), transparent 13rem),
-    var(--color-primary-strong);
+  background: var(--color-primary-strong);
   box-shadow: var(--shadow-md);
   color: var(--color-on-primary);
-  transform: rotate(2deg);
+  transform: rotate(0.8deg);
+  animation: demo-preview-arrive var(--motion-slow) var(--ease-standard) both;
 }
 .demo-preview__bar {
   display: flex;
   gap: 0.35rem;
   padding: var(--space-4);
-  border-bottom: 1px solid rgb(255 255 255 / 16%);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-on-primary) 16%, transparent);
 }
 .demo-preview__bar span {
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 50%;
-  background: rgb(255 255 255 / 35%);
+  background: color-mix(in srgb, var(--color-on-primary) 35%, transparent);
 }
 .demo-preview__body {
   padding: clamp(var(--space-6), 6vw, var(--space-10));
@@ -165,17 +165,20 @@ h3 {
 .demo-preview blockquote,
 .context-result blockquote {
   margin: 0;
-  border-left: 0.2rem solid var(--color-accent);
   padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
   font-family: var(--font-family-display);
   line-height: var(--line-height-body);
+}
+.demo-preview blockquote {
+  background: color-mix(in srgb, var(--color-on-primary) 10%, transparent);
 }
 .demo-preview__card {
   width: fit-content;
   padding: 0.3rem 0.6rem;
   border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: var(--color-text);
+  background: var(--color-accent-soft);
+  color: var(--color-warning);
   font-size: var(--font-size-xs);
   font-weight: 800;
 }
@@ -187,15 +190,37 @@ h3 {
 }
 .workspace-heading {
   align-items: flex-end;
-  margin: var(--space-6) 0;
+  margin: var(--space-10) 0 var(--space-6);
 }
 .workspace-heading h1 {
   margin: var(--space-1) 0 0;
   font-size: var(--font-size-2xl);
+  letter-spacing: -0.03em;
+}
+.workspace-heading__description,
+.section-description {
+  max-width: 44rem;
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
 }
 .section-heading h2 {
   margin: var(--space-1) 0 0;
   font-size: var(--font-size-xl);
+  letter-spacing: -0.02em;
+}
+.section-heading .section-description {
+  max-width: 36rem;
+}
+
+@keyframes demo-preview-arrive {
+  from {
+    transform: translateY(0.5rem) rotate(0.8deg);
+  }
+  to {
+    transform: translateY(0) rotate(0.8deg);
+  }
 }
 
 @media (max-width: tokens.$breakpoint-tablet) {
@@ -211,10 +236,13 @@ h3 {
 
 @media (max-width: tokens.$breakpoint-mobile) {
   .demo {
-    width: min(100% - 1.5rem, 76rem);
+    width: min(100% - 1.5rem, 90rem);
+    padding-top: var(--space-2);
   }
   .workspace-heading {
-    margin-top: var(--space-4);
+    align-items: stretch;
+    flex-direction: column;
+    margin-top: var(--space-6);
   }
   .demo__header {
     min-height: 4.25rem;
@@ -238,8 +266,21 @@ h3 {
   }
 }
 
+@media (max-width: 22rem) {
+  .demo__header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    padding-bottom: var(--space-3);
+  }
+  .demo__actions {
+    flex-basis: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .demo-preview {
     transform: none;
+    animation: none;
   }
 }

@@ -522,8 +522,10 @@ const translations = {
     'sourcesIntake.originUrl': 'Origin URL (optional)',
     'sourcesIntake.originHint': 'HTTPS provenance only. Loquela never requests this URL.',
     'sourcesIntake.advanced': 'Advanced timing',
+    'sourcesIntake.timingSummary': 'Set a timeline offset (optional)',
+    'sourcesIntake.timingHint': 'Use the scroll wheel or arrow keys to adjust.',
     'sourcesIntake.offset': 'Timeline offset (milliseconds)',
-    'sourcesIntake.offsetHint': 'Use 0:00:00 for a full-length transcript.',
+    'sourcesIntake.offsetHint': 'Leave at 0:00:00 for a full-length transcript.',
     'sourcesIntake.timingOffset': 'Timeline offset',
     'sourcesIntake.offsetHours': 'Hours',
     'sourcesIntake.offsetMinutes': 'Minutes',
@@ -544,10 +546,15 @@ const translations = {
     'sourcesIntake.submitError':
       'The source could not be added. Check your connection and try again.',
     'timedHelp.title': 'How do I get a timed transcript?',
+    'timedHelp.summary': 'Prepare a .vtt or .srt file on your computer.',
     'timedHelp.localOnly':
       'These commands run on your computer. Loquela never downloads from YouTube.',
     'timedHelp.install': 'Official yt-dlp installation instructions ↗',
     'timedHelp.rights': 'Make sure you have permission to download and process the captions.',
+    'timedHelp.stepLanguages': 'Find the subtitle language code',
+    'timedHelp.stepVtt': 'Download captions as VTT',
+    'timedHelp.stepSrt': 'Download captions as SRT',
+    'timedHelp.showCommand': 'Show command',
     'timedHelp.listLanguages': 'First, inspect the available subtitle language codes:',
     'timedHelp.vtt': 'Download VTT, preferring manual subtitles with automatic-caption fallback:',
     'timedHelp.srt': 'Download the equivalent SRT file:',
@@ -556,6 +563,7 @@ const translations = {
     'timedHelp.finish':
       'Replace LANGUAGE_CODE with a value from --list-subs, select that same language in Loquela, and upload the resulting file.',
     'timedHelp.generatorTitle': 'Build a command for my video',
+    'timedHelp.generatorHint': 'Fill in the details and copy a ready-to-run command.',
     'timedHelp.generatorPrivacy':
       'This generator runs only in your browser. It never executes the command or sends the video URL to Loquela.',
     'timedHelp.videoUrl': 'Video URL',
@@ -567,6 +575,7 @@ const translations = {
     'timedHelp.automaticOnly': 'Automatic only',
     'timedHelp.format': 'Output format',
     'timedHelp.shell': 'Shell',
+    'timedHelp.generatedCommand': 'Generated command',
     'timedHelp.copyGenerated': 'Copy generated command',
     'timedHelp.copyFailed':
       'The browser could not copy the command. Select the visible command and copy it manually.',
@@ -1339,8 +1348,10 @@ const translations = {
     'sourcesIntake.originUrl': 'URL de origen (opcional)',
     'sourcesIntake.originHint': 'Solo procedencia HTTPS. Loquela nunca solicita esta URL.',
     'sourcesIntake.advanced': 'Tiempos avanzados',
+    'sourcesIntake.timingSummary': 'Ajustar el desfase de tiempo (opcional)',
+    'sourcesIntake.timingHint': 'Usa la rueda del ratón o las flechas del teclado para ajustarlo.',
     'sourcesIntake.offset': 'Desfase de la línea temporal (milisegundos)',
-    'sourcesIntake.offsetHint': 'Usa 0:00:00 para una transcripción completa.',
+    'sourcesIntake.offsetHint': 'Déjalo en 0:00:00 para una transcripción completa.',
     'sourcesIntake.timingOffset': 'Desfase de la línea temporal',
     'sourcesIntake.offsetHours': 'Horas',
     'sourcesIntake.offsetMinutes': 'Minutos',
@@ -1361,10 +1372,15 @@ const translations = {
     'sourcesIntake.submitError':
       'No se pudo añadir la fuente. Comprueba la conexión e inténtalo de nuevo.',
     'timedHelp.title': '¿Cómo consigo una transcripción con tiempos?',
+    'timedHelp.summary': 'Prepara un archivo .vtt o .srt en tu ordenador.',
     'timedHelp.localOnly':
       'Estos comandos se ejecutan en tu ordenador. Loquela nunca descarga de YouTube.',
     'timedHelp.install': 'Instrucciones oficiales de instalación de yt-dlp ↗',
     'timedHelp.rights': 'Asegúrate de tener permiso para descargar y procesar los subtítulos.',
+    'timedHelp.stepLanguages': 'Busca el código del idioma de los subtítulos',
+    'timedHelp.stepVtt': 'Descarga los subtítulos como VTT',
+    'timedHelp.stepSrt': 'Descarga los subtítulos como SRT',
+    'timedHelp.showCommand': 'Mostrar comando',
     'timedHelp.listLanguages': 'Primero, consulta los códigos de idioma disponibles:',
     'timedHelp.vtt':
       'Descarga VTT, dando prioridad a subtítulos manuales y usando automáticos como alternativa:',
@@ -1374,6 +1390,7 @@ const translations = {
     'timedHelp.finish':
       'Sustituye LANGUAGE_CODE por un valor de --list-subs, elige el mismo idioma en Loquela y sube el archivo resultante.',
     'timedHelp.generatorTitle': 'Crear un comando para mi vídeo',
+    'timedHelp.generatorHint': 'Completa los datos y copia un comando listo para usar.',
     'timedHelp.generatorPrivacy':
       'Este generador solo funciona en tu navegador. Nunca ejecuta el comando ni envía la URL del vídeo a Loquela.',
     'timedHelp.videoUrl': 'URL del vídeo',
@@ -1385,6 +1402,7 @@ const translations = {
     'timedHelp.automaticOnly': 'Solo automáticos',
     'timedHelp.format': 'Formato de salida',
     'timedHelp.shell': 'Intérprete de comandos',
+    'timedHelp.generatedCommand': 'Comando generado',
     'timedHelp.copyGenerated': 'Copiar comando generado',
     'timedHelp.copyFailed':
       'El navegador no pudo copiar el comando. Selecciona el comando visible y cópialo manualmente.',

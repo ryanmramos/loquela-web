@@ -86,11 +86,20 @@
           />
         </app-form-field>
         <details>
-          <summary>{{ 'sourcesIntake.advanced' | translate }}</summary>
+          <summary>
+            <span class="timeline-offset__summary-copy">
+              <strong>{{ 'sourcesIntake.timingSummary' | translate }}</strong>
+              <span>{{ 'sourcesIntake.timingHint' | translate }}</span>
+            </span>
+            <app-icon name="chevron-down" [size]="18" />
+          </summary>
           <div class="timeline-offset">
-            <span class="timeline-offset__label">{{
-              'sourcesIntake.timingOffset' | translate
-            }}</span>
+            <div class="timeline-offset__heading">
+              <strong class="timeline-offset__label">{{
+                'sourcesIntake.timingOffset' | translate
+              }}</strong>
+              <span>{{ 'sourcesIntake.offsetHint' | translate }}</span>
+            </div>
             <div class="timeline-offset__fields">
               <label>
                 <span>{{ 'sourcesIntake.offsetHours' | translate }}</span>
@@ -100,6 +109,8 @@
                   min="0"
                   step="1"
                   formControlName="timelineOffsetHours"
+                  (wheel)="adjustTimelineOffset($event, 'hours')"
+                  (keydown)="adjustTimelineOffsetKeyboard($event, 'hours')"
                 />
               </label>
               <label>
@@ -111,6 +122,8 @@
                   max="59"
                   step="1"
                   formControlName="timelineOffsetMinutes"
+                  (wheel)="adjustTimelineOffset($event, 'minutes')"
+                  (keydown)="adjustTimelineOffsetKeyboard($event, 'minutes')"
                 />
               </label>
               <label>
@@ -122,10 +135,11 @@
                   max="59"
                   step="1"
                   formControlName="timelineOffsetSeconds"
+                  (wheel)="adjustTimelineOffset($event, 'seconds')"
+                  (keydown)="adjustTimelineOffsetKeyboard($event, 'seconds')"
                 />
               </label>
             </div>
-            <small>{{ 'sourcesIntake.offsetHint' | translate }}</small>
           </div>
         </details>
         <p class="rights-notice">{{ 'sourcesIntake.rightsNotice' | translate }}</p>

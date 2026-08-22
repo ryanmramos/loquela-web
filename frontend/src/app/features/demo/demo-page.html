@@ -97,6 +97,7 @@
       <div>
         <p class="eyebrow">{{ 'demo.workspaceLabel' | translate }}</p>
         <h1>{{ 'demo.workspaceTitle' | translate }}</h1>
+        <p class="workspace-heading__description">{{ 'demo.description' | translate }}</p>
       </div>
       <div class="language-picker">
         <div class="language-picker__fields">
@@ -157,6 +158,7 @@
             <div>
               <p class="eyebrow">{{ 'demo.stepSource' | translate }}</p>
               <h2>{{ 'demo.sourcesTitle' | translate }}</h2>
+              <p class="section-description">{{ 'demo.sourcesDetail' | translate }}</p>
             </div>
             <span class="source-count">{{ workspace()!.sources.length }}/3</span>
           </div>
@@ -256,11 +258,20 @@
                 <input type="url" [(ngModel)]="transcriptOriginUrl" placeholder="https://…" />
               </label>
               <details class="source-composer__advanced">
-                <summary>{{ 'sourcesIntake.advanced' | translate }}</summary>
+                <summary>
+                  <span class="source-composer__advanced-copy">
+                    <strong>{{ 'sourcesIntake.timingSummary' | translate }}</strong>
+                    <span>{{ 'sourcesIntake.timingHint' | translate }}</span>
+                  </span>
+                  <app-icon name="chevron-down" [size]="18" />
+                </summary>
                 <div class="source-composer__timing">
-                  <span class="source-composer__timing-label">{{
-                    'sourcesIntake.timingOffset' | translate
-                  }}</span>
+                  <div class="source-composer__timing-heading">
+                    <strong class="source-composer__timing-label">{{
+                      'sourcesIntake.timingOffset' | translate
+                    }}</strong>
+                    <span>{{ 'sourcesIntake.offsetHint' | translate }}</span>
+                  </div>
                   <div class="source-composer__timing-fields">
                     <label>
                       <span>{{ 'sourcesIntake.offsetHours' | translate }}</span>
@@ -270,6 +281,8 @@
                         step="1"
                         [(ngModel)]="transcriptOffsetHours"
                         [ngModelOptions]="{ standalone: true }"
+                        (wheel)="adjustTranscriptOffset($event, 'hours')"
+                        (keydown)="adjustTranscriptOffsetKeyboard($event, 'hours')"
                       />
                     </label>
                     <label>
@@ -281,6 +294,8 @@
                         step="1"
                         [(ngModel)]="transcriptOffsetMinutes"
                         [ngModelOptions]="{ standalone: true }"
+                        (wheel)="adjustTranscriptOffset($event, 'minutes')"
+                        (keydown)="adjustTranscriptOffsetKeyboard($event, 'minutes')"
                       />
                     </label>
                     <label>
@@ -292,6 +307,8 @@
                         step="1"
                         [(ngModel)]="transcriptOffsetSeconds"
                         [ngModelOptions]="{ standalone: true }"
+                        (wheel)="adjustTranscriptOffset($event, 'seconds')"
+                        (keydown)="adjustTranscriptOffsetKeyboard($event, 'seconds')"
                       />
                     </label>
                   </div>
@@ -390,6 +407,7 @@
             <div>
               <p class="eyebrow">{{ 'demo.stepLookup' | translate }}</p>
               <h2>{{ 'demo.lookupTitle' | translate }}</h2>
+              <p class="section-description">{{ 'demo.lookupDetail' | translate }}</p>
             </div>
           </div>
           <form class="lookup-form" (submit)="$event.preventDefault(); lookUp()">
@@ -460,7 +478,13 @@
                         }}</small>
                       </a>
                     } @else {
-                      <span>{{ context.sourceLabel }}</span>
+                      <span class="context-result__source">
+                        <app-icon name="document" [size]="16" />
+                        <span>{{ context.sourceLabel }}</span>
+                        @if (contextTimestamp(context); as timestamp) {
+                          <small>{{ timestamp }}</small>
+                        }
+                      </span>
                     }
                     <button
                       appButton
@@ -487,10 +511,14 @@
           <div>
             <p class="eyebrow">{{ 'demo.stepDeck' | translate }}</p>
             <h2 id="deck-title">{{ 'demo.deckTitle' | translate }}</h2>
+            <p class="section-description">
+              {{
+                'demo.deckCount'
+                  | translate
+                    : { count: workspace()!.cards.length, max: capabilities()!.limits.cards }
+              }}
+            </p>
           </div>
-          <span class="source-count"
-            >{{ workspace()!.cards.length }}/{{ capabilities()!.limits.cards }}</span
-          >
         </div>
         @if (undo()) {
           <app-alert [title]="'demo.cardRemoved' | translate" tone="info">

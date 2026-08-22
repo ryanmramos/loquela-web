@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 
 @Component({
   selector: 'app-timed-transcript-help',
-  imports: [ButtonDirective, TranslatePipe],
+  imports: [AppIcon, ButtonDirective, TranslatePipe],
   templateUrl: './timed-transcript-help.html',
   styleUrl: './timed-transcript-help.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
