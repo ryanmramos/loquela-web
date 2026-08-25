@@ -457,16 +457,28 @@ export class DemoPage implements OnInit, OnDestroy {
     ];
   }
 
+  sourceLanguageSelectOptions(): { label: string; value: string }[] {
+    return this.languageSelectOptions(this.sourceLanguageOptions());
+  }
+
   targetLanguageOptions(): string[] {
     return (this.capabilities()?.supportedLanguagePairs ?? [])
       .filter((pair) => pair.split(':')[0] === this.sourceLanguage)
       .map((pair) => pair.split(':')[1]);
   }
 
+  targetLanguageSelectOptions(): { label: string; value: string }[] {
+    return this.languageSelectOptions(this.targetLanguageOptions());
+  }
+
   sourceLanguageChanged(): void {
     if (!this.targetLanguageOptions().includes(this.targetLanguage)) {
       this.targetLanguage = this.targetLanguageOptions()[0] ?? '';
     }
+  }
+
+  private languageSelectOptions(codes: string[]): { label: string; value: string }[] {
+    return codes.map((code) => ({ label: this.languageName(code), value: code }));
   }
 
   sourceStateKey(

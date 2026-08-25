@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { ConfirmationService } from 'primeng/api';
 
 import {
   anonymousGuard,
@@ -11,10 +10,8 @@ import {
 export const routes: Routes = [
   {
     path: 'demo',
-    title: 'Try Loquela',
     canActivate: [demoGuard],
-    providers: [ConfirmationService],
-    loadComponent: () => import('@app/features/demo/demo-page').then((module) => module.DemoPage),
+    loadChildren: () => import('./demo.routes').then((module) => module.demoRoutes),
   },
   {
     path: '',

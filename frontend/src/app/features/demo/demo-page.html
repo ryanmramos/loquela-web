@@ -105,7 +105,9 @@
             <span>{{ 'demo.sourceLanguage' | translate }}</span>
             <p-select
               inputId="demo-source-language"
-              [options]="sourceLanguageOptions()"
+              [options]="sourceLanguageSelectOptions()"
+              optionLabel="label"
+              optionValue="value"
               [(ngModel)]="sourceLanguage"
               (ngModelChange)="sourceLanguageChanged()"
               [fluid]="true"
@@ -116,7 +118,9 @@
             <span>{{ 'demo.targetLanguage' | translate }}</span>
             <p-select
               inputId="demo-target-language"
-              [options]="targetLanguageOptions()"
+              [options]="targetLanguageSelectOptions()"
+              optionLabel="label"
+              optionValue="value"
               [(ngModel)]="targetLanguage"
               [fluid]="true"
             />
