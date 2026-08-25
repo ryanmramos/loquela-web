@@ -12,10 +12,19 @@ import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/sta
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import type { TranslationKey } from '@core/i18n/translation.service';
 import { AppIcon } from '@app/shared/components/icon/app-icon';
 import { formatBytes } from '@app/shared/utils/format-bytes';
 
 import { SourceDetailsState } from './source-details-state';
+
+const FAILURE_GUIDANCE_KEYS = {
+  PDF_NEEDS_OCR: 'sourceDetails.failurePdfOcr',
+  ENCRYPTED_DOCUMENT: 'sourceDetails.failureEncrypted',
+  INVALID_TEXT_ENCODING: 'sourceDetails.failureEncoding',
+  NO_VIDEO_CAPTIONS: 'sourceDetails.failureCaptions',
+  DOCUMENT_HAS_NO_TEXT: 'sourceDetails.failureNoText',
+} satisfies Record<string, TranslationKey>;
 
 @Component({
   selector: 'app-source-details',
@@ -76,7 +85,7 @@ export class SourceDetails {
         EPUB: this.translations.translate('sourceDetails.epub'),
         YOUTUBE_VIDEO: this.translations.translate('sourceDetails.youtube'),
         TIMED_TRANSCRIPT: this.translations.translate('sources.timedTranscript'),
-      } as const
+      } satisfies Record<SourceDetailsModel['kind'], string>
     )[kind];
   }
 
@@ -93,7 +102,7 @@ export class SourceDetails {
       FAILED: 'sourceDetails.statusFailed',
       DELETING: 'sourceDetails.statusDeleting',
       DELETED: 'sourceDetails.statusDeleted',
-    } as const;
+    } satisfies Record<SourceDetailsModel['status'], TranslationKey>;
     return this.translations.translate(keys[status]);
   }
 
@@ -105,15 +114,10 @@ export class SourceDetails {
   }
 
   failureGuidance(code: string | undefined): string {
-    const keys = {
-      PDF_NEEDS_OCR: 'sourceDetails.failurePdfOcr',
-      ENCRYPTED_DOCUMENT: 'sourceDetails.failureEncrypted',
-      INVALID_TEXT_ENCODING: 'sourceDetails.failureEncoding',
-      NO_VIDEO_CAPTIONS: 'sourceDetails.failureCaptions',
-      DOCUMENT_HAS_NO_TEXT: 'sourceDetails.failureNoText',
-    } as const;
     return this.translations.translate(
-      keys[code as keyof typeof keys] ?? 'sourceDetails.failureGeneric',
+      code && isFailureGuidanceCode(code)
+        ? FAILURE_GUIDANCE_KEYS[code]
+        : 'sourceDetails.failureGeneric',
     );
   }
 
@@ -174,4 +178,8 @@ export class SourceDetails {
     const seconds = totalSeconds % 60;
     return [hours, minutes, seconds].map((value) => value.toString().padStart(2, '0')).join(':');
   }
+}
+
+function isFailureGuidanceCode(value: string): value is keyof typeof FAILURE_GUIDANCE_KEYS {
+  return Object.hasOwn(FAILURE_GUIDANCE_KEYS, value);
 }

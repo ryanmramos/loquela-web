@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/** Manages owned decks and delegates immutable export work to background jobs. */
 @Service
 @RequiredArgsConstructor
 public class BrowserDeckServiceImpl implements BrowserDeckService {
@@ -105,6 +106,7 @@ public class BrowserDeckServiceImpl implements BrowserDeckService {
         }
     }
 
+    /** Refuses deletion while cards, practice, or export history still reference the deck. */
     @Override
     @Transactional
     public void delete(String subject, String reference) {
@@ -132,6 +134,7 @@ public class BrowserDeckServiceImpl implements BrowserDeckService {
         deckRepository.delete(deck);
     }
 
+    /** Captures the deck at request time so later card edits cannot change the export. */
     @Override
     @Transactional
     public BrowserExportDto export(String subject, String deckReference) {
@@ -172,6 +175,7 @@ public class BrowserDeckServiceImpl implements BrowserDeckService {
         return toExport(export, ownedDeck(userId, export.getDeckId()));
     }
 
+    /** Creates a short-lived presigned URL only for a ready, unexpired artifact. */
     @Override
     @Transactional(readOnly = true)
     public URI download(String subject, String reference) {

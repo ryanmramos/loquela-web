@@ -19,7 +19,7 @@ export class StatusBadge {
       info: 'info',
       warning: 'warn',
       danger: 'danger',
-    } as const;
+    } satisfies Record<StatusTone, 'secondary' | 'success' | 'info' | 'warn' | 'danger'>;
     return severityByTone[this.tone()];
   });
 }

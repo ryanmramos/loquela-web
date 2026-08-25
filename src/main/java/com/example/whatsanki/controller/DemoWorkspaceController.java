@@ -27,6 +27,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 
+/**
+ * Serves the anonymous demo workspace.
+ *
+ * <p>The workspace is session-bound and intentionally separate from persisted user data. The
+ * endpoint security annotation makes that anonymous-only contract visible to the inventory test.</p>
+ */
 @RestController
 @RequestMapping("/api/v1/demo")
 @RequiredArgsConstructor

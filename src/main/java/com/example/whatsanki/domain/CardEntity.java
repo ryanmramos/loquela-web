@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/** Stores one owned card plus the versioned payload consumed by Anki export. */
 @Entity
 @Table(name = "card")
 @Getter

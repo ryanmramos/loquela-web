@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** Splits normalized source text into bounded, ordered passages with source locations. */
 @Component
 @RequiredArgsConstructor
 public class PassageSegmenterImpl implements PassageSegmenter {
@@ -63,6 +64,8 @@ public class PassageSegmenterImpl implements PassageSegmenter {
             Locale locale,
             List<PassageDraftDto> passages
     ) {
+        // Sentence boundaries improve readability. Oversized sentences are split only
+        // after the locale-aware pass cannot fit them within configured limits.
         String paragraph = text.substring(paragraphStart, paragraphEnd);
         BreakIterator sentences = BreakIterator.getSentenceInstance(locale);
         sentences.setText(paragraph);

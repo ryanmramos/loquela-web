@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.net.http.HttpClient;
 
+/** Builds outbound clients with redirects disabled at the transport boundary. */
 @Configuration(proxyBeanMethods = false)
 public class OutboundHttpClientConfiguration {
 

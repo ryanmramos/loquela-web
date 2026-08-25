@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
+/** Coordinates dictionary lookup, corpus search, and immutable result publication. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -43,6 +44,7 @@ public class LookupServiceImpl implements LookupService {
     private final TextNormalizer textNormalizer;
     private final WhatsAnkiConfigurationDto configuration;
 
+    /** Resolves the language pair before queueing so retries use the same settings. */
     @Override
     public LookupAcceptanceDto accept(
             UserId userId,
@@ -78,6 +80,7 @@ public class LookupServiceImpl implements LookupService {
                 userLanguageSettingsService.getCurrent(userId), filters, Instant.now());
     }
 
+    /** Runs provider I/O outside a database transaction and publishes one result snapshot. */
     @Override
     public LookupExecutionResultDto execute(UserId userId, LookupSessionId lookupSessionId) {
         Objects.requireNonNull(userId, "userId must not be null");

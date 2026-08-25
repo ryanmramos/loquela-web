@@ -39,7 +39,7 @@ export class SessionFacade {
           error.problem.status === 403 &&
           error.problem.code === 'ACCOUNT_DISABLED'
         ) {
-          this.store.setAnonymous('account-disabled');
+          this.store.setDisabled();
           return of(this.view());
         }
         return throwError(() => error);
@@ -63,9 +63,11 @@ export class SessionFacade {
           error.problem.status === 403 &&
           (error.problem.code === 'ACCOUNT_DISABLED' || error.problem.code === 'ACCOUNT_DELETED')
         ) {
-          this.store.setAnonymous(
-            error.problem.code === 'ACCOUNT_DISABLED' ? 'account-disabled' : 'account-deleted',
-          );
+          if (error.problem.code === 'ACCOUNT_DISABLED') {
+            this.store.setDisabled();
+          } else {
+            this.store.setAnonymous('account-deleted');
+          }
           return of(this.view());
         }
         return throwError(() => error);

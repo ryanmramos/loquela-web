@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/** Applies per-IP, per-endpoint minute windows to login and identity-linking routes. */
 public final class AuthenticationRateLimitFilter extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper;
@@ -53,6 +54,8 @@ public final class AuthenticationRateLimitFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        // Keep the key local to the current minute. Cleanup is opportunistic because
+        // these windows only protect short-lived authentication traffic.
         int limit = request.getRequestURI().startsWith("/api/v1/whatsapp-link-challenges")
                 ? linkLimit : authLimit;
         Instant minute = clock.instant().truncatedTo(ChronoUnit.MINUTES);

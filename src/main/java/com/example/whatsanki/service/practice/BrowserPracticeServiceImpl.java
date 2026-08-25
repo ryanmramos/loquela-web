@@ -51,6 +51,7 @@ public class BrowserPracticeServiceImpl implements BrowserPracticeService {
     private final PracticeSessionItemRepository itemRepository;
     private final PracticeResponseRepository responseRepository;
 
+    /** Returns the newest active session, expiring it when its 24-hour window has passed. */
     @Override
     @Transactional
     public Optional<PracticeSessionDto> active(String subject) {
@@ -68,6 +69,7 @@ public class BrowserPracticeServiceImpl implements BrowserPracticeService {
         return Optional.of(toDto(session));
     }
 
+    /** Creates one active session and snapshots card content before returning it. */
     @Override
     @Transactional
     public PracticeSessionDto start(String subject, String deckReference) {
@@ -139,6 +141,7 @@ public class BrowserPracticeServiceImpl implements BrowserPracticeService {
         return toDto(session);
     }
 
+    /** Records one rating idempotently and advances the persisted session position. */
     @Override
     @Transactional
     public PracticeSessionDto rate(

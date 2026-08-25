@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/** Maps browser source references to owner-scoped source state and mutation jobs. */
 @Service
 @RequiredArgsConstructor
 public class BrowserSourceServiceImpl implements BrowserSourceService {
@@ -94,6 +95,7 @@ public class BrowserSourceServiceImpl implements BrowserSourceService {
         );
     }
 
+    /** Validates ownership and language before queuing the browser lookup. */
     @Override
     @Transactional(readOnly = true)
     public SourceListDto list(

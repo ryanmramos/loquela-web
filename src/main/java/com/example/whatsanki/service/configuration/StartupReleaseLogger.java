@@ -7,6 +7,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+/** Logs the release identifier after the application context is ready. */
 @Component
 @RequiredArgsConstructor
 @Slf4j

@@ -15,6 +15,7 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.UUID;
 
+/** Stores the authoritative position and reveal state for one browser practice session. */
 @Entity
 @Table(name = "practice_session")
 @Getter

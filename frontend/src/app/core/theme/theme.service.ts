@@ -16,10 +16,10 @@ export class ThemeService {
   readonly theme = this.currentTheme.asReadonly();
 
   initialize(): void {
-    const stored = this.storage.read('color-theme');
-    this.hasExplicitPreference = stored === 'light' || stored === 'dark';
+    const stored = this.storedTheme();
+    this.hasExplicitPreference = stored !== undefined;
     this.systemTheme = this.document.defaultView?.matchMedia?.('(prefers-color-scheme: dark)');
-    this.apply(this.hasExplicitPreference ? (stored as ColorTheme) : this.systemPreference());
+    this.apply(stored ?? this.systemPreference());
     this.systemTheme?.addEventListener('change', (event) => {
       if (!this.hasExplicitPreference) {
         this.apply(event.matches ? 'dark' : 'light');
@@ -36,6 +36,11 @@ export class ThemeService {
 
   private systemPreference(): ColorTheme {
     return this.systemTheme?.matches ? 'dark' : 'light';
+  }
+
+  private storedTheme(): ColorTheme | undefined {
+    const stored = this.storage.read('color-theme');
+    return stored === 'light' || stored === 'dark' ? stored : undefined;
   }
 
   private apply(theme: ColorTheme): void {

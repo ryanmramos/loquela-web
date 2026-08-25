@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+/** Repository queries for atomic job claiming, lease updates, and source cancellation. */
 public interface BackgroundJobRepository extends Repository<BackgroundJobEntity, UUID> {
     BackgroundJobEntity save(BackgroundJobEntity job);
     long countByUserIdAndStateIn(UUID userId, Set<BackgroundJobEntity.State> states);
@@ -39,6 +40,7 @@ public interface BackgroundJobRepository extends Repository<BackgroundJobEntity,
             @Param("limit") int limit
     );
 
+    /** Claims ready rows with {@code skip locked} so multiple workers do not share a job. */
     @Query(value = """
             with candidates as (
                 select id
@@ -107,6 +109,7 @@ public interface BackgroundJobRepository extends Repository<BackgroundJobEntity,
             @Param("now") Instant now
     );
 
+    /** Requeues expired work and dead-letters jobs whose attempts are exhausted. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = """
             update background_job

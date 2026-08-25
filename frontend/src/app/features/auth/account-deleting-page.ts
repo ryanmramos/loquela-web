@@ -38,7 +38,9 @@ export class AccountDeletingPage {
           if (session.status !== 'deleting') {
             void this.router.navigate(['/login'], {
               replaceUrl: true,
-              ...(session.notice === 'account-deleted' ? { state: { accountDeleted: true } } : {}),
+              ...(session.status === 'anonymous' && session.notice === 'account-deleted'
+                ? { state: { accountDeleted: true } }
+                : {}),
             });
           }
         },

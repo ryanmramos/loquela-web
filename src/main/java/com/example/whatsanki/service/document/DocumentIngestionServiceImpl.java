@@ -42,6 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+/** Accepts document media, validates it, and stores it before extraction begins. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -62,6 +63,7 @@ public class DocumentIngestionServiceImpl implements DocumentIngestionService {
     private final DocumentMediaLifecycleService lifecycleService;
     private final TextNormalizer textNormalizer;
 
+    /** Persists encrypted media metadata and queues acquisition without storing the media body. */
     @Override
     @Transactional
     public DocumentAcceptanceDto accept(
@@ -139,6 +141,7 @@ public class DocumentIngestionServiceImpl implements DocumentIngestionService {
         return new DocumentAcceptanceDto(sourceId);
     }
 
+    /** Downloads, type-checks, and publishes the original object before marking it stored. */
     @Override
     public void fetchAndStore(UserId userId, SourceId sourceId) {
         MediaFetchPreparationDto preparation = lifecycleService.prepare(userId, sourceId);

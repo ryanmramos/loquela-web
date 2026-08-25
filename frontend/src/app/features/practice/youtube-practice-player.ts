@@ -42,7 +42,8 @@ export class YoutubePracticePlayer {
       if (!/^[A-Za-z0-9_-]{11}$/u.test(videoId) || !Number.isSafeInteger(startSeconds)) return;
       if (startSeconds < 0) return;
 
-      const iframe = this.renderer.createElement('iframe') as HTMLIFrameElement;
+      const iframe: unknown = this.renderer.createElement('iframe');
+      if (!isDomElement(iframe)) return;
       this.renderer.addClass(iframe, 'practice-video');
       this.renderer.setAttribute(
         iframe,
@@ -65,4 +66,8 @@ export class YoutubePracticePlayer {
       this.renderer.appendChild(host, iframe);
     });
   }
+}
+
+function isDomElement(value: unknown): value is Element {
+  return typeof Element !== 'undefined' && value instanceof Element;
 }

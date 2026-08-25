@@ -26,6 +26,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+/** Detects supported document formats and validates their structure before storage. */
 @Component
 @RequiredArgsConstructor
 public class DocumentMediaTypeDetectorImpl implements DocumentMediaTypeDetector {

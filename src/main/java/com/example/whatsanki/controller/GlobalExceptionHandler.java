@@ -32,6 +32,7 @@ import java.time.Instant;
 import java.net.URI;
 import java.util.List;
 
+/** Converts internal failures into stable problem responses without leaking diagnostics. */
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {

@@ -32,6 +32,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * Exposes the administrator-managed Google access allowlist.
+ *
+ * <p>Mutation methods pass the recent-authentication result to the service because access changes
+ * require a fresh sign-in as well as the administrator role.</p>
+ */
 @RestController
 @Validated
 @RequiredArgsConstructor
@@ -84,6 +90,8 @@ public class AdminAccessController {
     }
 
     private boolean recentlyAuthenticated(HttpSession session) {
+        // The timestamp is written after a successful OAuth or local login. Keep this check
+        // at the controller boundary so the service receives a small, explicit security fact.
         Object value = session.getAttribute(BrowserAuthenticationSuccessHandler.RECENT_AUTHENTICATION_AT);
         return value instanceof Long epochMillis
                 && !Instant.ofEpochMilli(epochMillis)

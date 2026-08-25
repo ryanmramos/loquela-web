@@ -67,7 +67,7 @@ function toBrowserSession(response: BrowserSessionDto): BrowserSession {
         ? response.interfaceLanguage
         : null,
     accountState: response.accountState,
-    roles: ((response as BrowserSessionDto & { roles?: string[] }).roles ?? ['USER']).filter(
+    roles: response.roles.filter(
       (role): role is 'USER' | 'ADMIN' => role === 'USER' || role === 'ADMIN',
     ),
     linkedAccounts: {

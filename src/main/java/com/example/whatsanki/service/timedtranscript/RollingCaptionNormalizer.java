@@ -10,6 +10,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** Coalesces overlapping rolling-caption frames without merging repeated speech. */
 @Component
 public class RollingCaptionNormalizer {
     public static final String VERSION = "1";
@@ -39,6 +40,8 @@ public class RollingCaptionNormalizer {
     }
 
     private TimedCaptionCueDto merge(TimedCaptionCueDto previous, TimedCaptionCueDto current) {
+        // Compare normalized tokens but retain the latest display text so punctuation
+        // and casing from the source remain visible to the learner.
         if (current.startMs() > previous.endMs() + ADJACENCY_TOLERANCE_MS) return null;
         Tokens before = tokenize(previous.text());
         Tokens now = tokenize(current.text());

@@ -118,11 +118,12 @@ function isLayoutShift(entry: PerformanceEntry): entry is PerformanceEntry & {
   readonly value: number;
   readonly hadRecentInput: boolean;
 } {
-  const candidate = entry as PerformanceEntry & {
-    readonly value?: unknown;
-    readonly hadRecentInput?: unknown;
-  };
-  return typeof candidate.value === 'number' && typeof candidate.hadRecentInput === 'boolean';
+  return (
+    'value' in entry &&
+    typeof entry.value === 'number' &&
+    'hadRecentInput' in entry &&
+    typeof entry.hadRecentInput === 'boolean'
+  );
 }
 
 function isRoutePattern(value: string): boolean {

@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Implements private object storage with S3-compatible clients and bounded listing. */
 @Service
 @Slf4j
 public class S3ObjectStoreImpl implements ObjectStore {

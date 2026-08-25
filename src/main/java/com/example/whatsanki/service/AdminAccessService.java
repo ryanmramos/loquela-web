@@ -9,6 +9,7 @@ import com.example.whatsanki.dto.UpdateAdminAccessEntryRequestDto;
 
 import java.util.UUID;
 
+/** Manages the persistent Google access allowlist and its audit trail. */
 public interface AdminAccessService {
     AdminAccessEntryListDto list(
             String googleSubject,

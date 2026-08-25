@@ -5,6 +5,7 @@ import com.example.whatsanki.dto.CreateSourceUploadRequestDto;
 import com.example.whatsanki.dto.SourceUploadIntentDto;
 import org.springframework.web.multipart.MultipartFile;
 
+/** Creates and completes the two-step document upload contract. */
 public interface BrowserSourceUploadService {
     SourceUploadIntentDto createIntent(String googleSubject, CreateSourceUploadRequestDto request);
 

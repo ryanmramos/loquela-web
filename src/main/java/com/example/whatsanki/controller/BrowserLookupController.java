@@ -20,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+/** Queues browser lookups and exposes their immutable results for card selection. */
 @ExternalEndpointSecurity(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF_OWNER_SCOPED)
 @RestController
 @RequestMapping("/api/v1/lookups")

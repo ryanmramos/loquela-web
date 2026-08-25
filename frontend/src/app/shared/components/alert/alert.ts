@@ -22,7 +22,7 @@ export class Alert {
       success: 'success',
       warning: 'warn',
       danger: 'error',
-    } as const;
+    } satisfies Record<AlertTone, 'info' | 'success' | 'warn' | 'error'>;
     return severityByTone[this.tone()];
   });
   readonly icon = computed<AppIconName>(() => (this.tone() === 'success' ? 'check' : 'danger'));

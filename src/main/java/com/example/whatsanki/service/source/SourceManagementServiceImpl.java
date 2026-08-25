@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
+/** Owns the source state transition that makes deletion resumable. */
 @Service
 @RequiredArgsConstructor
 @Slf4j

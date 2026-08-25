@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Objects;
 
+/** Deletes expired export objects before marking their database records expired. */
 @Service
 @RequiredArgsConstructor
 @Slf4j

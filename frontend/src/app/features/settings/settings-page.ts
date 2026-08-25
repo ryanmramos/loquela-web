@@ -21,6 +21,7 @@ import { RUNTIME_CONFIG } from '@core/config/runtime-config';
 import {
   INTERFACE_LANGUAGE_OPTIONS,
   InterfaceLanguage,
+  isInterfaceLanguage,
   TranslationService,
 } from '@core/i18n/translation.service';
 import { Alert } from '@app/shared/components/alert/alert';
@@ -142,7 +143,8 @@ export class SettingsPage {
   }
 
   changeInterfaceLanguage(value: string): void {
-    const language = value as InterfaceLanguage;
+    if (!isInterfaceLanguage(value)) return;
+    const language: InterfaceLanguage = value;
     this.interfaceSaving.set(true);
     this.interfaceError.set(false);
     this.session

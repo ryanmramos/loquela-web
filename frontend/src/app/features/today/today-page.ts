@@ -19,6 +19,10 @@ import { ButtonDirective } from '@app/shared/components/button/button.directive'
 import { SearchInput } from '@app/shared/components/search-input/search-input';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import {
+  isSourceKindTranslationCode,
+  SOURCE_KIND_TRANSLATION_KEYS,
+} from '@app/shared/utils/translation-keys';
 
 type FirstStep = 'today' | 'search' | 'context' | 'review' | 'saved';
 type SearchStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -299,16 +303,8 @@ export class TodayPage {
   }
 
   sourceKindLabel(kind: string | undefined): string {
-    const keys = {
-      YOUTUBE_VIDEO: 'lookup.videoType',
-      TIMED_TRANSCRIPT: 'lookup.timedTranscriptType',
-      PASTED_TEXT: 'lookup.pastedType',
-      TXT: 'lookup.txtSourceType',
-      PDF: 'lookup.pdfSourceType',
-      EPUB: 'lookup.epubSourceType',
-    } as const;
-    return kind && kind in keys
-      ? this.translations.translate(keys[kind as keyof typeof keys])
+    return kind && isSourceKindTranslationCode(kind)
+      ? this.translations.translate(SOURCE_KIND_TRANSLATION_KEYS[kind])
       : this.translations.translate('lookup.genericSource');
   }
 

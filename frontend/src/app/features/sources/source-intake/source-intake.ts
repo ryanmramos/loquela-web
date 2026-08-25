@@ -182,7 +182,8 @@ export class SourceIntake {
   }
 
   selectTranscriptFile(event: Event): void {
-    const input = event.target as HTMLInputElement;
+    if (!(event.currentTarget instanceof HTMLInputElement)) return;
+    const input = event.currentTarget;
     const file = input.files?.item(0) ?? null;
     this.errorMessage.set(null);
     if (!file) {
@@ -209,7 +210,8 @@ export class SourceIntake {
   }
 
   selectFile(event: Event): void {
-    const input = event.target as HTMLInputElement;
+    if (!(event.currentTarget instanceof HTMLInputElement)) return;
+    const input = event.currentTarget;
     const file = input.files?.item(0) ?? null;
     this.errorMessage.set(null);
     if (!file) {

@@ -15,6 +15,7 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.UUID;
 
+/** Stores an owned deck name, theme, and lifecycle state. */
 @Entity
 @Table(name = "deck")
 @Getter

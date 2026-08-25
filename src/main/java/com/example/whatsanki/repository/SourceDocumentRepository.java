@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+/** Source queries that preserve user ownership and retention accounting boundaries. */
 public interface SourceDocumentRepository extends Repository<SourceDocumentEntity, UUID> {
     SourceDocumentEntity save(SourceDocumentEntity source);
     SourceDocumentEntity saveAndFlush(SourceDocumentEntity source);

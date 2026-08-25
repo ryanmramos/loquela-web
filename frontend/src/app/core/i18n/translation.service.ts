@@ -2,7 +2,11 @@ import { computed, inject, Injectable } from '@angular/core';
 
 import { InterfaceLanguage, InterfaceLanguageStore } from './interface-language.store';
 
-export { INTERFACE_LANGUAGES, INTERFACE_LANGUAGE_OPTIONS } from './interface-language.store';
+export {
+  INTERFACE_LANGUAGES,
+  INTERFACE_LANGUAGE_OPTIONS,
+  isInterfaceLanguage,
+} from './interface-language.store';
 export type { InterfaceLanguage } from './interface-language.store';
 
 const translations = {
@@ -2102,6 +2106,12 @@ const translations = {
   },
 } as const;
 
+export type TranslationKey = keyof (typeof translations)['en'];
+
+export function isTranslationKey(value: string): value is TranslationKey {
+  return Object.hasOwn(translations.en, value);
+}
+
 @Injectable({ providedIn: 'root' })
 export class TranslationService {
   private readonly interfaceLanguage = inject(InterfaceLanguageStore);
@@ -2112,12 +2122,21 @@ export class TranslationService {
     this.interfaceLanguage.setLanguage(language);
   }
 
-  translate(
-    key: keyof (typeof translations)['en'],
-    values: Record<string, string | number> = {},
-  ): string {
+  translate(key: TranslationKey, values: Record<string, string | number> = {}): string {
     return translations[this.language()][key].replace(/\{(\w+)\}/gu, (_, name: string) =>
       String(values[name] ?? ''),
     );
+  }
+
+  /**
+   * Dynamic labels come from API values and cannot be checked as literal keys at the call site.
+   * Validate them against the catalog before indexing so a new server value falls back safely.
+   */
+  translateDynamic(
+    key: string,
+    fallbackKey: TranslationKey,
+    values: Record<string, string | number> = {},
+  ): string {
+    return this.translate(isTranslationKey(key) ? key : fallbackKey, values);
   }
 }

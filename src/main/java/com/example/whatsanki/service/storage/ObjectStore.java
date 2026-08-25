@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.List;
 import com.example.whatsanki.dto.StoredObjectReferenceDto;
 
+/** Stores private originals and artifacts behind deterministic keys. */
 public interface ObjectStore {
     void put(String objectKey, Path source, StoredObjectMetadataDto metadata);
 

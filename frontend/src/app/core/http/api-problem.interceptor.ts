@@ -89,7 +89,7 @@ function mapApiProblemBody(
 function blobProblemBody(error: unknown): Blob | undefined {
   if (!(error instanceof HttpErrorResponse) || typeof Blob === 'undefined') return undefined;
 
-  const body = error.error as unknown;
+  const body: unknown = error.error;
   return body instanceof Blob ? body : undefined;
 }
 

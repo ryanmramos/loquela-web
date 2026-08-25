@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+/** Persists the state transitions and caption metadata for the legacy YouTube worker. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,6 +33,7 @@ public class YouTubeIngestionLifecycleService {
     private final PassageRepository passageRepository;
     private final TextNormalizer textNormalizer;
 
+    /** Claims a source for subtitle fetching without holding a transaction during provider I/O. */
     @Transactional
     public YouTubeIngestionPreparationDto prepare(UserId userId, SourceId sourceId) {
         SourceDocumentEntity source = sourceDocumentRepository.findByIdAndUserId(sourceId.value(), userId.value())

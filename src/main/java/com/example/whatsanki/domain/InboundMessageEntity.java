@@ -14,6 +14,7 @@ import lombok.Setter;
 import java.time.Instant;
 import java.util.UUID;
 
+/** Retains encrypted inbound content and the purge deadline for one Twilio message. */
 @Entity
 @Table(name = "inbound_message")
 @Getter

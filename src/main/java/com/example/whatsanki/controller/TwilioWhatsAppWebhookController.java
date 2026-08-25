@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** Verifies Twilio signatures before translating WhatsApp form requests into commands. */
 @ExternalEndpointSecurity(ExternalEndpointSecurity.Control.TWILIO_SIGNED_WEBHOOK)
 @RestController
 @RequestMapping("/webhooks/twilio")

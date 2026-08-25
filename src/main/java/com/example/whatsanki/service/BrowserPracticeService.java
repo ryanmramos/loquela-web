@@ -5,6 +5,7 @@ import com.example.whatsanki.dto.PracticeSessionDto;
 
 import java.util.Optional;
 
+/** Runs the browser's immutable, non-scheduled practice sessions. */
 public interface BrowserPracticeService {
     Optional<PracticeSessionDto> active(String googleSubject);
     PracticeSessionDto start(String googleSubject, String deckReference);

@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 
+/** Guards export state transitions and serializes concurrent workers with row locks. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -23,6 +24,7 @@ public class DeckExportLifecycleServiceImpl implements DeckExportLifecycleServic
     private final ExportRequestRepository exportRequestRepository;
     private final WhatsAnkiConfigurationDto configuration;
 
+    /** Claims a queued export or returns its already-published artifact snapshot. */
     @Override
     @Transactional
     public DeckExportPreparationDto prepare(UserId userId, ExportRequestId exportRequestId) {

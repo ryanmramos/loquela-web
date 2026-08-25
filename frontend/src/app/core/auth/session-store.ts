@@ -6,11 +6,24 @@ export type SessionStatus = 'unknown' | 'anonymous' | 'authenticated' | 'deletin
 
 export type SessionNotice = 'session-expired' | 'account-disabled' | 'account-deleted';
 
-export interface SessionView {
-  readonly status: SessionStatus;
-  readonly user?: BrowserSession;
-  readonly notice?: SessionNotice;
-}
+/**
+ * A session either has an authenticated user or it does not. Modeling those cases separately
+ * keeps templates from handling combinations such as an anonymous session with a user.
+ */
+export type SessionView =
+  | { readonly status: 'unknown'; readonly user?: never }
+  | {
+      readonly status: 'anonymous';
+      readonly user?: never;
+      readonly notice?: Exclude<SessionNotice, 'account-disabled'>;
+    }
+  | {
+      readonly status: 'disabled';
+      readonly user?: never;
+      readonly notice: Extract<SessionNotice, 'account-disabled'>;
+    }
+  | { readonly status: 'authenticated'; readonly user: BrowserSession }
+  | { readonly status: 'deleting'; readonly user: BrowserSession };
 
 @Injectable({ providedIn: 'root' })
 export class SessionStore {
@@ -25,20 +38,23 @@ export class SessionStore {
     });
   }
 
-  setAnonymous(notice?: SessionNotice): void {
+  setAnonymous(notice?: Exclude<SessionNotice, 'account-disabled'>): void {
     this.mutableView.set({
-      status: notice === 'account-disabled' ? 'disabled' : 'anonymous',
+      status: 'anonymous',
       ...(notice ? { notice } : {}),
     });
   }
 
+  setDisabled(): void {
+    this.mutableView.set({ status: 'disabled', notice: 'account-disabled' });
+  }
+
   markDeleting(): void {
     const current = this.mutableView();
-    if (current.user) {
-      this.mutableView.set({
-        status: 'deleting',
-        user: { ...current.user, accountState: 'DELETING' },
-      });
-    }
+    if (current.status !== 'authenticated' && current.status !== 'deleting') return;
+    this.mutableView.set({
+      status: 'deleting',
+      user: { ...current.user, accountState: 'DELETING' },
+    });
   }
 }

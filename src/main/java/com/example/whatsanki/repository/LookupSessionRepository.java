@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.Optional;
 import java.util.UUID;
 
+/** Provides locked lookup reads used by idempotent card saves and worker lifecycle steps. */
 public interface LookupSessionRepository extends Repository<LookupSessionEntity, UUID> {
     LookupSessionEntity save(LookupSessionEntity session);
     Optional<LookupSessionEntity> findFirstByUserIdOrderByCreatedAtDesc(UUID userId);

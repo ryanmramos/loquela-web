@@ -3,6 +3,8 @@ package com.example.whatsanki.service;
 import com.example.whatsanki.dto.*;
 
 import java.net.URI;
+
+/** Provides owner-scoped deck operations and asynchronous export access. */
 public interface BrowserDeckService {
     BrowserDeckListDto list(String googleSubject, String search, int page, int pageSize);
     BrowserDeckDto get(String googleSubject, String reference);

@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** Restricts Twilio media and redirect URLs to the configured account and hosts. */
 @Component
 @RequiredArgsConstructor
 public class TwilioMediaUrlPolicy {

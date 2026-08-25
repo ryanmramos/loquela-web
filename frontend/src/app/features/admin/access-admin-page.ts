@@ -23,6 +23,7 @@ import { ResponsiveData } from '@app/shared/components/responsive-data/responsiv
 import { SearchInput } from '@app/shared/components/search-input/search-input';
 import { StatusBadge } from '@app/shared/components/status-badge/status-badge';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
+import { ApiProblemError } from '@core/errors/api-problem';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 
@@ -205,7 +206,7 @@ export class AccessAdminPage {
           this.notice.set(this.translations.translate('adminAccess.savedNotice'));
           this.load(0);
         },
-        error: (error: HttpErrorResponse) => this.handleMutationError(error),
+        error: (error: unknown) => this.handleMutationError(error),
       });
   }
 
@@ -225,12 +226,12 @@ export class AccessAdminPage {
           this.notice.set(this.translations.translate('adminAccess.updatedNotice'));
           this.load(this.page()?.page ?? 0);
         },
-        error: (error: HttpErrorResponse) => this.handleMutationError(error),
+        error: (error: unknown) => this.handleMutationError(error),
       });
   }
 
-  private handleMutationError(error: HttpErrorResponse): void {
-    const code = (error.error as { code?: string } | null)?.code;
+  private handleMutationError(error: unknown): void {
+    const code = errorCode(error);
     if (code === 'RECENT_AUTHENTICATION_REQUIRED') {
       const returnTo = encodeURIComponent('/app/admin/access');
       window.location.assign(`/api/v1/auth/google?returnTo=${returnTo}&reauthenticate=true`);
@@ -247,4 +248,16 @@ export class AccessAdminPage {
     };
     this.error.set(messages[code ?? ''] ?? this.translations.translate('adminAccess.changeError'));
   }
+}
+
+function errorCode(error: unknown): string | undefined {
+  if (error instanceof ApiProblemError) return error.problem.code;
+  if (!(error instanceof HttpErrorResponse)) return undefined;
+
+  const body: unknown = error.error;
+  return isRecord(body) && typeof body['code'] === 'string' ? body['code'] : undefined;
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/** Extracts EPUB spine content while bounding archive expansion and disabling XML entities. */
 @Service
 @RequiredArgsConstructor
 public class EpubDocumentTextExtractorImpl implements DocumentTextExtractor {
@@ -82,6 +83,7 @@ public class EpubDocumentTextExtractorImpl implements DocumentTextExtractor {
     }
 
     private Map<String, byte[]> readEntries(byte[] content) {
+        // EPUB is a ZIP archive. Bound both entry count and expanded bytes before parsing XML.
         Map<String, byte[]> entries = new HashMap<>();
         long maximumExpandedBytes = Math.max(
                 configuration.getIngestion().getMaxExtractedCharacters() * 4,

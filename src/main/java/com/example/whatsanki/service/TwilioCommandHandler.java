@@ -4,6 +4,7 @@ import com.example.whatsanki.domain.InboundMessageEntity;
 import com.example.whatsanki.dto.TwilioCommandContextDto;
 import com.example.whatsanki.dto.TwilioWebhookResponseDto;
 
+/** Handles one parsed WhatsApp command after the inbound message is persisted. */
 public interface TwilioCommandHandler {
     InboundMessageEntity.CommandType supportedCommand();
 

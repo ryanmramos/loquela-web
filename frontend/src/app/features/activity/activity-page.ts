@@ -29,8 +29,8 @@ export class ActivityPage {
   private readonly translations = inject(TranslationService);
   readonly state = inject(ActivityState);
 
-  lifecycle = '';
-  category = '';
+  lifecycle: ActivityLifecycle | '' = '';
+  category: ActivityCategory | '' = '';
   readonly categoryOptions = computed(() => [
     { value: '', label: this.translations.translate('activity.category.ALL') },
     { value: 'SOURCE', label: this.translations.translate('activity.category.SOURCE') },
@@ -42,10 +42,7 @@ export class ActivityPage {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.lifecycle = this.validLifecycle(params.get('lifecycle') ?? params.get('state'));
       this.category = this.validCategory(params.get('category'));
-      this.state.load(
-        this.category ? (this.category as ActivityCategory) : undefined,
-        this.lifecycle ? (this.lifecycle as ActivityLifecycle) : undefined,
-      );
+      this.state.load(this.category || undefined, this.lifecycle || undefined);
     });
   }
 
@@ -66,33 +63,48 @@ export class ActivityPage {
   }
 
   filterLabel(lifecycle: string): string {
-    return this.translations.translate(`activity.filter.${lifecycle || 'ALL'}` as never);
+    return this.translations.translateDynamic(
+      `activity.filter.${lifecycle || 'ALL'}`,
+      'activity.filter.ALL',
+    );
   }
 
   retry(): void {
-    this.state.load(
-      this.category ? (this.category as ActivityCategory) : undefined,
-      this.lifecycle ? (this.lifecycle as ActivityLifecycle) : undefined,
-    );
+    this.state.load(this.category || undefined, this.lifecycle || undefined);
   }
 
   title(item: ActivityItem): string {
     if (item.resourceLabel) return item.resourceLabel;
-    return this.translations.translate(`activity.operation.${item.operation}` as never);
+    return this.translations.translateDynamic(
+      `activity.operation.${item.operation}`,
+      'activity.operation.LOOKUP',
+    );
   }
 
   detail(item: ActivityItem): string {
-    const status = this.translations.translate(`activity.status.${item.status}` as never);
+    const status = this.translations.translateDynamic(
+      `activity.status.${item.status}`,
+      'activity.status.FAILED',
+    );
     if (!item.deliveryStatus) return status;
-    return `${status} · ${this.translations.translate(`activity.delivery.${item.deliveryStatus}` as never)}`;
+    return `${status} · ${this.translations.translateDynamic(
+      `activity.delivery.${item.deliveryStatus}`,
+      'activity.delivery.NOT_APPLICABLE',
+    )}`;
   }
 
   categoryLabel(category: ActivityCategory): string {
-    return this.translations.translate(`activity.category.${category}` as never);
+    return this.translations.translateDynamic(
+      `activity.category.${category}`,
+      'activity.category.LOOKUP',
+    );
   }
 
   lifecycleLabel(lifecycle: ActivityLifecycle): string {
-    return this.translations.translate(`activity.lifecycle.${lifecycle}` as never);
+    return this.translations.translateDynamic(
+      `activity.lifecycle.${lifecycle}`,
+      'activity.lifecycle.ACTIVE',
+    );
   }
 
   lifecycleTone(lifecycle: ActivityLifecycle): StatusTone {
@@ -112,13 +124,17 @@ export class ActivityPage {
     }).format(new Date(value));
   }
 
-  private validLifecycle(value: string | null): string {
+  private validLifecycle(value: string | null): ActivityLifecycle | '' {
     const normalized = value?.toUpperCase();
-    return normalized && ['ACTIVE', 'COMPLETED', 'FAILED'].includes(normalized) ? normalized : '';
+    return normalized === 'ACTIVE' || normalized === 'COMPLETED' || normalized === 'FAILED'
+      ? normalized
+      : '';
   }
 
-  private validCategory(value: string | null): string {
+  private validCategory(value: string | null): ActivityCategory | '' {
     const normalized = value?.toUpperCase();
-    return normalized && ['SOURCE', 'LOOKUP', 'EXPORT'].includes(normalized) ? normalized : '';
+    return normalized === 'SOURCE' || normalized === 'LOOKUP' || normalized === 'EXPORT'
+      ? normalized
+      : '';
   }
 }

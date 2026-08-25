@@ -14,6 +14,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+/** Applies deletion-state command restrictions before dispatching registered handlers. */
 @Service
 @Slf4j
 public class TwilioCommandServiceImpl implements TwilioCommandService {
@@ -47,6 +48,7 @@ public class TwilioCommandServiceImpl implements TwilioCommandService {
         log.info("Registered Twilio command handlers count={}", handlers.size());
     }
 
+    /** Returns safe user-facing responses for invalid, unknown, and unavailable commands. */
     @Override
     @Transactional
     public TwilioWebhookResponseDto handle(TwilioCommandContextDto context) {

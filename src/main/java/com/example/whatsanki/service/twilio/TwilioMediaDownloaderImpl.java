@@ -23,6 +23,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+/** Downloads Twilio media with bounded size, validated redirects, and temporary files. */
 @Service
 @Slf4j
 public class TwilioMediaDownloaderImpl implements TwilioMediaDownloader {

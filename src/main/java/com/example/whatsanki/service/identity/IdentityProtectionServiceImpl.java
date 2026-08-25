@@ -16,6 +16,7 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
+/** Uses HMAC lookups and AES-GCM envelopes for provider identity values. */
 @Service
 @RequiredArgsConstructor
 public class IdentityProtectionServiceImpl implements IdentityProtectionService {
@@ -24,6 +25,7 @@ public class IdentityProtectionServiceImpl implements IdentityProtectionService 
     private final WhatsAnkiConfigurationDto configuration;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    /** Returns a deterministic keyed digest suitable for a database lookup. */
     @Override
     public byte[] hashSubject(String subject) {
         if (subject == null || subject.isBlank()) {
@@ -38,6 +40,7 @@ public class IdentityProtectionServiceImpl implements IdentityProtectionService 
         }
     }
 
+    /** Encrypts a recoverable identity with a random IV and authenticated GCM tag. */
     @Override
     public byte[] encryptSubject(String subject) {
         if (subject == null || subject.isBlank()) {

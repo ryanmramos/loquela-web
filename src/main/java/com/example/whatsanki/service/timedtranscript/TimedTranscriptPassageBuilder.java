@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** Groups normalized caption cues into bounded passages with playback locations. */
 @Component
 @RequiredArgsConstructor
 public class TimedTranscriptPassageBuilder {
@@ -46,6 +47,8 @@ public class TimedTranscriptPassageBuilder {
             }
             TimedCaptionCueDto first = cues.get(startIndex);
             TimedCaptionCueDto last = cues.get(index - 1);
+            // Keep both timeline coordinates and resolved origin coordinates so the
+            // browser can show context while the player starts at the right location.
             OriginTimestampResolver.Timestamp resolved = timestampResolver.resolve(first.startMs(), timelineOffsetMs);
             Map<String, Object> location = new LinkedHashMap<>();
             location.put("startMs", first.startMs());

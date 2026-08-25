@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.concurrent.ThreadLocalRandom;
 
+/** Applies capped exponential backoff with equal jitter. */
 @Service
 @RequiredArgsConstructor
 public class BackgroundJobRetryPolicyImpl implements BackgroundJobRetryPolicy {
 
     private final WhatsAnkiConfigurationDto configuration;
 
+    /** Returns a delay for a failure after the given number of completed attempts. */
     @Override
     public Duration retryDelay(int completedAttempts) {
         if (completedAttempts < 1) {

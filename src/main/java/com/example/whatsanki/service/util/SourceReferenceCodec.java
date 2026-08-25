@@ -7,6 +7,7 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
+/** Encodes source UUIDs into opaque references used by browser and WhatsApp contracts. */
 public final class SourceReferenceCodec {
 
     private static final int UUID_BYTES = 16;

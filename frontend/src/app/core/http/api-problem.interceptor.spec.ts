@@ -58,8 +58,7 @@ describe('apiProblemInterceptor', () => {
       statusText: 'Not Found',
     });
 
-    expect(receivedError).toBeInstanceOf(ApiProblemError);
-    expect((receivedError as ApiProblemError).problem).toEqual(expectedProblem);
+    expect(expectApiProblem(receivedError).problem).toEqual(expectedProblem);
   });
 
   it('does not expose an unknown response body', () => {
@@ -77,7 +76,7 @@ describe('apiProblemInterceptor', () => {
       statusText: 'Server Error',
     });
 
-    expect((receivedError as ApiProblemError).problem).toEqual({
+    expect(expectApiProblem(receivedError).problem).toEqual({
       type: 'about:blank',
       title: 'Request failed',
       status: 500,
@@ -108,7 +107,13 @@ describe('apiProblemInterceptor', () => {
         });
     });
 
-    expect(receivedError).toBeInstanceOf(ApiProblemError);
-    expect((receivedError as ApiProblemError).problem).toEqual(expectedProblem);
+    expect(expectApiProblem(receivedError).problem).toEqual(expectedProblem);
   });
 });
+
+function expectApiProblem(error: unknown): ApiProblemError {
+  if (!(error instanceof ApiProblemError)) {
+    throw new Error('Expected the interceptor to emit an ApiProblemError.');
+  }
+  return error;
+}

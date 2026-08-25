@@ -6,6 +6,7 @@ import com.example.whatsanki.domain.WhatsAppAddress;
 
 import java.util.Optional;
 
+/** Resolves provider identities without storing recoverable values in plaintext. */
 public interface UserIdentityService {
     UserId resolveOrCreate(String rawWhatsAppAddress);
 

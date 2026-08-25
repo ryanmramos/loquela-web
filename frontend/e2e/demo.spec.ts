@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+declare global {
+  interface Window {
+    recordPolicyViolation: (directive: string) => void;
+  }
+}
+
 import { mockAuthenticatedE2eRuntimeConfig } from './runtime-config';
 
 const capabilities = {
@@ -44,10 +50,7 @@ test('demo language dropdown keeps its PrimeNG overlay styles under the producti
   });
   await page.addInitScript(() => {
     document.addEventListener('securitypolicyviolation', (event) => {
-      const record = window as typeof window & {
-        recordPolicyViolation: (directive: string) => void;
-      };
-      void record.recordPolicyViolation(event.effectiveDirective);
+      void window.recordPolicyViolation(event.effectiveDirective);
     });
   });
   await mockAuthenticatedE2eRuntimeConfig(page);

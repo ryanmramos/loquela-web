@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/** Publishes the same-origin, session-authenticated browser API contract. */
 @Configuration(proxyBeanMethods = false)
 public class OpenApiConfiguration {
 

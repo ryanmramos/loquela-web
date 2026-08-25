@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.Duration;
 import java.time.Instant;
 
+/** Starts and monitors account deletion after a recent reauthentication check. */
 @ExternalEndpointSecurity(ExternalEndpointSecurity.Control.BROWSER_SESSION_CSRF_OWNER_SCOPED)
 @RestController
 @RequestMapping("/api/v1/account-deletion-requests")
@@ -59,6 +60,8 @@ public class BrowserPrivacyController {
     }
 
     private void requireRecentAuthentication(HttpSession session) {
+        // Account deletion is destructive. Require the short-lived marker from the last
+        // successful sign-in before asking the service to enqueue cleanup.
         Object value = session.getAttribute(BrowserAuthenticationSuccessHandler.RECENT_AUTHENTICATION_AT);
         if (!(value instanceof Long epochMillis)
                 || Instant.ofEpochMilli(epochMillis).plus(RECENT_AUTHENTICATION_LIFETIME).isBefore(Instant.now())) {

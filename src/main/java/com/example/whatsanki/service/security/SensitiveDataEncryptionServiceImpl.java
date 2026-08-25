@@ -14,6 +14,7 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
+/** Encrypts retained message and source text with versioned AES-GCM envelopes. */
 @Service
 @RequiredArgsConstructor
 public class SensitiveDataEncryptionServiceImpl implements SensitiveDataEncryptionService {
@@ -27,6 +28,7 @@ public class SensitiveDataEncryptionServiceImpl implements SensitiveDataEncrypti
     private final WhatsAnkiConfigurationDto configuration;
     private final SecureRandom secureRandom = new SecureRandom();
 
+    /** Encrypts content with a purpose that is authenticated as additional data. */
     @Override
     public byte[] encrypt(String plaintext, String purpose) {
         if (plaintext == null) {

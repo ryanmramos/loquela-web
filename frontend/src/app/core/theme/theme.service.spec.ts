@@ -8,8 +8,9 @@ import { ThemeService } from './theme.service';
 describe('ThemeService', () => {
   it('uses the system theme until the user selects an explicit preference', () => {
     const storage = { read: vi.fn(() => null), write: vi.fn() };
+    const dataset: Record<string, string> = {};
     const document = {
-      documentElement: { dataset: {} as Record<string, string> },
+      documentElement: { dataset },
       defaultView: {
         matchMedia: vi.fn(() => ({
           matches: true,

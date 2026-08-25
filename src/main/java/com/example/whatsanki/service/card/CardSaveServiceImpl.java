@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/** Saves lookup contexts as versioned Anki card payloads with durable origin identity. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -38,6 +39,7 @@ public class CardSaveServiceImpl implements CardSaveService {
     private final DefaultDeckService defaultDeckService;
     private final AnkiCardFieldMapper ankiCardFieldMapper;
 
+    /** Saves the newest WhatsApp lookup context, or returns a stable unavailable outcome. */
     @Override
     @Transactional
     public CardSaveResultDto saveLatest(UserId userId, int contextNumber, Instant now) {
@@ -137,6 +139,7 @@ public class CardSaveServiceImpl implements CardSaveService {
         return CardSaveResultDto.saved(new CardId(saved.getId()), deckId, contextNumber);
     }
 
+    /** Saves a browser-selected context into the caller's chosen deck. */
     @Override
     @Transactional
     public CardSaveResultDto saveFromLookup(

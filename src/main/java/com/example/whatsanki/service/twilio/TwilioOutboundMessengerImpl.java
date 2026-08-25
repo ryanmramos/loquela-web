@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.net.URI;
 import java.util.regex.Pattern;
 
+/** Maps Twilio API failures to the retry categories used by the job runner. */
 @Service
 @RequiredArgsConstructor
 @Slf4j

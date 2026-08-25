@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/** Legacy YouTube acceptance path retained while older queued jobs drain. */
 @Service
 @RequiredArgsConstructor
 @Slf4j

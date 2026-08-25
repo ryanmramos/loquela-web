@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+declare global {
+  interface Window {
+    recordPolicyViolation: (directive: string) => void;
+  }
+}
+
 test('compiled SPA enforces the production security-header contract', async ({ page }) => {
   const policyViolations: string[] = [];
   await page.exposeFunction('recordPolicyViolation', (directive: string) => {
@@ -7,10 +13,7 @@ test('compiled SPA enforces the production security-header contract', async ({ p
   });
   await page.addInitScript(() => {
     document.addEventListener('securitypolicyviolation', (event) => {
-      const record = window as typeof window & {
-        recordPolicyViolation: (directive: string) => void;
-      };
-      void record.recordPolicyViolation(event.effectiveDirective);
+      void window.recordPolicyViolation(event.effectiveDirective);
     });
   });
 

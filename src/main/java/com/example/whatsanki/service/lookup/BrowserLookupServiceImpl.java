@@ -24,7 +24,10 @@ import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 
-/** Website-facing lookup facade: validates browser scope before a durable job is queued. */
+/**
+ * Website-facing lookup facade that validates browser scope before a durable job is queued.
+ * Lookup references and source filters remain owner-scoped at this boundary.
+ */
 @Service
 @RequiredArgsConstructor
 public class BrowserLookupServiceImpl implements BrowserLookupService {
@@ -38,6 +41,7 @@ public class BrowserLookupServiceImpl implements BrowserLookupService {
     private final CardSaveService cardSaveService;
     private final TextNormalizer textNormalizer;
 
+    /** Captures the selected source IDs and language before the worker starts. */
     @Override
     public BrowserLookupAcceptedDto create(String googleSubject, CreateBrowserLookupRequestDto request) {
         UserId user = user(googleSubject);

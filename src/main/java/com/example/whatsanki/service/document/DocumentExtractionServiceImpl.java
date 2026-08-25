@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Reads stored originals, extracts text with the registered format adapter, and indexes passages. */
 @Service
 @Slf4j
 public class DocumentExtractionServiceImpl implements DocumentExtractionService {
@@ -63,6 +64,7 @@ public class DocumentExtractionServiceImpl implements DocumentExtractionService 
         log.info("Registered document text extractors count={}", extractors.size());
     }
 
+    /** Performs external parsing outside a transaction, then publishes passages atomically. */
     @Override
     public void extractAndIndex(UserId userId, SourceId sourceId) {
         DocumentExtractionPreparationDto preparation = lifecycleService.prepare(userId, sourceId);
@@ -99,6 +101,7 @@ public class DocumentExtractionServiceImpl implements DocumentExtractionService 
     }
 
     private byte[] readObject(String objectKey) {
+        // Bound the read even when object metadata is stale or the store returns a larger object.
         long maximumBytes = configuration.getIngestion().getMaxDownloadBytes();
         try (InputStream input = objectStore.open(objectKey);
              ByteArrayOutputStream output = new ByteArrayOutputStream()) {

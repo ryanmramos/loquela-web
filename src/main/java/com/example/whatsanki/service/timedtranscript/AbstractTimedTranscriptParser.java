@@ -31,6 +31,7 @@ abstract class AbstractTimedTranscriptParser implements TimedTranscriptParser {
 
     protected void addCue(List<TimedCaptionCueDto> cues, long start, long end, String rawText,
                           Limits limits, Counters counters) {
+        // Apply ordering, timeline, text, and cue-count limits before creating the DTO.
         if (start < limits.previousStart || end <= start) {
             throw TimedTranscriptException.permanent("TIMED_TRANSCRIPT_MALFORMED");
         }

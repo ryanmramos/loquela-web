@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/** Adds a bounded correlation ID to logs and responses for one HTTP request. */
 @Slf4j
 @Component
 public class RequestCorrelationFilter extends OncePerRequestFilter {
@@ -50,6 +51,7 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
     }
 
     private String correlationId(String suppliedId) {
+        // Do not echo arbitrary header text into logs or response headers.
         if (suppliedId != null && SAFE_CORRELATION_ID.matcher(suppliedId).matches()) {
             return suppliedId;
         }

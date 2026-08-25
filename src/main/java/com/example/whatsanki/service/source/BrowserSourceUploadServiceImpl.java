@@ -52,6 +52,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+/** Validates browser uploads, stores the original object, and queues extraction. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -139,6 +140,8 @@ public class BrowserSourceUploadServiceImpl implements BrowserSourceUploadServic
             String objectKey = objectKeyFactory.originalSource(userId, sourceId);
             StoredObjectMetadataDto metadata =
                     new StoredObjectMetadataDto(upload.getDeclaredSize(), checksum, detected.mediaType());
+            // Store the original before publishing the source row. If persistence fails,
+            // the deterministic key lets a later cleanup scan remove the orphan.
             objectStore.put(objectKey, temporaryFile, metadata);
 
             AppUserEntity user = appUserRepository.findById(userId.value())

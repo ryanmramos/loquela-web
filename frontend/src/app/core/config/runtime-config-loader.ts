@@ -164,10 +164,14 @@ function requiredString(value: Readonly<Record<string, unknown>>, key: string): 
 }
 
 function requiredEnvironment(value: unknown): EnvironmentName {
-  if (typeof value !== 'string' || !ENVIRONMENT_NAMES.includes(value as EnvironmentName)) {
+  if (!isEnvironmentName(value)) {
     throw new RuntimeConfigError('environmentName is not supported.');
   }
-  return value as EnvironmentName;
+  return value;
+}
+
+function isEnvironmentName(value: unknown): value is EnvironmentName {
+  return typeof value === 'string' && ENVIRONMENT_NAMES.some((name) => name === value);
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {

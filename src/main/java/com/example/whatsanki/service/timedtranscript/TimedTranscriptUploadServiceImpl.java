@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/** Validates transcript uploads, stores their original bytes, and queues parsing. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -142,6 +143,7 @@ public class TimedTranscriptUploadServiceImpl implements TimedTranscriptUploadSe
             objectKey = objectKeyFactory.originalSource(userId, sourceId);
             objectStore.put(objectKey, temporary,
                     new StoredObjectMetadataDto(upload.getDeclaredSize(), checksum, upload.getDeclaredMediaType()));
+            // Register rollback cleanup because object storage is outside the database transaction.
             registerRollbackCleanup(objectKey);
 
             SourceDocumentEntity source = new SourceDocumentEntity();

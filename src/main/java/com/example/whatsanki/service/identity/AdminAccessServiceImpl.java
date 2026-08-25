@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/** Enforces administrator invariants while recording every access-list mutation. */
 @Service
 @RequiredArgsConstructor
 public class AdminAccessServiceImpl implements AdminAccessService {

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
+/** Aggregates independent dashboard sections and fails closed per section. */
 @Service
 @RequiredArgsConstructor
 @Slf4j

@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Maps a saved lookup snapshot to the versioned, exporter-ready Anki field contract. */
+/** Maps lookup snapshots to the exact ordered field contract consumed by the exporter. */
 @Component
 public class AnkiCardFieldMapper {
 

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+/** Produces deterministic private object keys for source originals and export artifacts. */
 @Component
 public class ObjectKeyFactory {
 

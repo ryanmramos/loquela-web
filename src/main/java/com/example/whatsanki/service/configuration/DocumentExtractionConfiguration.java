@@ -8,9 +8,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/** Provides a bounded executor for parsing attacker-controlled document bytes. */
 @Configuration(proxyBeanMethods = false)
 public class DocumentExtractionConfiguration {
 
+    /** Creates named daemon workers so parsing timeouts do not stop application shutdown. */
     @Bean(destroyMethod = "shutdownNow")
     ExecutorService documentExtractionExecutor(WhatsAnkiConfigurationDto configuration) {
         AtomicInteger sequence = new AtomicInteger();

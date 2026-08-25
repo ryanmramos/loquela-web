@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/** Stores ID-only work items and applies lease ownership to every state transition. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -36,6 +37,7 @@ public class BackgroundJobServiceImpl implements BackgroundJobService {
     private final BackgroundJobRetryPolicy retryPolicy;
     private final WhatsAnkiConfigurationDto configuration;
 
+    /** Rejects payloads that could turn the queue into a second content store. */
     @Override
     @Transactional
     public JobId enqueue(

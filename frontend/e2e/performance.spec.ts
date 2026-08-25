@@ -2,6 +2,18 @@ import { expect, test } from '@playwright/test';
 
 import { mockAuthenticatedE2eRuntimeConfig } from './runtime-config';
 
+interface VitalMeasurements {
+  lcp: number;
+  cls: number;
+  tbt: number;
+}
+
+declare global {
+  interface Window {
+    __step16Vitals?: VitalMeasurements;
+  }
+}
+
 test('login excludes authenticated feature chunks and routes load them lazily', async ({
   page,
 }) => {
@@ -79,17 +91,21 @@ test('three-run mobile lab medians stay within the Step 16 budgets', async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
     const measurements = { lcp: 0, cls: 0, tbt: 0 };
-    (window as typeof window & { __step16Vitals: typeof measurements }).__step16Vitals =
-      measurements;
+    window.__step16Vitals = measurements;
     new PerformanceObserver((list) => {
       measurements.lcp = list.getEntries().at(-1)?.startTime ?? measurements.lcp;
     }).observe({ type: 'largest-contentful-paint', buffered: true });
     new PerformanceObserver((list) => {
-      for (const entry of list.getEntries() as (PerformanceEntry & {
-        hadRecentInput?: boolean;
-        value?: number;
-      })[]) {
-        if (!entry.hadRecentInput) measurements.cls += entry.value ?? 0;
+      for (const entry of list.getEntries()) {
+        if (
+          'hadRecentInput' in entry &&
+          typeof entry.hadRecentInput === 'boolean' &&
+          'value' in entry &&
+          typeof entry.value === 'number' &&
+          !entry.hadRecentInput
+        ) {
+          measurements.cls += entry.value;
+        }
       }
     }).observe({ type: 'layout-shift', buffered: true });
     new PerformanceObserver((list) => {
@@ -102,13 +118,7 @@ test('three-run mobile lab medians stay within the Step 16 budgets', async ({
     await page.goto('/error');
     await expect(page.getByRole('heading', { name: 'Something went wrong' })).toBeVisible();
     await page.waitForTimeout(250);
-    runs.push(
-      await page.evaluate(
-        () =>
-          (window as typeof window & { __step16Vitals: { lcp: number; cls: number; tbt: number } })
-            .__step16Vitals,
-      ),
-    );
+    runs.push(await page.evaluate(() => window.__step16Vitals ?? { lcp: 0, cls: 0, tbt: 0 }));
   }
 
   const median = (values: number[]) => [...values].sort((a, b) => a - b)[1] ?? Infinity;
@@ -120,7 +130,10 @@ test('three-run mobile lab medians stay within the Step 16 budgets', async ({
     (link) =>
       new Promise<number>((resolve) => {
         const startedAt = performance.now();
-        (link as HTMLAnchorElement).focus();
+        if (!(link instanceof HTMLAnchorElement)) {
+          throw new Error('Expected the return link to be an anchor element.');
+        }
+        link.focus();
         requestAnimationFrame(() =>
           requestAnimationFrame(() => resolve(performance.now() - startedAt)),
         );

@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/** Seeds the first production administrators under a PostgreSQL transaction lock. */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
@@ -34,6 +35,7 @@ public class AccessBootstrapInitializer implements ApplicationRunner {
     private final Environment environment;
     private final EntityManager entityManager;
 
+    /** Runs once at startup and stops production when no administrator can be established. */
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
@@ -87,4 +89,3 @@ public class AccessBootstrapInitializer implements ApplicationRunner {
         return event;
     }
 }
-

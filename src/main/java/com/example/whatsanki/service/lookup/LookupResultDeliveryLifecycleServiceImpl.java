@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+/** Builds an immutable outbound-message outbox and records provider delivery state. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -37,6 +38,7 @@ public class LookupResultDeliveryLifecycleServiceImpl implements LookupResultDel
     private final LookupResultMessageFormatter messageFormatter;
     private final LookupFailureMessageFormatter failureMessageFormatter;
 
+    /** Creates the outbox once, then returns only pending or previously accepted parts. */
     @Override
     @Transactional
     public LookupDeliveryPreparationDto prepare(

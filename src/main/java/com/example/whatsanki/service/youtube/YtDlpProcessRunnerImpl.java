@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
+/** Runs yt-dlp with bounded arguments, output, and execution time. */
 @Service
 @RequiredArgsConstructor
 @Deprecated(forRemoval = true)

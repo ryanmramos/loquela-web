@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 
+/** Clears stored-object metadata only after the external delete succeeds. */
 @Service
 @RequiredArgsConstructor
 public class SourceObjectCleanupLifecycleServiceImpl implements SourceObjectCleanupLifecycleService {

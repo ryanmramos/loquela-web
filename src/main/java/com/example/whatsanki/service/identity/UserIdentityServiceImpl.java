@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+/** Resolves provider identities with lookup hashes and encrypted recovery values. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,6 +31,7 @@ public class UserIdentityServiceImpl implements UserIdentityService {
     private final DefaultDeckService defaultDeckService;
     private final WhatsAnkiConfigurationDto configuration;
 
+    /** Creates or reuses the user linked to a normalized WhatsApp address. */
     @Override
     @Transactional
     public UserId resolveOrCreate(String rawWhatsAppAddress) {
@@ -46,6 +48,7 @@ public class UserIdentityServiceImpl implements UserIdentityService {
                 ));
     }
 
+    /** Creates or reuses a Google user and provisions the default deck for new accounts. */
     @Override
     @Transactional
     public UserId resolveOrCreateGoogle(String subject, String verifiedEmail, String displayName) {

@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/** Captures a lookup request, language pair, result snapshot, and expiration state. */
 @Entity
 @Table(name = "lookup_session")
 @Getter

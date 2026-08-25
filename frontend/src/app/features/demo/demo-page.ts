@@ -341,28 +341,33 @@ export class DemoPage implements OnInit, OnDestroy {
   }
 
   sourceIcon(type: DemoSourceType): AppIconName {
-    return (
-      { PASTED_TEXT: 'type', PDF: 'document', YOUTUBE: 'video', TIMED_TRANSCRIPT: 'video' } as const
-    )[type];
+    const icons = {
+      PASTED_TEXT: 'type',
+      PDF: 'document',
+      YOUTUBE: 'video',
+      TIMED_TRANSCRIPT: 'video',
+    } satisfies Record<DemoSourceType, AppIconName>;
+    return icons[type];
   }
 
   sourceStateTone(state: DemoSourceState): StatusTone {
-    return ({ QUEUED: 'info', PROCESSING: 'info', READY: 'success', FAILED: 'danger' } as const)[
-      state
-    ];
+    const tones = {
+      QUEUED: 'info',
+      PROCESSING: 'info',
+      READY: 'success',
+      FAILED: 'danger',
+    } satisfies Record<DemoSourceState, StatusTone>;
+    return tones[state];
   }
 
   sourceTypeLabel(type: DemoSourceType): string {
-    return this.translations.translate(
-      (
-        {
-          PASTED_TEXT: 'demo.source.PASTED_TEXT',
-          PDF: 'demo.source.PDF',
-          YOUTUBE: 'demo.source.YOUTUBE',
-          TIMED_TRANSCRIPT: 'demo.source.TIMED_TRANSCRIPT',
-        } as const
-      )[type],
-    );
+    const keys = {
+      PASTED_TEXT: 'demo.source.PASTED_TEXT',
+      PDF: 'demo.source.PDF',
+      YOUTUBE: 'demo.source.YOUTUBE',
+      TIMED_TRANSCRIPT: 'demo.source.TIMED_TRANSCRIPT',
+    } satisfies Record<DemoSourceType, TranslationKey>;
+    return this.translations.translate(keys[type]);
   }
 
   sourceDisplayName(source: DemoSource): string {
@@ -489,7 +494,7 @@ export class DemoPage implements OnInit, OnDestroy {
       PROCESSING: 'demo.sourceProcessing',
       READY: 'demo.sourceReady',
       FAILED: 'demo.sourceFailed',
-    } as const;
+    } satisfies Record<DemoSourceState, TranslationKey>;
     return keys[state];
   }
 

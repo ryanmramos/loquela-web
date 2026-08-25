@@ -22,9 +22,40 @@ import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/sta
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
+import type { TranslationKey } from '@core/i18n/translation.service';
 import { formatBytes } from '@app/shared/utils/format-bytes';
 
 import { SourceListState } from './source-list-state';
+
+const SOURCE_KINDS = [
+  'PASTED_TEXT',
+  'TXT',
+  'PDF',
+  'EPUB',
+  'YOUTUBE_VIDEO',
+  'TIMED_TRANSCRIPT',
+] as const satisfies readonly NonNullable<SourceListQuery['kind']>[];
+const SOURCE_STATUSES = [
+  'RECEIVED',
+  'FETCHING',
+  'STORED',
+  'PARSING',
+  'NORMALIZING',
+  'EXTRACTING',
+  'INDEXING',
+  'READY',
+  'FAILED',
+  'DELETING',
+  'DELETED',
+] as const satisfies readonly NonNullable<SourceListQuery['status']>[];
+const SOURCE_SORTS = [
+  'CREATED_AT',
+  'UPDATED_AT',
+  'DISPLAY_NAME',
+] as const satisfies readonly NonNullable<SourceListQuery['sort']>[];
+const SOURCE_DIRECTIONS = ['ASC', 'DESC'] as const satisfies readonly NonNullable<
+  SourceListQuery['direction']
+>[];
 
 @Component({
   selector: 'app-source-list',
@@ -134,7 +165,8 @@ export class SourceList {
   }
 
   onAdvancedFiltersToggle(event: Event): void {
-    this.advancedFiltersOpen.set((event.target as HTMLDetailsElement).open);
+    if (!(event.currentTarget instanceof HTMLDetailsElement)) return;
+    this.advancedFiltersOpen.set(event.currentTarget.open);
   }
 
   goToPage(page: number): void {
@@ -146,16 +178,15 @@ export class SourceList {
   }
 
   kindLabel(kind: SourceSummary['kind']): string {
-    return (
-      {
-        PASTED_TEXT: this.translations.translate('sources.pastedText'),
-        TXT: 'TXT',
-        PDF: 'PDF',
-        EPUB: 'EPUB',
-        YOUTUBE_VIDEO: this.translations.translate('sources.youtube'),
-        TIMED_TRANSCRIPT: this.translations.translate('sources.timedTranscript'),
-      } as const
-    )[kind];
+    const labels = {
+      PASTED_TEXT: this.translations.translate('sources.pastedText'),
+      TXT: 'TXT',
+      PDF: 'PDF',
+      EPUB: 'EPUB',
+      YOUTUBE_VIDEO: this.translations.translate('sources.youtube'),
+      TIMED_TRANSCRIPT: this.translations.translate('sources.timedTranscript'),
+    } satisfies Record<SourceSummary['kind'], string>;
+    return labels[kind];
   }
 
   statusLabel(status: SourceSummary['status']): string {
@@ -171,7 +202,7 @@ export class SourceList {
       FAILED: 'sources.failed',
       DELETING: 'sources.deleting',
       DELETED: 'sources.deleted',
-    } as const;
+    } satisfies Record<SourceSummary['status'], TranslationKey>;
     return this.translations.translate(keys[status]);
   }
 
@@ -217,14 +248,28 @@ export class SourceList {
 
   private queryFromRoute(): SourceListQuery {
     const params = this.route.snapshot.queryParamMap;
+    // Query parameters are untrusted strings. Parse enum values before passing them to the API adapter.
     return {
-      page: Math.max(0, Number(params.get('page') ?? 0) || 0),
+      page: parsePage(params.get('page')),
       pageSize: 20,
       search: params.get('search') ?? undefined,
-      kind: (params.get('kind') as SourceListQuery['kind']) ?? undefined,
-      status: (params.get('status') as SourceListQuery['status']) ?? undefined,
-      sort: (params.get('sort') as SourceListQuery['sort']) ?? 'CREATED_AT',
-      direction: (params.get('direction') as SourceListQuery['direction']) ?? 'DESC',
+      kind: parseEnum(params.get('kind'), SOURCE_KINDS),
+      status: parseEnum(params.get('status'), SOURCE_STATUSES),
+      sort: parseEnum(params.get('sort'), SOURCE_SORTS) ?? 'CREATED_AT',
+      direction: parseEnum(params.get('direction'), SOURCE_DIRECTIONS) ?? 'DESC',
     };
   }
+}
+
+function parsePage(value: string | null): number {
+  const page = Number(value);
+  return Number.isInteger(page) && page >= 0 ? page : 0;
+}
+
+function parseEnum<T extends string>(value: string | null, allowed: readonly T[]): T | undefined {
+  return value !== null && isAllowedValue(value, allowed) ? value : undefined;
+}
+
+function isAllowedValue<T extends string>(value: string, allowed: readonly T[]): value is T {
+  return allowed.some((candidate) => candidate === value);
 }

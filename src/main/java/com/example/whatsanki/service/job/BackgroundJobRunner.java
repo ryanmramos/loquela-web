@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/** Polls for leased jobs and records completion or failure after handler execution. */
 @Component
 @ConditionalOnProperty(prefix = "whatsanki.jobs", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
@@ -34,6 +35,7 @@ public class BackgroundJobRunner {
         workerId = "worker-" + UUID.randomUUID();
     }
 
+    /** Recovers expired leases before claiming the next bounded batch. */
     @Scheduled(fixedDelayString = "${whatsanki.jobs.poll-interval:PT1S}")
     public void poll() {
         Instant now = Instant.now();

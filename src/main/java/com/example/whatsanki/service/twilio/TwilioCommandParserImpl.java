@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.text.Normalizer;
 import java.util.Locale;
 
+/** Separates display text from normalized command values without logging message contents. */
 @Service
 @Slf4j
 public class TwilioCommandParserImpl implements TwilioCommandParser {
@@ -27,6 +28,7 @@ public class TwilioCommandParserImpl implements TwilioCommandParser {
     static final String DOCUMENT_MEDIA_USAGE = "The document attachment is missing its media URL or content type.";
     static final String NO_ARGUMENTS_USAGE = "This command does not accept additional text.";
 
+    /** Gives media attachments precedence over their optional caption text. */
     @Override
     public ParsedTwilioCommandDto parse(TwilioWebhookRequestDto request) {
         String displayBody = displayText(request.getBody());

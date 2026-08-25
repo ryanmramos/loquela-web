@@ -149,7 +149,9 @@ export class AppIcon {
     }
 
     for (const [tag, attributes] of nodes) {
-      const child = this.renderer.createElement(tag, 'svg') as SVGElement;
+      // Renderer2 exposes its DOM factory as an untyped value. Validate the element before using it.
+      const child: unknown = this.renderer.createElement(tag, 'svg');
+      if (!isDomElement(child)) continue;
       for (const [name, value] of Object.entries(attributes)) {
         if (value !== undefined) {
           this.renderer.setAttribute(child, name, String(value));
@@ -158,4 +160,8 @@ export class AppIcon {
       this.renderer.appendChild(svg, child);
     }
   }
+}
+
+function isDomElement(value: unknown): value is Element {
+  return typeof Element !== 'undefined' && value instanceof Element;
 }

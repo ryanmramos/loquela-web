@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+/** Stores encrypted pasted text until a background job normalizes and indexes it. */
 @Service
 @RequiredArgsConstructor
 @Slf4j

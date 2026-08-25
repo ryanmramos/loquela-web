@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 
 import { DeckApi } from '@api/api-adapters/deck-api';
-import { PracticeApi, PracticeSession } from '@api/api-adapters/practice-api';
+import { PracticeApi, PracticeRating, PracticeSession } from '@api/api-adapters/practice-api';
 
 import { PracticePage } from './practice-page';
 
@@ -15,7 +15,13 @@ describe('PracticePage', () => {
   const active = vi.fn(() => of<PracticeSession | null>(null));
   const start = vi.fn(() => of(hiddenSession()));
   const reveal = vi.fn(() => of(revealedSession()));
-  const rate = vi.fn(() => of({ ...hiddenSession(), position: 2 }));
+  const rate = vi.fn<
+    (
+      reference: string,
+      requestId: string,
+      rating: PracticeRating,
+    ) => ReturnType<PracticeApi['rate']>
+  >(() => of({ ...hiddenSession(), position: 2 }));
   const end = vi.fn(() => of({ ...hiddenSession(), status: 'EXPIRED' as const }));
   const list = vi.fn(() =>
     of({ items: decks, page: 0, pageSize: 20, totalItems: 1, totalPages: 1 }),
@@ -93,13 +99,9 @@ describe('PracticePage', () => {
     expect(rate).toHaveBeenCalledWith('session-1', expect.any(String), 'GOT_IT');
 
     rate.mockClear();
-    page.handleShortcut({
-      defaultPrevented: false,
-      target: input,
-      key: '3',
-      code: 'Digit3',
-      preventDefault: vi.fn(),
-    } as unknown as KeyboardEvent);
+    const inputEvent = new KeyboardEvent('keydown', { key: '3', code: 'Digit3' });
+    Object.defineProperty(inputEvent, 'target', { value: input });
+    page.handleShortcut(inputEvent);
     expect(rate).not.toHaveBeenCalled();
   });
 
@@ -109,7 +111,7 @@ describe('PracticePage', () => {
     const page = TestBed.createComponent(PracticePage).componentInstance;
 
     page.rate('ALMOST');
-    const firstRequestId = (rate.mock.calls as unknown as string[][])[0]?.[1];
+    const firstRequestId = rate.mock.calls[0]?.[1];
     page.retryRating();
 
     expect(rate).toHaveBeenNthCalledWith(2, 'session-1', firstRequestId, 'ALMOST');

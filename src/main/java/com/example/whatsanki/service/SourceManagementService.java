@@ -6,6 +6,7 @@ import com.example.whatsanki.dto.SourceSummaryDto;
 
 import java.util.List;
 
+/** Owns source listing and the transition into asynchronous deletion. */
 public interface SourceManagementService {
     List<SourceSummaryDto> listRecent(UserId userId, int limit);
 

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Objects;
 
+/** Finds expired originals and queues idempotent object cleanup jobs. */
 @Service
 @RequiredArgsConstructor
 @Slf4j

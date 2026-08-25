@@ -61,6 +61,7 @@ public class LocalBrowserAuthenticationController {
             HttpServletRequest request,
             HttpServletResponse response
     ) {
+        // These accounts are fixed development identities, not a second production auth system.
         LocalAccount account = ACCOUNTS.get(requestDto.accountId());
         if (account == null) {
             throw new IllegalArgumentException("Unsupported local account");

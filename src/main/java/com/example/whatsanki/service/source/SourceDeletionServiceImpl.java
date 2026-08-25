@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Objects;
 
+/** Deletes source-owned objects and rows after all other source jobs stop running. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -36,6 +37,12 @@ public class SourceDeletionServiceImpl implements SourceDeletionService {
     private final ObjectKeyFactory objectKeyFactory;
     private final TwilioMediaCleanupScheduler twilioMediaCleanupScheduler;
 
+    /**
+     * Deletes the external object before the database rows.
+     *
+     * <p>Object deletion is idempotent, so a retried job can safely repeat it after a
+     * transaction rollback.</p>
+     */
     @Override
     @Transactional
     public boolean delete(UserId userId, SourceId sourceId, JobId deletionJobId) {

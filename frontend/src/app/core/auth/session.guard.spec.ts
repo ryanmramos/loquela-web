@@ -8,21 +8,38 @@ import {
 } from '@angular/router';
 import { firstValueFrom, Observable, of } from 'rxjs';
 
+import { BrowserSession } from '@api/api-adapters/session-api';
+
 import { SessionFacade } from './session-facade';
 import { authenticatedGuard } from './session.guard';
 import { SessionView } from './session-store';
 
 describe('authenticatedGuard', () => {
+  const user: BrowserSession = {
+    userId: 'test-user',
+    displayName: null,
+    email: null,
+    sourceLanguage: 'es',
+    definitionLanguage: 'en',
+    accountState: 'ACTIVE',
+    roles: ['USER'],
+    linkedAccounts: { google: false, whatsapp: false },
+  };
+
   it.each([
     ['authenticated', true],
     ['deleting', '/account-deleting'],
     ['anonymous', '/login?returnUrl=%2Fapp%2Fcards'],
     ['disabled', '/login?returnUrl=%2Fapp%2Fcards&reason=account-disabled'],
   ] as const)('routes a %s session correctly', async (status, expected) => {
-    const view: SessionView = {
-      status,
-      ...(status === 'disabled' ? { notice: 'account-disabled' as const } : {}),
-    };
+    const view: SessionView =
+      status === 'authenticated'
+        ? { status, user }
+        : status === 'deleting'
+          ? { status, user: { ...user, accountState: 'DELETING' } }
+          : status === 'disabled'
+            ? { status, notice: 'account-disabled' }
+            : { status };
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),

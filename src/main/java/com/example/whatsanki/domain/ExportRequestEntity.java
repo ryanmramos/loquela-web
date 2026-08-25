@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/** Persists an immutable deck snapshot and the lifecycle of its generated artifact. */
 @Entity
 @Table(name = "export_request")
 @Getter

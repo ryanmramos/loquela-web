@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
+/** Records signed Twilio messages once before dispatching their command side effects. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -29,6 +30,7 @@ public class TwilioWebhookServiceImpl implements TwilioWebhookService {
     private final TwilioCommandService twilioCommandService;
     private final WhatsAnkiConfigurationDto configuration;
 
+    /** Uses the Twilio message SID as the idempotency key for webhook retries. */
     @Override
     @Transactional
     public TwilioWebhookResponseDto handle(TwilioWebhookRequestDto request) {

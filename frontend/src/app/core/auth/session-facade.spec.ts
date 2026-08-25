@@ -50,7 +50,11 @@ describe('SessionFacade', () => {
     });
 
     expect(api.getCurrent).toHaveBeenCalledTimes(1);
-    expect(facade.view().user).toEqual(activeSession);
+    const view = facade.view();
+    expect(view.status).toBe('authenticated');
+    if (view.status === 'authenticated') {
+      expect(view.user).toEqual(activeSession);
+    }
   });
 
   it('maps anonymous, deleting, and disabled session outcomes', async () => {

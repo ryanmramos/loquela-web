@@ -7,6 +7,7 @@ import com.example.whatsanki.dto.ActivityStatusQueryResponseDto;
 
 import java.util.List;
 
+/** Builds owner-scoped activity views from source, lookup, and export state. */
 public interface BrowserActivityService {
     ActivityPageDto list(
             String googleSubject,

@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+/** Adapts the bounded yt-dlp process into the provider-neutral subtitle contract. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -111,6 +112,8 @@ public class YtDlpYouTubeSubtitleProvider implements YouTubeSubtitleProvider {
             String sourceLanguage,
             boolean automaticCaptionFallback
     ) {
+        // Prefer human subtitles. Automatic captions are an explicit fallback controlled
+        // by both deployment policy and the preference captured with the source.
         String manual = compatibleLanguage(metadata.path("subtitles"), sourceLanguage);
         if (manual != null) return new CaptionSelection(manual, VideoSourceEntity.CaptionKind.MANUAL);
         // Deployment policy is the upper bound; a user may only further restrict it.

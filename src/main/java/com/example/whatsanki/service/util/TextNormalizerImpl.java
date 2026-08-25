@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+/** Normalizes display text while preserving paragraph boundaries for later segmentation. */
 @Component
 public class TextNormalizerImpl implements TextNormalizer {
 

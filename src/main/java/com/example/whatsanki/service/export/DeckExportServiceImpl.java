@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/** Captures, verifies, exports, and publishes an immutable Anki deck artifact. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -68,6 +69,7 @@ public class DeckExportServiceImpl implements DeckExportService {
     private final OutboundMessenger outboundMessenger;
     private final ObjectMapper objectMapper;
 
+    /** Creates the durable snapshot that the export worker will consume later. */
     @Override
     @Transactional
     public DeckExportAcceptanceDto accept(UserId userId, String deckName, String normalizedDeckName) {
@@ -116,6 +118,7 @@ public class DeckExportServiceImpl implements DeckExportService {
         return new DeckExportAcceptanceDto(exportRequestId, jobId, deck.getName(), cards.size());
     }
 
+    /** Runs the exporter and publishes the artifact before sending an optional WhatsApp link. */
     @Override
     public void execute(UserId userId, ExportRequestId exportRequestId) {
         DeckExportPreparationDto preparation = lifecycleService.prepare(userId, exportRequestId);

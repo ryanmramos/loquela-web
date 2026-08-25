@@ -2,6 +2,7 @@ package com.example.whatsanki.service;
 
 import com.example.whatsanki.domain.WhatsAppAddress;
 
+/** Hashes provider subjects for lookup and encrypts values that must be recovered later. */
 public interface IdentityProtectionService {
     byte[] hashSubject(String subject);
     byte[] encryptSubject(String subject);

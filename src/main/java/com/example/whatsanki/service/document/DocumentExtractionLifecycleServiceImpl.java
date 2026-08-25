@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/** Owns short transactions that move a document through extraction and indexing states. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,6 +32,7 @@ public class DocumentExtractionLifecycleServiceImpl implements DocumentExtractio
     private final PassageRepository passageRepository;
     private final TextNormalizer textNormalizer;
 
+    /** Marks the source as extracting and returns only the data needed for external parsing. */
     @Override
     @Transactional
     public DocumentExtractionPreparationDto prepare(UserId userId, SourceId sourceId) {
@@ -62,6 +64,7 @@ public class DocumentExtractionLifecycleServiceImpl implements DocumentExtractio
         );
     }
 
+    /** Replaces passages and marks the source ready in one transaction. */
     @Override
     @Transactional
     public void complete(

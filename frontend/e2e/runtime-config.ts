@@ -1,5 +1,9 @@
 import { Page } from '@playwright/test';
 
+declare const process: {
+  readonly env: Readonly<Record<string, string | undefined>>;
+};
+
 const primeUiLicenseKey = process.env['PRIMEUI_LICENSE_KEY'];
 
 export async function mockAuthenticatedE2eRuntimeConfig(page: Page): Promise<void> {

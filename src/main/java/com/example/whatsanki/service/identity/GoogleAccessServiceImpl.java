@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+/** Normalizes verified Google email addresses and enforces the persistent allowlist. */
 @Service
 @RequiredArgsConstructor
 public class GoogleAccessServiceImpl implements GoogleAccessService {

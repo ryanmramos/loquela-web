@@ -115,18 +115,30 @@ export class DashboardPage {
   activityTitle(item: ActivityItem): string {
     return (
       item.resourceLabel ??
-      this.translations.translate(`activity.operation.${item.operation}` as never)
+      this.translations.translateDynamic(
+        `activity.operation.${item.operation}`,
+        'activity.operation.LOOKUP',
+      )
     );
   }
 
   activityDetail(item: ActivityItem): string {
-    const status = this.translations.translate(`activity.status.${item.status}` as never);
+    const status = this.translations.translateDynamic(
+      `activity.status.${item.status}`,
+      'activity.status.FAILED',
+    );
     return item.deliveryStatus
-      ? `${status} · ${this.translations.translate(`activity.delivery.${item.deliveryStatus}` as never)}`
+      ? `${status} · ${this.translations.translateDynamic(
+          `activity.delivery.${item.deliveryStatus}`,
+          'activity.delivery.NOT_APPLICABLE',
+        )}`
       : status;
   }
 
   activityStatus(lifecycle: ActivityItem['lifecycle']): string {
-    return this.translations.translate(`activity.lifecycle.${lifecycle}` as never);
+    return this.translations.translateDynamic(
+      `activity.lifecycle.${lifecycle}`,
+      'activity.lifecycle.ACTIVE',
+    );
   }
 }

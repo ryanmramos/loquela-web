@@ -14,6 +14,46 @@ const activeSession = {
   linkedAccounts: { google: true, whatsapp: false },
 };
 
+interface CardUpdatePayload {
+  readonly term: string;
+  readonly definition: string;
+  readonly version: number;
+}
+
+interface DeckUpdatePayload {
+  readonly name: string;
+  readonly themeColor: string;
+}
+
+interface DashboardMock {
+  readonly generatedAt: string;
+  readonly languagePair: { readonly sourceLanguage: string; readonly definitionLanguage: string };
+  readonly cards: {
+    readonly status: 'AVAILABLE' | 'UNAVAILABLE';
+    readonly cardsToStudy: number | null;
+    readonly totalCards: number | null;
+    readonly newCardsThisWeek: number | null;
+  };
+  readonly sources: {
+    readonly status: 'AVAILABLE' | 'UNAVAILABLE';
+    readonly totalSources: number | null;
+    readonly readySources: number | null;
+    readonly processingSources: number | null;
+  };
+  readonly storage: {
+    readonly status: 'AVAILABLE' | 'UNAVAILABLE';
+    readonly usedBytes: number | null;
+  };
+  readonly jobs: {
+    readonly status: 'AVAILABLE' | 'UNAVAILABLE';
+    readonly activeJobs: number | null;
+  };
+  readonly activity: {
+    readonly status: 'AVAILABLE' | 'UNAVAILABLE';
+    readonly items: readonly Record<string, unknown>[];
+  };
+}
+
 test('anonymous users see an accessible sign-in page with local accounts', async ({ page }) => {
   await mockAuthentication(page);
   await page.goto('/');
@@ -349,7 +389,7 @@ test('lookup polling reports success and terminal lookup failures', async ({ pag
       await route.fallback();
       return;
     }
-    const term = (request.postDataJSON() as { term: string }).term;
+    const term = readString(request.postDataJSON(), 'term');
     await route.fulfill({
       status: 202,
       contentType: 'application/json',
@@ -502,11 +542,7 @@ test('card management preserves versioned edits and confirms permanent deletion'
   });
   await page.route('**/api/v1/cards/BBBBBBBBBBBBBBBBBBBBBB', async (route: Route) => {
     if (route.request().method() === 'PATCH') {
-      const body = route.request().postDataJSON() as {
-        term: string;
-        definition: string;
-        version: number;
-      };
+      const body = readCardUpdate(route.request().postDataJSON());
       expect(body).toMatchObject({
         term: 'vivir bien',
         definition: 'to live well',
@@ -586,7 +622,7 @@ test('deck library uses a responsive grid, persists edits, opens cards, and resu
     await route.fulfill({ status: 201, contentType: 'application/json', body: '{}' });
   });
   await page.route(`**/api/v1/decks/${deckReference}`, async (route: Route) => {
-    const body = route.request().postDataJSON() as { name: string; themeColor: string };
+    const body = readDeckUpdate(route.request().postDataJSON());
     decks = [{ ...decks[0], ...body }, ...decks.slice(1)];
     await route.fulfill({
       status: 200,
@@ -904,7 +940,7 @@ test('settings keeps forms independent and presents guarded account deletion', a
 async function mockAuthentication(
   page: Page,
   initiallyAuthenticated = false,
-  dashboard = dashboardSnapshot,
+  dashboard: DashboardMock = dashboardSnapshot,
   admin = false,
 ): Promise<{ isAuthenticated: () => boolean }> {
   await mockAuthenticatedE2eRuntimeConfig(page);
@@ -1093,7 +1129,7 @@ const dashboardSnapshot = {
       },
     ],
   },
-};
+} satisfies DashboardMock;
 
 const sourcePage = {
   items: [
@@ -1128,3 +1164,43 @@ const sourceDetails = {
     captionKind: 'MANUAL',
   },
 };
+
+function readCardUpdate(value: unknown): CardUpdatePayload {
+  const body = asRecord(value);
+  return {
+    term: readString(body, 'term'),
+    definition: readString(body, 'definition'),
+    version: readNumber(body, 'version'),
+  };
+}
+
+function readDeckUpdate(value: unknown): DeckUpdatePayload {
+  const body = asRecord(value);
+  return {
+    name: readString(body, 'name'),
+    themeColor: readString(body, 'themeColor'),
+  };
+}
+
+function readString(value: unknown, key: string): string {
+  const field = asRecord(value)[key];
+  if (typeof field !== 'string') throw new Error(`Expected ${key} to be a string.`);
+  return field;
+}
+
+function readNumber(value: unknown, key: string): number {
+  const field = asRecord(value)[key];
+  if (typeof field !== 'number') throw new Error(`Expected ${key} to be a number.`);
+  return field;
+}
+
+function asRecord(value: unknown): Readonly<Record<string, unknown>> {
+  if (!isRecord(value)) {
+    throw new Error('Expected a JSON object.');
+  }
+  return value;
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}

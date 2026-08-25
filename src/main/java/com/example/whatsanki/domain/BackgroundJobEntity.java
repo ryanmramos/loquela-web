@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/** A durable ID-only work item with lease ownership and retry state. */
 @Entity
 @Table(name = "background_job")
 @Getter
@@ -98,6 +99,7 @@ public class BackgroundJobEntity {
     public enum State {
         QUEUED, RUNNING, RETRY_WAIT, SUCCEEDED, DEAD, CANCELLED;
 
+        /** Returns whether the worker state machine permits the requested transition. */
         public boolean canTransitionTo(State target) {
             return switch (this) {
                 case QUEUED -> target == RUNNING || target == CANCELLED;

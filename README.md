@@ -1,7 +1,7 @@
 # Loquela
 
-Loquela combines a Spring Boot API with an independently built Angular web application. PostgreSQL
-stores application data, and MinIO provides S3-compatible object storage for local development.
+Loquela has a Spring Boot API and an Angular web application. PostgreSQL stores application data.
+MinIO provides S3-compatible object storage for local development.
 
 ## Prerequisites
 
@@ -16,18 +16,18 @@ Node version is pinned in `frontend/.nvmrc`.
 
 ## Initial setup
 
-From the repository root, create your private local configuration and start PostgreSQL and MinIO:
+From the repository root, create your local configuration and start PostgreSQL and MinIO:
 
 ```bash
 cp .env.example .env
 docker compose up -d
 ```
 
-The checked-in defaults are intended only for local development. Keep `.env` out of Git and place
-real credentials only in that file or another secure secret store.
+The values in `.env.example` are for local development. Keep `.env` out of Git. Store real
+credentials only in `.env` or another secure secret store.
 
-The checked-in local configuration uses Angular's same-origin development proxy. Keep CORS blank
-for that workflow:
+The local configuration uses Angular's same-origin development proxy. Keep CORS blank for this
+workflow:
 
 ```dotenv
 WHATSANKI_ALLOWED_ORIGINS=
@@ -35,12 +35,13 @@ WHATSANKI_ALLOWED_ORIGINS=
 
 ### Local test accounts
 
-The `.env.example` enables the `local` Spring profile and the local-only login boundary. Start both
-applications, open `http://localhost:4200/login`, and choose **Local Learner**, **Local Reviewer**,
-or **Local Admin**. The first login creates a normal Google-only application user, default deck, and JDBC
-browser session in the local PostgreSQL database. No Google request or phone number is involved.
+The `.env.example` enables the `local` Spring profile and the local-only login flow. Start both
+applications. Open `http://localhost:4200/login` and choose **Local Learner**, **Local Reviewer**,
+or **Local Admin**. The first login for each local account creates a normal Google-only application
+user, a default deck, and a JDBC browser session in the local PostgreSQL database. The flow does not
+contact Google or require a phone number.
 
-The local endpoint is available only when both `SPRING_PROFILES_ACTIVE=local` and
+The local login endpoint is available only when both `SPRING_PROFILES_ACTIVE=local` and
 `WHATSANKI_LOCAL_LOGIN_ENABLED=true` are set. Production startup rejects local login.
 
 ### Google OAuth
@@ -58,13 +59,13 @@ SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=http://localhost:
 WHATSANKI_BOOTSTRAP_ADMIN_EMAILS=owner@example.com
 ```
 
-Google sign-in is allowlisted. On the first deployment, `WHATSANKI_BOOTSTRAP_ADMIN_EMAILS` seeds
-one or more exact, normalized email addresses as persistent administrators. Once an active
-administrator exists in PostgreSQL, the environment value is ignored and access is managed at
-`/app/admin/access` without restarting the application. Remove the bootstrap value after verifying
-the first administrator can sign in. Local test-account login remains independent of this list.
+Google sign-in uses an allowlist. On the first deployment, `WHATSANKI_BOOTSTRAP_ADMIN_EMAILS` seeds
+one or more exact, normalized email addresses as persistent administrators. After an active
+administrator exists in PostgreSQL, the application ignores the environment value. Manage access at
+`/app/admin/access` without restarting the application. Remove the bootstrap value after you verify
+that the first administrator can sign in. Local test-account login remains independent of this list.
 
-The backend can start without Twilio credentials when WhatsApp integration is not being exercised.
+You can start the backend without Twilio credentials if you are not testing WhatsApp integration.
 
 ### Optional Anki exporter setup
 
@@ -78,8 +79,8 @@ python -m pip install --upgrade pip
 python -m pip install -e exporter
 ```
 
-Because the backend launches `python3` by default, it will inherit the activated virtual
-environment. This setup is not required for features that do not export `.apkg` files.
+The backend runs `python3` by default, so it uses the active virtual environment. This setup is not
+required for features that do not export `.apkg` files.
 
 ## Run the backend
 
@@ -114,8 +115,8 @@ npm ci
 npm start
 ```
 
-Open `http://localhost:4200`. If you do not use `nvm`, install the Node and npm versions listed in
-the prerequisites before running `npm ci`.
+Open `http://localhost:4200`. If you use another Node version manager, install the Node.js and npm
+versions listed in the prerequisites before running `npm ci`.
 
 Useful frontend checks:
 
@@ -136,5 +137,5 @@ npx playwright install chromium
 docker compose down
 ```
 
-This preserves the PostgreSQL and MinIO named volumes. To inspect the running services at any time,
-use `docker compose ps`.
+This command preserves the PostgreSQL and MinIO named volumes. To inspect the running services, use
+`docker compose ps`.

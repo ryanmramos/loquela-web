@@ -5,6 +5,7 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
 
+/** Encodes upload intent IDs into opaque values accepted by completion endpoints. */
 public final class UploadReferenceCodec {
     private static final String PREFIX = "upl_";
     private static final int ENCODED_LENGTH = 22;

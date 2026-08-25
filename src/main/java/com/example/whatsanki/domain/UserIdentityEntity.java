@@ -30,6 +30,7 @@ import java.util.UUID;
                 )
         }
 )
+/** Links one provider subject to an application user without indexing plaintext identity data. */
 @Getter
 @Setter
 @NoArgsConstructor

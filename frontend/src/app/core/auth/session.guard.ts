@@ -18,7 +18,7 @@ export const authenticatedGuard: CanActivateFn = (_route, state) => {
         return router.parseUrl('/account-deleting');
       }
       const returnUrl = safeAuthenticatedReturnUrl(state.url);
-      const reason = session.notice === 'account-disabled' ? 'account-disabled' : undefined;
+      const reason = session.status === 'disabled' ? 'account-disabled' : undefined;
       return router.createUrlTree(['/login'], {
         queryParams: {
           returnUrl,
@@ -75,7 +75,7 @@ export const adminGuard: CanActivateFn = () => {
     .ensureLoaded()
     .pipe(
       map((session) =>
-        session.status === 'authenticated' && session.user?.roles.includes('ADMIN')
+        session.status === 'authenticated' && session.user.roles.includes('ADMIN')
           ? true
           : router.parseUrl('/app'),
       ),

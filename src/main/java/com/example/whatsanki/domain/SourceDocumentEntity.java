@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/** Stores source lifecycle state while content moves from acquisition to indexed passages. */
 @Entity
 @Table(name = "source_document")
 @Getter
@@ -59,6 +60,7 @@ public class SourceDocumentEntity {
     @PreUpdate void preUpdate() { updatedAt = Instant.now(); }
 
     public enum Kind { PASTED_TEXT, TXT, PDF, EPUB, YOUTUBE_VIDEO, TIMED_TRANSCRIPT }
+    /** Lifecycle states exposed to source status views and consumed by background workers. */
     public enum Status {
         RECEIVED, FETCHING, STORED, PARSING, NORMALIZING, EXTRACTING, INDEXING, READY, FAILED, DELETING, DELETED
     }

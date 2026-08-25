@@ -41,6 +41,12 @@ import tools.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;
 
+/**
+ * Defines the session, CSRF, OAuth, CORS, and security-header rules for browser requests.
+ *
+ * <p>Twilio webhooks are signed by their own controller boundary, while browser mutations use
+ * the session CSRF token configured here.</p>
+ */
 @Configuration(proxyBeanMethods = false)
 @EnableMethodSecurity
 @RequiredArgsConstructor
@@ -52,6 +58,7 @@ public class BrowserSecurityConfiguration {
     private final GoogleAccessService googleAccessService;
     private final DemoWorkspaceService demoWorkspaceService;
 
+    /** Builds the filter chain shared by the browser API and OAuth login flow. */
     @Bean
     SecurityFilterChain applicationSecurityFilterChain(
             HttpSecurity http,
@@ -140,6 +147,7 @@ public class BrowserSecurityConfiguration {
         return http.build();
     }
 
+    /** Adds the verified Google identity to the application's access-controlled user model. */
     @Bean
     OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService() {
         OidcUserService delegate = new OidcUserService();

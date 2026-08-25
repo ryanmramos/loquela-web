@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 
+/** Starts browser OAuth after validating the return path and clearing anonymous demo state. */
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -34,6 +35,7 @@ public class BrowserAuthenticationController {
             @RequestParam(defaultValue = "false") boolean reauthenticate,
             HttpSession session
     ) {
+        // A demo session must not survive the transition into an authenticated account.
         demoWorkspaceService.cleanupForSignIn(session);
         session.setAttribute(BrowserReturnPath.SESSION_ATTRIBUTE, BrowserReturnPath.validate(returnTo));
         String location = "/oauth2/authorization/google" + (reauthenticate ? "?prompt=login" : "");

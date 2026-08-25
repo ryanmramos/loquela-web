@@ -138,7 +138,12 @@ export class SearchableSelect implements ControlValueAccessor {
 
   handleFocusOut(event: FocusEvent): void {
     const current = event.currentTarget;
-    if (current instanceof HTMLElement && current.contains(event.relatedTarget as Node | null)) {
+    const relatedTarget = event.relatedTarget;
+    if (
+      current instanceof HTMLElement &&
+      (relatedTarget === null || relatedTarget instanceof Node) &&
+      current.contains(relatedTarget)
+    ) {
       return;
     }
     this.restoreSelectedLabel();

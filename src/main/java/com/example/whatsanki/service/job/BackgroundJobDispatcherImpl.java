@@ -11,6 +11,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+/** Builds the immutable job-type-to-handler registry at startup. */
 @Service
 @Slf4j
 public class BackgroundJobDispatcherImpl implements BackgroundJobDispatcher {

@@ -16,6 +16,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** Converts a validated lookup snapshot into bounded WhatsApp message parts. */
 @Service
 @RequiredArgsConstructor
 public class LookupResultMessageFormatterImpl implements LookupResultMessageFormatter {
@@ -24,6 +25,7 @@ public class LookupResultMessageFormatterImpl implements LookupResultMessageForm
 
     private final WhatsAnkiConfigurationDto configuration;
 
+    /** Validates snapshot fields before formatting them into user-visible text. */
     @Override
     public List<String> format(Map<String, Object> resultPayload) {
         try {

@@ -80,22 +80,31 @@ export class SettingsApi {
   }
 }
 
-interface BrowserSettingsResponse {
+interface BrowserSettingsResponse extends LanguageSettingsResponse {
   readonly profile?: { readonly displayName?: string; readonly email?: string };
   readonly linkedAccounts?: {
     readonly google?: boolean;
     readonly googleLinkedAt?: string;
     readonly whatsapp?: boolean;
   };
-  readonly languagePair?: LanguagePair;
-  readonly supportedPairs?: readonly LanguagePair[];
   readonly automaticCaptionFallback?: boolean;
   readonly exportDeckPrefix?: string;
   readonly exportIncludeProvenance?: boolean;
 }
 
+interface LanguageSettingsResponse {
+  readonly languagePair?: {
+    readonly sourceLanguage?: string;
+    readonly definitionLanguage?: string;
+  };
+  readonly supportedPairs?: readonly {
+    readonly sourceLanguage?: string;
+    readonly definitionLanguage?: string;
+  }[];
+}
+
 function toBrowserSettings(response: BrowserSettingsResponse): BrowserSettings {
-  const languages = toLanguageSettings(response as BrowserLanguageSettingsDto);
+  const languages = toLanguageSettings(response);
   return {
     ...languages,
     profile: {
@@ -113,7 +122,9 @@ function toBrowserSettings(response: BrowserSettingsResponse): BrowserSettings {
   };
 }
 
-function toLanguageSettings(response: BrowserLanguageSettingsDto): LanguageSettings {
+function toLanguageSettings(
+  response: LanguageSettingsResponse | BrowserLanguageSettingsDto,
+): LanguageSettings {
   const sourceLanguage = response.languagePair?.sourceLanguage;
   const definitionLanguage = response.languagePair?.definitionLanguage;
   if (!sourceLanguage || !definitionLanguage) {

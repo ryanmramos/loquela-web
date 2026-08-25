@@ -4,6 +4,10 @@ import { SourceSummary } from '@api/api-adapters/source-api';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 import { AppIcon } from '@app/shared/components/icon/app-icon';
+import {
+  isSourceKindTranslationCode,
+  SOURCE_KIND_TRANSLATION_KEYS,
+} from '@app/shared/utils/translation-keys';
 
 interface FilterToggle {
   readonly value: string;
@@ -44,16 +48,8 @@ export class LookupSourceFilters {
   }
 
   sourceKindLabel(kind: string | undefined): string {
-    const keys = {
-      YOUTUBE_VIDEO: 'lookup.videoType',
-      TIMED_TRANSCRIPT: 'lookup.timedTranscriptType',
-      PASTED_TEXT: 'lookup.pastedType',
-      TXT: 'lookup.txtSourceType',
-      PDF: 'lookup.pdfSourceType',
-      EPUB: 'lookup.epubSourceType',
-    } as const;
-    return kind && kind in keys
-      ? this.translations.translate(keys[kind as keyof typeof keys])
+    return kind && isSourceKindTranslationCode(kind)
+      ? this.translations.translate(SOURCE_KIND_TRANSLATION_KEYS[kind])
       : this.translations.translate('lookup.genericSource');
   }
 

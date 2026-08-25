@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+/** Enqueues jobs and owns the database-backed lease transitions used by workers. */
 public interface BackgroundJobService {
     JobId enqueue(UserId userId, BackgroundJobEntity.Type type, Map<String, Object> payload);
 
