@@ -1,6 +1,6 @@
 <section class="source-page">
-  <header class="source-header">
-    <div>
+  <header class="page-heading">
+    <div class="page-heading__copy">
       <p class="eyebrow">{{ 'sources.eyebrow' | translate }}</p>
       <h1>{{ 'sources.title' | translate }}</h1>
       <p>{{ 'sources.description' | translate }}</p>
@@ -9,66 +9,87 @@
   </header>
 
   <form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
-    <app-form-field inputId="source-search" [label]="'sources.search' | translate">
-      <input
-        pInputText
-        id="source-search"
-        type="search"
-        formControlName="search"
+    <div class="filters__primary">
+      <app-search-input
+        inputId="source-search"
+        [label]="'sources.search' | translate"
+        [hint]="'sources.searchHint' | translate"
         [placeholder]="'sources.searchPlaceholder' | translate"
+        formControlName="search"
       />
-    </app-form-field>
-    <app-form-field inputId="source-kind" [label]="'sources.type' | translate">
-      <p-select
-        inputId="source-kind"
-        [ariaLabel]="'sources.type' | translate"
-        formControlName="kind"
-        [options]="kindOptions()"
-        optionLabel="label"
-        optionValue="value"
-        [fluid]="true"
-      />
-    </app-form-field>
-    <app-form-field inputId="source-status" [label]="'sources.status' | translate">
-      <p-select
-        inputId="source-status"
-        [ariaLabel]="'sources.status' | translate"
-        formControlName="status"
-        [options]="statusOptions()"
-        optionLabel="label"
-        optionValue="value"
-        [fluid]="true"
-      />
-    </app-form-field>
-    <app-form-field inputId="source-sort" [label]="'sources.sort' | translate">
-      <p-select
-        inputId="source-sort"
-        [ariaLabel]="'sources.sort' | translate"
-        formControlName="sort"
-        [options]="sortOptions()"
-        optionLabel="label"
-        optionValue="value"
-        [fluid]="true"
-      />
-    </app-form-field>
-    <app-form-field inputId="source-direction" [label]="'sources.direction' | translate">
-      <p-select
-        inputId="source-direction"
-        [ariaLabel]="'sources.direction' | translate"
-        formControlName="direction"
-        [options]="directionOptions()"
-        optionLabel="label"
-        optionValue="value"
-        [fluid]="true"
-      />
-    </app-form-field>
-    <div class="filter-actions">
-      <button appButton type="submit">{{ 'common.apply' | translate }}</button>
-      <button appButton variant="ghost" type="button" (click)="clearFilters()">
-        {{ 'common.clear' | translate }}
-      </button>
+      <div class="filter-actions">
+        <button appButton type="submit">{{ 'common.apply' | translate }}</button>
+        <button appButton variant="ghost" type="button" (click)="clearFilters()">
+          {{ 'common.clear' | translate }}
+        </button>
+      </div>
     </div>
+
+    <details
+      class="filters__advanced"
+      [open]="advancedFiltersOpen()"
+      (toggle)="onAdvancedFiltersToggle($event)"
+    >
+      <summary>
+        <span>
+          <strong>{{ 'sources.refine' | translate }}</strong>
+          <small>{{ 'sources.refineDescription' | translate }}</small>
+        </span>
+        <app-icon name="chevron-down" [size]="18" />
+      </summary>
+      <div class="filters__advanced-grid">
+        <app-form-field inputId="source-kind" [label]="'sources.type' | translate">
+          <p-select
+            inputId="source-kind"
+            [ariaLabel]="'sources.type' | translate"
+            formControlName="kind"
+            [options]="kindOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [fluid]="true"
+          />
+        </app-form-field>
+        <app-form-field inputId="source-status" [label]="'sources.status' | translate">
+          <p-select
+            inputId="source-status"
+            [ariaLabel]="'sources.status' | translate"
+            formControlName="status"
+            [options]="statusOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [fluid]="true"
+          />
+        </app-form-field>
+        <app-form-field inputId="source-sort" [label]="'sources.sort' | translate">
+          <p-select
+            inputId="source-sort"
+            [ariaLabel]="'sources.sort' | translate"
+            formControlName="sort"
+            [options]="sortOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [fluid]="true"
+          />
+        </app-form-field>
+        <app-form-field inputId="source-direction" [label]="'sources.direction' | translate">
+          <p-select
+            inputId="source-direction"
+            [ariaLabel]="'sources.direction' | translate"
+            formControlName="direction"
+            [options]="directionOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [fluid]="true"
+          />
+        </app-form-field>
+      </div>
+    </details>
   </form>
+
+  <aside class="source-note">
+    <app-icon name="info" [size]="18" />
+    <p>{{ 'sources.readyNote' | translate }}</p>
+  </aside>
 
   @if (state.loadStatus() === 'loading') {
     <app-ui-state
@@ -86,16 +107,27 @@
     @if (page.items.length === 0) {
       <app-ui-state
         kind="empty"
-        [title]="'sources.emptyTitle' | translate"
-        [description]="'sources.emptyDescription' | translate"
+        [title]="emptyTitleKey() | translate"
+        [description]="emptyDescriptionKey() | translate"
       />
-      <div class="empty-action">
+      <div class="empty-actions">
+        @if (hasActiveFilters()) {
+          <button appButton variant="secondary" type="button" (click)="clearFilters()">
+            {{ 'common.clear' | translate }}
+          </button>
+        }
         <a appButton routerLink="/app/sources/new">{{ 'sources.addFirst' | translate }}</a>
       </div>
     } @else {
-      <p class="result-count">
-        {{ 'sources.resultCount' | translate: { count: page.totalItems ?? 0 } }}
-      </p>
+      <div class="source-results-heading">
+        <div>
+          <h2>{{ 'sources.yourSources' | translate }}</h2>
+          <p>{{ 'sources.browseDescription' | translate }}</p>
+        </div>
+        <p class="result-count">
+          {{ 'sources.resultCount' | translate: { count: page.totalItems ?? 0 } }}
+        </p>
+      </div>
       <div class="source-table">
         <p-table [value]="page.items" styleClass="loquela-data-table">
           <ng-template #header>

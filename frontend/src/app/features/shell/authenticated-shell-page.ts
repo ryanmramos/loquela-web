@@ -20,7 +20,6 @@ import { ActivityMonitor } from '@core/activity/activity-monitor';
         [activeJobCount]="shellDashboard.activeActivity()"
         [cardsToStudy]="shellDashboard.cardsToStudy()"
         [isAdmin]="user.roles.includes('ADMIN')"
-        (searchSubmitted)="openLookup($event)"
         (userActionSelected)="handleUserAction($event)"
       >
         @if (logoutFailed) {
@@ -67,10 +66,6 @@ export class AuthenticatedShellPage {
     this.shellDashboard.reset();
     this.activityMonitor.start();
     this.destroyRef.onDestroy(() => this.activityMonitor.stop());
-  }
-
-  openLookup(query: string): void {
-    void this.router.navigate(['/app/lookup'], { queryParams: { query } });
   }
 
   handleUserAction(action: string): void {

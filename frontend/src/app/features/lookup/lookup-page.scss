@@ -3,7 +3,6 @@
   margin: 0 auto;
   padding: var(--space-10) var(--space-6);
 }
-.page-heading,
 .section-head,
 .result-meta,
 .language-context,
@@ -14,24 +13,9 @@
   align-items: center;
   gap: var(--space-3);
 }
-.page-heading,
 .section-head,
 .result-meta {
   justify-content: space-between;
-}
-.page-heading {
-  align-items: flex-end;
-  margin-bottom: var(--space-6);
-}
-.page-heading h1 {
-  margin: var(--space-1) 0;
-  font-family: var(--font-family-display);
-  font-size: var(--font-size-2xl);
-}
-.page-heading p:not(.eyebrow) {
-  max-width: 42rem;
-  margin: 0;
-  color: var(--color-text-muted);
 }
 .context-label {
   color: var(--color-primary);
@@ -41,9 +25,6 @@
   text-transform: uppercase;
 }
 
-.eyebrow {
-  margin: 0;
-}
 .lookup-layout {
   display: grid;
   gap: var(--space-5);
@@ -98,32 +79,8 @@
   gap: var(--space-3);
   margin-top: var(--space-4);
 }
-.lookup-input {
-  min-height: 3.125rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.8125rem;
-  padding: 0 var(--space-4);
-  background: var(--color-surface-panel);
-  color: var(--color-text);
-}
 .lookup-form button {
   min-width: 7.4rem;
-}
-.lookup-spinner {
-  display: inline-grid;
-  width: 1.25rem;
-  height: 1.25rem;
-  place-items: center;
-  border: 1px solid currentcolor;
-  border-radius: 0.375rem 0.375rem 0.375rem 0.125rem;
-  font-size: 0.7rem;
-  font-weight: 900;
-  animation: lookup-q-spin 850ms linear infinite;
-}
-@keyframes lookup-q-spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 .language-context {
   flex-wrap: wrap;

@@ -45,7 +45,7 @@ describe('PracticePage', () => {
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
 
-    expect(element.textContent).toContain('nothing here changes Anki scheduling');
+    expect(element.textContent).toContain('Nothing here changes Anki scheduling');
     expect(element.textContent).toContain('Spanish Core');
 
     fixture.componentInstance.start(decks[0]);
@@ -113,6 +113,37 @@ describe('PracticePage', () => {
     page.retryRating();
 
     expect(rate).toHaveBeenNthCalledWith(2, 'session-1', firstRequestId, 'ALMOST');
+  });
+
+  it('distinguishes an empty search result from an empty collection', () => {
+    list.mockReturnValueOnce(
+      of({ items: decks, page: 0, pageSize: 20, totalItems: 1, totalPages: 1 }),
+    );
+    list.mockReturnValueOnce(
+      of({ items: [], page: 0, pageSize: 20, totalItems: 0, totalPages: 0 }),
+    );
+    const fixture = TestBed.createComponent(PracticePage);
+    const page = fixture.componentInstance;
+
+    page.deckSearch.setValue('missing');
+    page.loadDecks();
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.textContent).toContain('No decks match that search');
+    expect(element.textContent).toContain('Clear');
+    expect(page.hasDeckSearch()).toBe(true);
+
+    page.clearDeckSearch();
+    expect(page.deckSearch.value).toBe('');
+  });
+
+  it('keeps the visual and accessible progress values in sync', () => {
+    const page = TestBed.createComponent(PracticePage).componentInstance;
+
+    expect(page.progress(hiddenSession())).toBe(0);
+    expect(page.progressValue(hiddenSession())).toBe(0);
+    expect(page.progress({ ...hiddenSession(), status: 'COMPLETED' })).toBe(100);
   });
 });
 

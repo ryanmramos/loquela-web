@@ -10,6 +10,7 @@ const activeSession = {
   sourceLanguage: 'es',
   definitionLanguage: 'en',
   accountState: 'ACTIVE',
+  roles: ['USER'] as const,
   linkedAccounts: { google: true, whatsapp: false },
 };
 
@@ -270,7 +271,7 @@ test('configured Spanish locale covers every route and a complete capture workfl
   await expect(page.getByText('Tu texto se está indexando.')).toBeVisible();
 });
 
-test('mobile dashboard navigation and global lookup are keyboard operable', async ({ page }) => {
+test('mobile dashboard navigation remains keyboard operable', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 720 });
   await mockAuthentication(page, true);
   await page.goto('/app');
@@ -282,12 +283,60 @@ test('mobile dashboard navigation and global lookup are keyboard operable', asyn
   await expect(sourcesLink).toBeFocused();
   await sourcesLink.press('Enter');
   await expect(page).toHaveURL(/\/app\/sources$/u);
+});
 
-  const search = page.getByRole('searchbox', { name: 'Search your workspace' });
-  await search.fill('sobremesa');
-  await search.press('Enter');
-  await expect(page).toHaveURL(/\/app\/lookup\?query=sobremesa$/u);
-  await expect(page.getByLabel('Term to look up')).toHaveValue('sobremesa');
+test('admin access keeps high-impact changes deliberate and reflows to account cards', async ({
+  page,
+}) => {
+  await mockAuthentication(page, true, dashboardSnapshot, true);
+  await page.route('**/api/v1/admin/access-entries**', async (route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          items: [
+            {
+              reference: 'access_admin',
+              email: 'admin@local.loquela.test',
+              role: 'ADMIN',
+              status: 'ACTIVE',
+              version: 1,
+              createdAt: '2026-08-22T16:38:18Z',
+              updatedAt: '2026-08-22T16:38:18Z',
+            },
+          ],
+          page: 0,
+          pageSize: 20,
+          totalItems: 1,
+          totalPages: 1,
+        }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/app/admin/access');
+  await expect(page.getByRole('heading', { name: 'Access', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Search allowed accounts' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Grant access' })).toBeDisabled();
+  await expect(page.getByText('1 account can sign in')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Revoke', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('Confirm access revocation');
+  await expect(page.getByRole('button', { name: 'Revoke access' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+
+  await page.setViewportSize({ width: 320, height: 760 });
+  await page.reload();
+  await expect(page.locator('.access-entry-card')).toBeVisible();
+  const layout = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
 test('lookup polling reports success and terminal lookup failures', async ({ page }) => {
@@ -491,7 +540,7 @@ test('card management preserves versioned edits and confirms permanent deletion'
   expect(results.violations).toEqual([]);
 });
 
-test('deck shelf scrolls, persists visual edits, opens cards, and resumes exports', async ({
+test('deck library uses a responsive grid, persists edits, opens cards, and resumes exports', async ({
   page,
 }) => {
   await mockAuthentication(page, true);
@@ -579,9 +628,11 @@ test('deck shelf scrolls, persists visual edits, opens cards, and resumes export
   await page.setViewportSize({ width: 768, height: 900 });
   await page.goto('/app/decks');
 
-  const shelf = page.getByLabel('Your decks');
-  await expect(shelf).toHaveCSS('overflow-x', 'auto');
-  expect(await shelf.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  const library = page.locator('.deck-grid');
+  await expect(library).toHaveCSS('display', 'grid');
+  expect(await library.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(
+    false,
+  );
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 
@@ -594,7 +645,18 @@ test('deck shelf scrolls, persists visual edits, opens cards, and resumes export
 
   await page.getByRole('button', { name: 'Export', exact: true }).first().click();
   await expect(page.getByText('Queued')).toBeVisible();
-  await expect(page.locator('.status[data-state="EXPIRED"]')).toHaveText('Expired');
+  await expect(page.locator('app-status-badge').filter({ hasText: 'Expired' })).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobilePage = page.locator('.decks-page');
+  const mobileExportCard = page.locator('.export-card');
+  expect(await mobilePage.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(
+    false,
+  );
+  expect(
+    await mobileExportCard.evaluate((element) => element.scrollWidth > element.clientWidth),
+  ).toBe(false);
+  await expect(page.locator('.export-row:not(.export-row--header)').first()).toBeVisible();
 
   await page.getByRole('link', { name: 'View cards' }).first().click();
   await expect(page).toHaveURL(new RegExp(`/app/cards\\?deckReference=${deckReference}$`, 'u'));
@@ -692,9 +754,22 @@ test('practice hides answers, resumes after refresh, and supports reduced-motion
   });
 
   await page.goto('/app/study');
+  const picker = page.locator('.practice-page');
+  expect(await picker.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(false);
+  expect(
+    await page.locator('.deck-search').evaluate((element) => {
+      return getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/u).length;
+    }),
+  ).toBe(1);
   await page.getByRole('button', { name: 'Start practice' }).click();
   await expect(page.getByRole('heading', { name: 'sobremesa' })).toBeVisible();
   await expect(page.getByText('time talking after a meal')).toHaveCount(0);
+
+  expect(
+    await page
+      .locator('.progress-track span')
+      .evaluate((element) => getComputedStyle(element).transform),
+  ).toBe('matrix(0, 0, 0, 1, 0, 0)');
 
   await page.keyboard.press('Space');
   await expect(page.getByRole('heading', { name: 'Answer' })).toBeVisible();
@@ -795,24 +870,11 @@ test('settings keeps forms independent and presents guarded account deletion', a
 
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   await expect(page.locator('output').filter({ hasText: 'Local Learner' })).toBeVisible();
-  const providerCenters = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('.provider-mark')).map((element) => {
-      const mark = element.getBoundingClientRect();
-      const icon = element.querySelector('svg')?.getBoundingClientRect();
-      return icon
-        ? {
-            x: Math.abs(mark.x + mark.width / 2 - (icon.x + icon.width / 2)),
-            y: Math.abs(mark.y + mark.height / 2 - (icon.y + icon.height / 2)),
-          }
-        : { x: Number.POSITIVE_INFINITY, y: Number.POSITIVE_INFINITY };
-    }),
+  await expect(page.locator('.provider-mark')).toHaveCount(0);
+  await expect(page.locator('.account-details')).toContainText('learner@local.loquela.test');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+    await page.evaluate(() => document.documentElement.clientWidth),
   );
-  // WhatsApp linking is intentionally deferred, so Google is the sole provider row.
-  expect(providerCenters).toHaveLength(1);
-  for (const center of providerCenters) {
-    expect(center.x).toBeLessThan(1);
-    expect(center.y).toBeLessThan(1);
-  }
   await page.getByRole('button', { name: 'Delivery', exact: true }).click();
   await expect(page).toHaveURL(/\/app\/settings$/u);
   await expect(page.locator('#delivery')).toBeInViewport();
@@ -825,10 +887,12 @@ test('settings keeps forms independent and presents guarded account deletion', a
   await page.getByRole('button', { name: 'Save caption preference' }).click();
   await expect(page.getByText('Saved', { exact: true }).last()).toBeVisible();
 
+  await page.getByRole('button', { name: 'Privacy & data', exact: true }).click();
+  await page.getByRole('button', { name: 'Review deletion' }).click();
   await expect(page.getByRole('button', { name: 'Delete account permanently' })).toBeDisabled();
-  await page.getByLabel(/Type DELETE MY ACCOUNT/u).fill('DELETE MY ACCOUNT');
+  await page.getByLabel(/I understand that this permanently deletes my Loquela data/u).check();
   await expect(page.getByRole('button', { name: 'Delete account permanently' })).toBeEnabled();
-  await expect(page.getByRole('link', { name: 'Reauthenticate with Google' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Sign in with Google again' })).toHaveAttribute(
     'href',
     /reauthenticate=true/u,
   );
@@ -841,9 +905,11 @@ async function mockAuthentication(
   page: Page,
   initiallyAuthenticated = false,
   dashboard = dashboardSnapshot,
+  admin = false,
 ): Promise<{ isAuthenticated: () => boolean }> {
   await mockAuthenticatedE2eRuntimeConfig(page);
   let authenticated = initiallyAuthenticated;
+  const session = admin ? { ...activeSession, roles: ['USER', 'ADMIN'] as const } : activeSession;
 
   await page.route('**/api/v1/session/logout', async (route: Route) => {
     authenticated = false;
@@ -855,7 +921,7 @@ async function mockAuthentication(
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(activeSession),
+        body: JSON.stringify(session),
       });
       return;
     }
@@ -878,7 +944,7 @@ async function mockAuthentication(
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(activeSession),
+      body: JSON.stringify(session),
     });
   });
 

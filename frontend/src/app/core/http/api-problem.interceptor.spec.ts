@@ -100,10 +100,12 @@ describe('apiProblemInterceptor', () => {
       http.post('/api/v1/demo/exports/download', {}, { responseType: 'blob' }).subscribe({
         error: resolve,
       });
-      httpTesting.expectOne('/api/v1/demo/exports/download').flush(
-        new Blob([JSON.stringify(expectedProblem)], { type: 'application/problem+json' }),
-        { status: 429, statusText: 'Too Many Requests' },
-      );
+      httpTesting
+        .expectOne('/api/v1/demo/exports/download')
+        .flush(new Blob([JSON.stringify(expectedProblem)], { type: 'application/problem+json' }), {
+          status: 429,
+          statusText: 'Too Many Requests',
+        });
     });
 
     expect(receivedError).toBeInstanceOf(ApiProblemError);

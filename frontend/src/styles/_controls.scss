@@ -145,3 +145,71 @@ a.loquela-button[aria-disabled='true'] {
   cursor: not-allowed;
   opacity: 0.52;
 }
+
+// All application selects share the same fieldbook control contract. Native
+// selects are migrated to PrimeNG where they need the matching popup behavior.
+p-select.p-select {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(var(--control-min-size) + 2px);
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  transition:
+    border-color var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard),
+    background var(--motion-fast) var(--ease-standard);
+}
+
+p-select.p-select:hover:not(.p-disabled) {
+  border-color: var(--color-primary);
+}
+
+p-select.p-select:focus-within,
+p-select.p-select.p-focus,
+p-select.p-select.p-select-open {
+  border-color: var(--color-focus);
+  box-shadow: var(--focus-ring);
+  outline: 0;
+}
+
+p-select.p-select .p-select-label {
+  min-width: 0;
+  padding: 0 var(--space-3);
+  color: var(--color-text-muted);
+  font: inherit;
+  line-height: 1;
+}
+
+p-select.p-select .p-select-dropdown {
+  width: var(--control-min-size);
+  color: var(--color-text-muted);
+}
+
+.p-select-overlay.p-select-overlay {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-md);
+}
+
+.p-select-option.p-select-option {
+  min-height: var(--control-min-size);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.p-select-option.p-select-option:not(.p-select-option-selected):not(.p-disabled):hover,
+.p-select-option.p-select-option:not(.p-select-option-selected):not(.p-disabled).p-focus,
+.p-select-option.p-select-option.p-select-option-selected,
+.p-select-option.p-select-option.p-select-option-selected.p-focus {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}

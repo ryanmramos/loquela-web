@@ -3,8 +3,11 @@ import {
   Component,
   DestroyRef,
   computed,
+  effect,
+  ElementRef,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -15,14 +18,19 @@ import { InputText } from 'primeng/inputtext';
 import { Deck, DeckApi, DeckExport } from '@api/api-adapters/deck-api';
 import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/action-menu';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
+import { FormField } from '@app/shared/components/form-field/form-field';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { Pagination } from '@app/shared/components/pagination/pagination';
+import { SearchInput } from '@app/shared/components/search-input/search-input';
+import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/status-badge';
+import { ToastService } from '@app/shared/components/toast/toast.service';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 import { ActivityMonitor } from '@core/activity/activity-monitor';
 import { AppIcon } from '@app/shared/components/icon/app-icon';
 
 type ThemeColor = NonNullable<Deck['themeColor']>;
+type TranslationKey = Parameters<TranslationService['translate']>[0];
 
 @Component({
   selector: 'app-decks-page',
@@ -32,8 +40,11 @@ type ThemeColor = NonNullable<Deck['themeColor']>;
     ActionMenu,
     AppIcon,
     ButtonDirective,
+    FormField,
     InputText,
     Pagination,
+    SearchInput,
+    StatusBadge,
     UiState,
     TranslatePipe,
   ],
@@ -46,6 +57,7 @@ export class DecksPage {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translations = inject(TranslationService);
   private readonly activityMonitor = inject(ActivityMonitor);
+  private readonly toasts = inject(ToastService);
 
   readonly decks = signal<Deck[]>([]);
   readonly exports = signal<DeckExport[]>([]);
@@ -58,13 +70,13 @@ export class DecksPage {
   readonly search = new FormControl('', { nonNullable: true });
   readonly editorOpen = signal(false);
   readonly selected = signal<Deck | null>(null);
+  private readonly deckNameInput = viewChild<ElementRef<HTMLInputElement>>('deckNameInput');
   readonly colors: readonly ThemeColor[] = ['GREEN', 'ORANGE', 'BLUE', 'TEAL', 'PURPLE'];
   readonly hasPendingExports = computed(() =>
     this.exports().some((item) => item.state === 'QUEUED' || item.state === 'RUNNING'),
   );
   readonly deckActions: readonly ActionMenuItem[] = [
     { id: 'edit', label: '', labelKey: 'decks.renameOrColor' },
-    { id: 'export', label: '', labelKey: 'decks.exportForAnki' },
     { id: 'delete', label: '', labelKey: 'common.delete', danger: true },
   ];
   readonly form = new FormGroup({
@@ -82,6 +94,11 @@ export class DecksPage {
   });
 
   constructor() {
+    effect(() => {
+      if (this.editorOpen()) {
+        queueMicrotask(() => this.deckNameInput()?.nativeElement.focus());
+      }
+    });
     this.load();
     // A refresh reconstructs status from the server; polling only runs while this page lives.
     interval(4_000)
@@ -156,7 +173,10 @@ export class DecksPage {
   }
 
   save(): void {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     const body = this.form.getRawValue();
     const current = this.selected();
     const result =
@@ -165,6 +185,11 @@ export class DecksPage {
       next: () => {
         this.closeEditor();
         this.load();
+        this.toasts.show(
+          this.translations.translate('decks.saveSuccessTitle'),
+          this.translations.translate(current ? 'decks.deckUpdated' : 'decks.deckCreated'),
+          'success',
+        );
       },
       error: () => this.error.set(this.translations.translate('decks.saveError')),
     });
@@ -180,6 +205,11 @@ export class DecksPage {
         this.exportPage.set(0);
         this.loadExports();
         this.activityMonitor.refreshBaseline();
+        this.toasts.show(
+          this.translations.translate('decks.exportQueuedTitle'),
+          this.translations.translate('decks.exportQueued'),
+          'info',
+        );
         const history = document.querySelector('#export-history');
         if (history && 'scrollIntoView' in history) {
           history.scrollIntoView({ behavior: 'smooth' });
@@ -196,15 +226,46 @@ export class DecksPage {
     )
       return;
     this.api.delete(deck.reference).subscribe({
-      next: () => this.load(),
+      next: () => {
+        this.load();
+        this.toasts.show(
+          this.translations.translate('decks.deleteSuccessTitle'),
+          this.translations.translate('decks.deckDeleted'),
+          'success',
+        );
+      },
       error: () => this.error.set(this.translations.translate('decks.deleteError')),
     });
   }
 
   action(deck: Deck, action: string): void {
     if (action === 'edit') this.edit(deck);
-    if (action === 'export') this.requestExport(deck);
     if (action === 'delete') this.delete(deck);
+  }
+
+  hasSearch(): boolean {
+    return this.search.value.trim().length > 0;
+  }
+
+  emptyTitleKey(): TranslationKey {
+    return this.hasSearch() ? 'decks.noResults' : 'decks.emptyTitle';
+  }
+
+  emptyDescriptionKey(): TranslationKey {
+    return this.hasSearch() ? 'decks.noResultsDescription' : 'decks.emptyDescription';
+  }
+
+  clearSearch(): void {
+    this.search.setValue('');
+    this.applySearch();
+  }
+
+  nameError(): string {
+    const control = this.form.controls.name;
+    if (!control.touched && !control.dirty) return '';
+    if (control.hasError('required')) return this.translations.translate('decks.nameRequired');
+    if (control.hasError('maxlength')) return this.translations.translate('decks.nameTooLong');
+    return '';
   }
 
   initials(name?: string): string {
@@ -225,6 +286,13 @@ export class DecksPage {
       EXPIRED: 'decks.expired',
     } as const;
     return this.translations.translate(keys[state]);
+  }
+
+  statusTone(state?: DeckExport['state']): StatusTone {
+    if (state === 'READY') return 'success';
+    if (state === 'QUEUED' || state === 'RUNNING') return 'warning';
+    if (state === 'FAILED') return 'danger';
+    return 'neutral';
   }
 
   formatDate(value?: string): string {

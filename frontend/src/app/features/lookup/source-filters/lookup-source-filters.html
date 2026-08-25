@@ -17,7 +17,7 @@
       <legend>{{ 'lookup.sourceType' | translate }}</legend>
       <div class="filter-chips">
         @for (kind of kinds; track kind.value) {
-          <label class="filter-chip">
+          <label class="source-type-chip">
             <input
               type="checkbox"
               [checked]="selectedKinds().includes(kind.value)"

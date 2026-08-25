@@ -9,13 +9,13 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { InputText } from 'primeng/inputtext';
 
 import { Deck, DeckApi } from '@api/api-adapters/deck-api';
 import { PracticeApi, PracticeRating, PracticeSession } from '@api/api-adapters/practice-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { AppIcon } from '@app/shared/components/icon/app-icon';
+import { SearchInput } from '@app/shared/components/search-input/search-input';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 
@@ -36,7 +36,7 @@ interface RatingOption {
     ReactiveFormsModule,
     ButtonDirective,
     AppIcon,
-    InputText,
+    SearchInput,
     UiState,
     YoutubePracticePlayer,
     TranslatePipe,
@@ -172,7 +172,22 @@ export class PracticePage {
     const total = session.totalCards ?? 0;
     if (!total) return 0;
     if (session.status === 'COMPLETED') return 100;
-    return Math.round((((session.position ?? 1) - 1) / total) * 100);
+    return Math.min(100, Math.round((Math.max(0, (session.position ?? 1) - 1) / total) * 100));
+  }
+
+  progressValue(session: PracticeSession): number {
+    const total = session.totalCards ?? 0;
+    if (!total || session.status === 'COMPLETED') return total;
+    return Math.min(total, Math.max(0, (session.position ?? 1) - 1));
+  }
+
+  hasDeckSearch(): boolean {
+    return this.deckSearch.value.trim().length > 0;
+  }
+
+  clearDeckSearch(): void {
+    this.deckSearch.setValue('');
+    this.loadDecks();
   }
 
   @HostListener('document:keydown', ['$event'])

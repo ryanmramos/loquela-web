@@ -101,22 +101,25 @@
       </div>
       <div class="language-picker">
         <div class="language-picker__fields">
-          <label>
+          <label for="demo-source-language">
             <span>{{ 'demo.sourceLanguage' | translate }}</span>
-            <select [(ngModel)]="sourceLanguage" (ngModelChange)="sourceLanguageChanged()">
-              @for (language of sourceLanguageOptions(); track language) {
-                <option [value]="language">{{ languageName(language) }}</option>
-              }
-            </select>
+            <p-select
+              inputId="demo-source-language"
+              [options]="sourceLanguageOptions()"
+              [(ngModel)]="sourceLanguage"
+              (ngModelChange)="sourceLanguageChanged()"
+              [fluid]="true"
+            />
           </label>
           <span class="language-picker__arrow" aria-hidden="true">→</span>
-          <label>
+          <label for="demo-target-language">
             <span>{{ 'demo.targetLanguage' | translate }}</span>
-            <select [(ngModel)]="targetLanguage">
-              @for (language of targetLanguageOptions(); track language) {
-                <option [value]="language">{{ languageName(language) }}</option>
-              }
-            </select>
+            <p-select
+              inputId="demo-target-language"
+              [options]="targetLanguageOptions()"
+              [(ngModel)]="targetLanguage"
+              [fluid]="true"
+            />
           </label>
         </div>
         <button
@@ -411,15 +414,14 @@
             </div>
           </div>
           <form class="lookup-form" (submit)="$event.preventDefault(); lookUp()">
-            <label class="visually-hidden" for="demo-lookup-term">{{
-              'demo.lookupLabel' | translate
-            }}</label>
-            <input
-              id="demo-lookup-term"
-              [(ngModel)]="lookupTerm"
+            <app-search-input
+              inputId="demo-lookup-term"
               name="lookupTerm"
-              maxlength="256"
+              [label]="'demo.lookupLabel' | translate"
+              [hideLabel]="true"
+              [maxLength]="256"
               [placeholder]="'demo.lookupPlaceholder' | translate"
+              [(ngModel)]="lookupTerm"
             />
             <button
               appButton

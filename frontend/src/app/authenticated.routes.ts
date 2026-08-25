@@ -15,9 +15,9 @@ export const authenticatedRoutes: Routes = [
     children: [
       {
         path: '',
-        title: 'Overview',
+        title: 'Today · Loquela',
         loadComponent: () =>
-          import('@app/features/dashboard/dashboard-page').then((module) => module.DashboardPage),
+          import('@app/features/today/today-page').then((module) => module.TodayPage),
       },
       {
         path: 'sources',

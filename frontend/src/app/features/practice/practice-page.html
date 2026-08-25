@@ -26,8 +26,8 @@
         </div>
       </section>
     } @else {
-      <header class="practice-header">
-        <div>
+      <header class="page-heading">
+        <div class="page-heading__copy">
           <p class="eyebrow">{{ 'practice.eyebrow' | translate }}</p>
           <h1>{{ current.deckName }}</h1>
           <p class="semantics-note">{{ 'practice.simplePractice' | translate }}</p>
@@ -41,13 +41,16 @@
         class="progress-summary"
         role="progressbar"
         [attr.aria-label]="'practice.progress' | translate"
-        [attr.aria-valuenow]="current.position ?? 1"
-        aria-valuemin="1"
+        [attr.aria-valuenow]="progressValue(current)"
+        aria-valuemin="0"
         [attr.aria-valuemax]="current.totalCards ?? 1"
       >
-        <span>{{ current.position ?? 1 }} of {{ current.totalCards ?? 0 }}</span>
+        <span class="progress-summary__count">
+          <strong>{{ current.position ?? 1 }}</strong>
+          <span>of {{ current.totalCards ?? 0 }}</span>
+        </span>
         <span class="progress-track" aria-hidden="true">
-          <span [style.width.%]="progress(current)"></span>
+          <span [style.transform]="'scaleX(' + progress(current) / 100 + ')'"></span>
         </span>
       </div>
 
@@ -67,9 +70,10 @@
       <article
         class="practice-card"
         [class.practice-card--revealed]="current.answerRevealed"
+        [attr.aria-busy]="pending() ? 'true' : null"
         aria-live="polite"
       >
-        <p class="card-state">
+        <p class="eyebrow">
           {{
             (current.answerRevealed ? 'practice.answerShown' : 'practice.recallAnswer') | translate
           }}
@@ -144,8 +148,8 @@
       </p>
     }
   } @else {
-    <header class="practice-header">
-      <div>
+    <header class="page-heading">
+      <div class="page-heading__copy">
         <p class="eyebrow">{{ 'practice.eyebrow' | translate }}</p>
         <h1>{{ 'practice.chooseDeck' | translate }}</h1>
         <p>{{ 'practice.chooseDeckDescription' | translate }}</p>
@@ -161,37 +165,51 @@
     }
 
     <form class="deck-search" role="search" (ngSubmit)="loadDecks()">
-      <label for="practice-deck-search-input">{{ 'decks.searchLabel' | translate }}</label>
-      <input
-        pInputText
-        id="practice-deck-search-input"
+      <app-search-input
+        inputId="practice-deck-search-input"
+        [label]="'decks.searchLabel' | translate"
+        [placeholder]="'decks.searchPlaceholder' | translate"
         [formControl]="deckSearch"
-        maxlength="256"
-        type="search"
+        [maxLength]="256"
       />
       <button appButton variant="secondary" type="submit">{{ 'common.search' | translate }}</button>
     </form>
 
     @if (!decks().length) {
-      <app-ui-state
-        kind="empty"
-        [title]="'practice.noDecks' | translate"
-        [description]="'practice.noDecksDescription' | translate"
-      />
-      <a appButton routerLink="/app/decks">{{ 'practice.goToDecks' | translate }}</a>
+      @if (hasDeckSearch()) {
+        <app-ui-state
+          kind="empty"
+          [title]="'decks.noResults' | translate"
+          [description]="'decks.noResultsDescription' | translate"
+        >
+          <button appButton variant="secondary" type="button" (click)="clearDeckSearch()">
+            {{ 'common.clear' | translate }}
+          </button>
+        </app-ui-state>
+      } @else {
+        <app-ui-state
+          kind="empty"
+          [title]="'practice.noDecks' | translate"
+          [description]="'practice.noDecksDescription' | translate"
+        >
+          <a appButton routerLink="/app/decks">{{ 'practice.goToDecks' | translate }}</a>
+        </app-ui-state>
+      }
     } @else {
       <div class="deck-options">
         @for (deck of decks(); track deck.reference) {
           <article class="deck-option">
-            <span class="deck-mark" [attr.data-color]="deck.themeColor">{{
-              (deck.name ?? 'D').slice(0, 1)
-            }}</span>
-            <div>
-              <h2>{{ deck.name }}</h2>
-              <p>
-                {{ deck.cardCount ?? 0 }}
-                {{ (deck.cardCount === 1 ? 'common.card' : 'common.cards') | translate }}
-              </p>
+            <div class="deck-option__heading">
+              <span class="deck-mark" [attr.data-color]="deck.themeColor">{{
+                (deck.name ?? 'D').slice(0, 1)
+              }}</span>
+              <div class="deck-option__copy">
+                <h2>{{ deck.name }}</h2>
+                <p>
+                  {{ deck.cardCount ?? 0 }}
+                  {{ (deck.cardCount === 1 ? 'common.card' : 'common.cards') | translate }}
+                </p>
+              </div>
             </div>
             <button
               appButton

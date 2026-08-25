@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Select } from 'primeng/select';
 
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { AppIcon } from '@app/shared/components/icon/app-icon';
@@ -7,7 +9,7 @@ import { TranslationService } from '@core/i18n/translation.service';
 
 @Component({
   selector: 'app-timed-transcript-help',
-  imports: [AppIcon, ButtonDirective, TranslatePipe],
+  imports: [AppIcon, ButtonDirective, FormsModule, Select, TranslatePipe],
   templateUrl: './timed-transcript-help.html',
   styleUrl: './timed-transcript-help.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +25,22 @@ export class TimedTranscriptHelp {
   readonly subtitleChoice = signal<'prefer-manual' | 'manual' | 'automatic'>('prefer-manual');
   readonly format = signal<'vtt' | 'srt'>('vtt');
   readonly shell = signal<'posix' | 'powershell'>('posix');
+  readonly subtitleOptions = computed(() => [
+    {
+      value: 'prefer-manual',
+      label: this.translations.translate('timedHelp.preferManual'),
+    },
+    { value: 'manual', label: this.translations.translate('timedHelp.manualOnly') },
+    { value: 'automatic', label: this.translations.translate('timedHelp.automaticOnly') },
+  ]);
+  readonly formatOptions = [
+    { value: 'vtt', label: 'VTT' },
+    { value: 'srt', label: 'SRT' },
+  ];
+  readonly shellOptions = [
+    { value: 'posix', label: 'macOS / Linux' },
+    { value: 'powershell', label: 'PowerShell' },
+  ];
   readonly listCommand = 'yt-dlp --list-subs "VIDEO_URL"';
   readonly vttCommand =
     'yt-dlp --skip-download --write-subs --write-auto-subs --sub-langs "LANGUAGE_CODE" --sub-format "vtt/best" --convert-subs vtt --output "%(title)s.%(ext)s" "VIDEO_URL"';
@@ -69,8 +87,17 @@ export class TimedTranscriptHelp {
     }
   }
 
-  languageOptions(): readonly string[] {
-    return [...new Set(this.supportedLanguages())];
+  languageOptions(): { value: string; label: string }[] {
+    return [
+      {
+        value: '',
+        label: this.translations.translate('timedHelp.chooseLanguage'),
+      },
+      ...Array.from(new Set(this.supportedLanguages()), (code) => ({
+        value: code,
+        label: `${this.languageName(code)} (${code})`,
+      })),
+    ];
   }
 
   setSubtitleChoice(value: string): void {

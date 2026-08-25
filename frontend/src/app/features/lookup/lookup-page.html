@@ -1,6 +1,6 @@
 <section class="lookup-page">
   <header class="page-heading">
-    <div>
+    <div class="page-heading__copy">
       <p class="eyebrow">{{ 'lookup.eyebrow' | translate }}</p>
       <h1>{{ 'lookup.title' | translate }}</h1>
       <p>{{ 'lookup.description' | translate }}</p>
@@ -15,24 +15,18 @@
       <article class="lookup-card">
         <div class="section-head">
           <h2>{{ 'lookup.termTitle' | translate }}</h2>
-          <span class="ready-pill">{{ 'lookup.readyOnly' | translate }}</span>
         </div>
         <form [formGroup]="form" (ngSubmit)="submit()" class="lookup-form">
-          <label class="visually-hidden" for="lookup-term">{{
-            'lookup.termLabel' | translate
-          }}</label>
-          <input
-            pInputText
-            id="lookup-term"
-            class="lookup-input"
+          <app-search-input
+            inputId="lookup-term"
+            [label]="'lookup.termLabel' | translate"
+            [hideLabel]="true"
             formControlName="term"
-            autocomplete="off"
-            spellcheck="false"
             [placeholder]="'lookup.termPlaceholder' | translate"
           />
           <button appButton type="submit" [disabled]="loading()">
             @if (loading()) {
-              <span class="lookup-spinner" aria-hidden="true">Q</span>
+              <app-icon name="loading" [size]="18" class="app-icon--spin" />
               {{ 'common.loading' | translate }}…
             } @else {
               <app-icon name="search" [size]="18" />
@@ -213,10 +207,12 @@
                 [description]="'lookup.noContextsDescription' | translate"
               />
             }
-            <aside class="why-notice">
-              <strong>{{ 'lookup.whyExamples' | translate }}</strong>
-              {{ 'lookup.whyExamplesDescription' | translate }}
-            </aside>
+            @if ((result.contexts ?? []).length) {
+              <aside class="why-notice">
+                <strong>{{ 'lookup.whyExamples' | translate }}</strong>
+                {{ 'lookup.whyExamplesDescription' | translate }}
+              </aside>
+            }
           </section>
         }
       }

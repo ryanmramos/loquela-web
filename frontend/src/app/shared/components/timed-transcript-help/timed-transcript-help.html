@@ -115,50 +115,51 @@
           </label>
           <label class="command-generator__field" for="timed-help-language">
             <span>{{ 'timedHelp.languageCode' | translate }}</span>
-            <select
-              id="timed-help-language"
-              [value]="languageCode()"
-              (change)="setLanguageCode($any($event.target).value)"
-            >
-              <option value="">{{ 'timedHelp.chooseLanguage' | translate }}</option>
-              @for (code of languageOptions(); track code) {
-                <option [value]="code">{{ languageName(code) }} ({{ code }})</option>
-              }
-            </select>
+            <p-select
+              inputId="timed-help-language"
+              [options]="languageOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="languageCode()"
+              (ngModelChange)="setLanguageCode($event)"
+              [fluid]="true"
+            />
           </label>
           <label class="command-generator__field" for="timed-help-choice">
             <span>{{ 'timedHelp.subtitleChoice' | translate }}</span>
-            <select
-              id="timed-help-choice"
-              [value]="subtitleChoice()"
-              (change)="setSubtitleChoice($any($event.target).value)"
-            >
-              <option value="prefer-manual">{{ 'timedHelp.preferManual' | translate }}</option>
-              <option value="manual">{{ 'timedHelp.manualOnly' | translate }}</option>
-              <option value="automatic">{{ 'timedHelp.automaticOnly' | translate }}</option>
-            </select>
+            <p-select
+              inputId="timed-help-choice"
+              [options]="subtitleOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="subtitleChoice()"
+              (ngModelChange)="setSubtitleChoice($event)"
+              [fluid]="true"
+            />
           </label>
           <label class="command-generator__field" for="timed-help-format">
             <span>{{ 'timedHelp.format' | translate }}</span>
-            <select
-              id="timed-help-format"
-              [value]="format()"
-              (change)="setFormat($any($event.target).value)"
-            >
-              <option value="vtt">VTT</option>
-              <option value="srt">SRT</option>
-            </select>
+            <p-select
+              inputId="timed-help-format"
+              [options]="formatOptions"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="format()"
+              (ngModelChange)="setFormat($event)"
+              [fluid]="true"
+            />
           </label>
           <label class="command-generator__field" for="timed-help-shell">
             <span>{{ 'timedHelp.shell' | translate }}</span>
-            <select
-              id="timed-help-shell"
-              [value]="shell()"
-              (change)="setShell($any($event.target).value)"
-            >
-              <option value="posix">macOS / Linux</option>
-              <option value="powershell">PowerShell</option>
-            </select>
+            <p-select
+              inputId="timed-help-shell"
+              [options]="shellOptions"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="shell()"
+              (ngModelChange)="setShell($event)"
+              [fluid]="true"
+            />
           </label>
         </div>
         <div class="command-generator__output">

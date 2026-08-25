@@ -113,6 +113,23 @@ describe('DemoPage', () => {
     expect(element.textContent).toContain('Make your first card');
   });
 
+  it('uses shared controls for language selection, lookup, and transcript guidance', () => {
+    const fixture = TestBed.createComponent(DemoPage);
+    fixture.detectChanges();
+
+    fixture.componentInstance.start();
+    fixture.componentInstance.selectedSourceType = 'TIMED_TRANSCRIPT';
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelectorAll('.language-picker p-select')).toHaveLength(2);
+    expect(
+      element.querySelector('.lookup-panel app-search-input .search-input__control'),
+    ).not.toBeNull();
+    expect(element.querySelector('.transcript-help')).not.toBeNull();
+    expect(element.querySelector('.command-generator')).not.toBeNull();
+  });
+
   it('adds experimental noindex metadata and removes it on destroy', () => {
     const fixture = TestBed.createComponent(DemoPage);
     fixture.detectChanges();
@@ -235,7 +252,7 @@ describe('DemoPage', () => {
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Choose an available YouTube video with captions.');
+    expect(text).toContain('Choose a YouTube video that is available and has captions.');
     expect(text).not.toContain('INVALID_YOUTUBE_URL');
   });
 
@@ -246,7 +263,9 @@ describe('DemoPage', () => {
     const fixture = TestBed.createComponent(DemoPage);
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('The demo could not load');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      "We couldn't load the demo",
+    );
 
     fixture.componentInstance.retryCapabilities();
     fixture.detectChanges();
@@ -276,7 +295,7 @@ describe('DemoPage', () => {
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Choose a readable, unlocked PDF with selectable text.');
+    expect(text).toContain('Choose a readable PDF with selectable text and no password.');
     expect(text).not.toContain('PDF_NEEDS_OCR');
   });
 

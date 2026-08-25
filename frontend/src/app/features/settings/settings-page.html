@@ -1,6 +1,6 @@
 <section class="settings-page">
   <header class="page-heading">
-    <div>
+    <div class="page-heading__copy">
       <p class="eyebrow">{{ 'settings.accountPreferences' | translate }}</p>
       <h1>{{ 'settings.title' | translate }}</h1>
       <p>{{ 'settings.description' | translate }}</p>
@@ -69,21 +69,17 @@
               ><span>{{ 'settings.usedThroughout' | translate }}</span>
             </div>
             <div>
-              <select
-                [attr.aria-label]="'settings.languageAria' | translate"
-                [value]="translations.language()"
+              <p-select
+                inputId="interface-language"
+                [ariaLabel]="'settings.languageAria' | translate"
+                [options]="interfaceLanguageOptions()"
+                optionLabel="label"
+                optionValue="code"
+                [ngModel]="translations.language()"
                 [disabled]="interfaceSaving()"
-                (change)="changeInterfaceLanguage($event)"
-              >
-                @for (language of interfaceLanguages; track language.code) {
-                  <option
-                    [value]="language.code"
-                    [selected]="translations.language() === language.code"
-                  >
-                    {{ language.label | translate }}
-                  </option>
-                }
-              </select>
+                (ngModelChange)="changeInterfaceLanguage($event)"
+                [fluid]="true"
+              />
               <span class="save-status" aria-live="polite">
                 @if (interfaceSaving()) {
                   {{ 'common.saving' | translate }}
@@ -105,16 +101,9 @@
               ><span>{{ 'settings.requiredSignIn' | translate }}</span>
             </div>
             <div class="account-chip">
-              <span class="provider-mark provider-mark--google" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <path
-                    d="M21.35 11.1h-9.18v2.98h5.28c-.23 1.51-1.74 4.43-5.28 4.43-3.18 0-5.77-2.63-5.77-5.87s2.59-5.87 5.77-5.87c1.81 0 3.02.78 3.71 1.45l2.54-2.48c-1.63-1.54-3.74-2.47-6.25-2.47a9.38 9.38 0 1 0 0 18.76c5.42 0 9-3.88 9-9.34 0-.63-.07-1.11-.15-1.59Z"
-                  />
-                </svg>
-              </span>
               <span class="account-details"
-                >{{ current.profile.email || ('settings.googleAccount' | translate)
-                }}<small
+                ><span>{{ current.profile.email || ('settings.notProvided' | translate) }}</span
+                ><small
                   >{{ 'settings.linked' | translate }}
                   {{ formatDate(current.linkedAccounts.googleLinkedAt) }}</small
                 ></span
@@ -133,33 +122,32 @@
                 ><strong>{{ 'settings.sourceLanguage' | translate }}</strong
                 ><span>{{ 'settings.learningLanguage' | translate }}</span></label
               >
-              <select
+              <p-select
                 id="source-language"
+                inputId="source-language"
                 formControlName="sourceLanguage"
-                (change)="sourceLanguageChanged()"
-              >
-                @for (language of sourceLanguages(); track language) {
-                  <option [value]="language">{{ languageName(language) }} ({{ language }})</option>
-                }
-              </select>
+                [options]="sourceLanguageOptions()"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="sourceLanguageChanged()"
+                [fluid]="true"
+              />
             </div>
             <div class="settings-row">
               <label for="definition-language"
                 ><strong>{{ 'settings.definitionLanguage' | translate }}</strong
                 ><span>{{ 'settings.explanations' | translate }}</span></label
               >
-              <select
+              <p-select
                 id="definition-language"
+                inputId="definition-language"
                 formControlName="definitionLanguage"
-                (change)="languageSaved.set(false)"
-              >
-                @for (
-                  language of definitionLanguages(languageForm.controls.sourceLanguage.value);
-                  track language
-                ) {
-                  <option [value]="language">{{ languageName(language) }} ({{ language }})</option>
-                }
-              </select>
+                [options]="definitionLanguageOptions(languageForm.controls.sourceLanguage.value)"
+                optionLabel="label"
+                optionValue="value"
+                (onChange)="languageSaved.set(false)"
+                [fluid]="true"
+              />
             </div>
             <app-alert [title]="'settings.futureWorkOnlyTitle' | translate" tone="info" live="off">
               {{ 'settings.snapshotsNeverRewritten' | translate }}
@@ -305,45 +293,78 @@
         <section class="settings-card privacy" id="privacy" aria-labelledby="privacy-heading">
           <h2 id="privacy-heading">{{ 'settings.privacy' | translate }}</h2>
           <p>{{ 'settings.privacyDescription' | translate }}</p>
-          <form [formGroup]="deletionForm" (ngSubmit)="deleteAccount()" class="delete-form">
-            <h3>{{ 'settings.deleteAccount' | translate }}</h3>
-            <p>{{ 'settings.deleteDescription' | translate }}</p>
-            <a appButton variant="secondary" [href]="reauthenticateUrl">{{
-              'settings.reauthenticate' | translate
-            }}</a>
-            <label for="confirmation-phrase"
-              >{{ 'settings.deleteConfirmation' | translate }} <strong>DELETE MY ACCOUNT</strong>
-              {{ 'settings.deleteConfirmPhrase' | translate }}</label
-            >
-            <input
-              pInputText
-              id="confirmation-phrase"
-              type="text"
-              autocomplete="off"
-              formControlName="confirmationPhrase"
-            />
-            @if (deletionError() === 'reauth') {
-              <app-alert [title]="'settings.reauthRequired' | translate" tone="danger">{{
-                'settings.reauthDescription' | translate
-              }}</app-alert>
-            } @else if (deletionError() === 'request') {
-              <app-alert [title]="'settings.deleteError' | translate" tone="danger">{{
-                'settings.deleteErrorDescription' | translate
-              }}</app-alert>
+          <div class="privacy-summary" aria-label="{{ 'settings.privacy' | translate }}">
+            <div>
+              <strong>{{ 'settings.dataSummaryTitle' | translate }}</strong>
+              <span>{{ 'settings.dataSummaryDescription' | translate }}</span>
+            </div>
+            <div>
+              <strong>{{ 'settings.deletionTimingTitle' | translate }}</strong>
+              <span>{{ 'settings.deletionTimingDescription' | translate }}</span>
+            </div>
+          </div>
+
+          <div class="delete-zone">
+            @if (!deletionStarted()) {
+              <div class="delete-intro">
+                <div>
+                  <h3>{{ 'settings.deleteAccount' | translate }}</h3>
+                  <p>{{ 'settings.deleteDescription' | translate }}</p>
+                </div>
+                <button appButton variant="secondary" type="button" (click)="startDeletion()">
+                  {{ 'settings.reviewDeletion' | translate }}
+                </button>
+              </div>
+            } @else {
+              <form [formGroup]="deletionForm" (ngSubmit)="deleteAccount()" class="delete-form">
+                <div>
+                  <p class="delete-step">{{ 'settings.deletionReview' | translate }}</p>
+                  <h3>{{ 'settings.deleteAccount' | translate }}</h3>
+                  <p>{{ 'settings.deleteDescription' | translate }}</p>
+                </div>
+                <a appButton variant="secondary" [href]="reauthenticateUrl">{{
+                  'settings.reauthenticate' | translate
+                }}</a>
+                <label class="acknowledge-control" for="deletion-acknowledgement">
+                  <input
+                    id="deletion-acknowledgement"
+                    type="checkbox"
+                    formControlName="acknowledged"
+                  />
+                  <span>
+                    <strong>{{ 'settings.deleteAcknowledgement' | translate }}</strong>
+                    <small>{{ 'settings.deleteAcknowledgementHelp' | translate }}</small>
+                  </span>
+                </label>
+                @if (deletionError() === 'reauth') {
+                  <app-alert [title]="'settings.reauthRequired' | translate" tone="danger">{{
+                    'settings.reauthDescription' | translate
+                  }}</app-alert>
+                } @else if (deletionError() === 'request') {
+                  <app-alert [title]="'settings.deleteError' | translate" tone="danger">{{
+                    'settings.deleteErrorDescription' | translate
+                  }}</app-alert>
+                }
+                <div class="form-actions">
+                  <button appButton variant="secondary" type="button" (click)="cancelDeletion()">
+                    {{ 'common.cancel' | translate }}
+                  </button>
+                  <button
+                    appButton
+                    variant="danger"
+                    type="submit"
+                    [disabled]="deletionSaving() || deletionForm.invalid"
+                  >
+                    {{
+                      deletionSaving()
+                        ? ('settings.startingDeletion' | translate)
+                        : ('settings.deletePermanently' | translate)
+                    }}
+                  </button>
+                </div>
+              </form>
             }
-            <button
-              appButton
-              variant="danger"
-              type="submit"
-              [disabled]="deletionSaving() || deletionForm.invalid"
-            >
-              {{
-                deletionSaving()
-                  ? ('settings.startingDeletion' | translate)
-                  : ('settings.deletePermanently' | translate)
-              }}
-            </button>
-          </form>
+          </div>
         </section>
       </div>
     </div>

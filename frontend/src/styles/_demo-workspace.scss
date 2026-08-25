@@ -11,6 +11,7 @@
 }
 
 .demo .language-picker {
+  flex: 0 1 21rem;
   justify-content: space-between;
   padding: var(--space-2);
   border-radius: var(--radius-lg);
@@ -20,6 +21,7 @@
 }
 .demo .language-picker__fields {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   align-items: center;
   gap: var(--space-2);
@@ -33,13 +35,12 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
 }
-.demo .language-picker select {
-  min-height: 1.65rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-  font: inherit;
+.demo .language-picker label {
+  flex: 1 1 0;
+  min-width: 5rem;
+}
+.demo .language-picker p-select {
+  width: 100%;
 }
 .demo .language-picker__arrow,
 .demo .source-count {
@@ -178,8 +179,7 @@
   gap: var(--space-3);
 }
 .demo .source-composer textarea,
-.demo .source-composer input,
-.demo .lookup-form input {
+.demo .source-composer input {
   width: 100%;
   min-height: 3rem;
   padding: var(--space-3);
@@ -431,10 +431,6 @@
   gap: var(--space-3);
   margin-top: var(--space-5);
 }
-.demo .lookup-form input {
-  min-height: var(--control-min-size);
-  background: var(--color-surface-raised);
-}
 .demo .lookup-results {
   margin-top: var(--space-5);
   gap: var(--space-3);
@@ -678,6 +674,7 @@ body .loquela-confirm-dialog .p-dialog-header-close:hover {
     flex-direction: column;
   }
   .demo .language-picker {
+    flex: 0 1 auto;
     width: 100%;
   }
   .demo .language-picker__fields {
@@ -686,7 +683,7 @@ body .loquela-confirm-dialog .p-dialog-header-close:hover {
   .demo .language-picker label {
     flex: 1;
   }
-  .demo .language-picker select {
+  .demo .language-picker p-select {
     width: 100%;
   }
   .demo .loquela-button.language-picker__apply {

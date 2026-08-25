@@ -7,17 +7,17 @@
 }
 
 label {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  font-weight: 700;
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  font-weight: 750;
 }
 
 input {
   width: 100%;
-  min-height: var(--control-min-size);
+  min-height: calc(var(--control-min-size) + 2px);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-panel);
+  border-radius: 0.625rem;
+  background: var(--color-surface-raised);
   color: var(--color-text);
   padding: 0 var(--space-3);
 
@@ -52,7 +52,8 @@ input {
 
 .searchable-select__listbox button:hover,
 .searchable-select__option--active {
-  background: var(--color-surface-raised) !important;
+  background: var(--color-primary-soft) !important;
+  color: var(--color-primary-strong);
 }
 
 .searchable-select__empty {

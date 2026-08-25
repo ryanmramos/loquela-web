@@ -1,11 +1,11 @@
 <section class="decks-page">
   <header class="page-heading">
-    <div>
+    <div class="page-heading__copy">
       <p class="eyebrow">{{ 'decks.eyebrow' | translate }}</p>
       <h1>{{ 'decks.title' | translate }}</h1>
       <p>{{ 'decks.description' | translate }}</p>
     </div>
-    <div class="heading-actions">
+    <div class="page-heading__actions">
       <a appButton variant="secondary" href="#export-history"
         ><app-icon name="download" [size]="18" /> {{ 'decks.exports' | translate }}</a
       >
@@ -20,8 +20,13 @@
   }
 
   <form class="deck-search" role="search" (ngSubmit)="applySearch()">
-    <label for="deck-search-input">{{ 'decks.searchLabel' | translate }}</label>
-    <input pInputText id="deck-search-input" [formControl]="search" maxlength="256" type="search" />
+    <app-search-input
+      inputId="deck-search-input"
+      [label]="'decks.searchLabel' | translate"
+      [placeholder]="'decks.searchPlaceholder' | translate"
+      [formControl]="search"
+      [maxLength]="256"
+    />
     <button appButton variant="secondary" type="submit">{{ 'common.search' | translate }}</button>
   </form>
 
@@ -41,10 +46,21 @@
         </button>
       </div>
       <form [formGroup]="form" (ngSubmit)="save()">
-        <label class="field">
-          <span>{{ 'decks.deckName' | translate }}</span>
-          <input pInputText formControlName="name" maxlength="255" />
-        </label>
+        <app-form-field
+          inputId="deck-name"
+          [label]="'decks.deckName' | translate"
+          [error]="nameError()"
+          [required]="true"
+        >
+          <input
+            #deckNameInput
+            id="deck-name"
+            pInputText
+            formControlName="name"
+            maxlength="255"
+            autocomplete="off"
+          />
+        </app-form-field>
         <fieldset>
           <legend>{{ 'decks.themeColor' | translate }}</legend>
           <div class="color-options">
@@ -71,56 +87,98 @@
   } @else if (!decks().length) {
     <app-ui-state
       kind="empty"
-      [title]="'decks.emptyTitle' | translate"
-      [description]="'decks.emptyDescription' | translate"
-    />
-  } @else {
-    <div class="deck-scroll" [attr.aria-label]="'decks.yourDecks' | translate" tabindex="0">
-      @for (deck of decks(); track deck.reference) {
-        <article class="deck-card">
-          <div
-            class="deck-cover"
-            [class]="'deck-cover deck-cover--' + (deck.themeColor ?? 'GREEN').toLowerCase()"
-          >
-            <span class="deck-symbol">{{ initials(deck.name) }}</span>
-          </div>
-          <div class="deck-body">
-            <span class="pill">{{ 'decks.active' | translate }}</span>
-            <h2>{{ deck.name }}</h2>
-            <p>
-              {{ deck.cardCount ?? 0 }}
-              {{ (deck.cardCount === 1 ? 'common.card' : 'common.cards') | translate }}
-            </p>
-            <div class="deck-actions">
-              <a
-                appButton
-                variant="secondary"
-                routerLink="/app/cards"
-                [queryParams]="{ deckReference: deck.reference }"
-              >
-                {{ 'common.viewCards' | translate }}
-              </a>
-              <a
-                appButton
-                variant="secondary"
-                routerLink="/app/study"
-                [attr.aria-disabled]="!deck.cardCount"
-              >
-                {{ 'common.practice' | translate }}
-              </a>
-              <button appButton type="button" (click)="requestExport(deck)">
-                {{ 'common.export' | translate }}
-              </button>
-              <app-action-menu
-                [label]="'common.actionsFor' | translate: { name: deck.name ?? '' }"
-                [items]="deckActions"
-                (itemSelected)="action(deck, $event)"
-              />
-            </div>
-          </div>
-        </article>
+      [title]="emptyTitleKey() | translate"
+      [description]="emptyDescriptionKey() | translate"
+    >
+      @if (hasSearch()) {
+        <button appButton variant="secondary" type="button" (click)="clearSearch()">
+          {{ 'common.clear' | translate }}
+        </button>
+      } @else {
+        <button appButton type="button" (click)="newDeck()">
+          <app-icon name="plus" [size]="18" /> {{ 'decks.new' | translate }}
+        </button>
       }
-    </div>
+    </app-ui-state>
+  } @else {
+    <section class="deck-library" aria-labelledby="your-decks-title">
+      <div class="section-head">
+        <div>
+          <h2 id="your-decks-title">{{ 'decks.yourDecks' | translate }}</h2>
+          <p class="section-summary">
+            {{
+              (decks().length === 1 ? 'decks.deckCountOne' : 'decks.deckCount')
+                | translate: { count: decks().length }
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="deck-grid">
+        @for (deck of decks(); track deck.reference) {
+          <article class="deck-card surface-card">
+            <div
+              class="deck-cover"
+              [class]="'deck-cover deck-cover--' + (deck.themeColor ?? 'GREEN').toLowerCase()"
+            >
+              <span class="deck-symbol">{{ initials(deck.name) }}</span>
+            </div>
+            <div class="deck-body">
+              <h3>{{ deck.name }}</h3>
+              <p class="deck-count">
+                {{ deck.cardCount ?? 0 }}
+                {{ (deck.cardCount === 1 ? 'common.card' : 'common.cards') | translate }}
+              </p>
+              @if (!deck.cardCount) {
+                <p class="deck-hint" [id]="'deck-empty-hint-' + (deck.reference ?? 'deck')">
+                  {{ 'decks.addCardsHint' | translate }}
+                </p>
+              }
+              <div class="deck-actions">
+                <a
+                  appButton
+                  routerLink="/app/cards"
+                  [queryParams]="{ deckReference: deck.reference }"
+                >
+                  {{ 'common.viewCards' | translate }}
+                </a>
+                @if (deck.cardCount) {
+                  <a appButton variant="secondary" routerLink="/app/study">
+                    {{ 'common.practice' | translate }}
+                  </a>
+                } @else {
+                  <button
+                    appButton
+                    variant="secondary"
+                    type="button"
+                    disabled
+                    [attr.aria-describedby]="'deck-empty-hint-' + (deck.reference ?? 'deck')"
+                  >
+                    {{ 'common.practice' | translate }}
+                  </button>
+                }
+                <button
+                  appButton
+                  variant="ghost"
+                  type="button"
+                  [disabled]="!deck.cardCount"
+                  [attr.aria-describedby]="
+                    !deck.cardCount ? 'deck-empty-hint-' + (deck.reference ?? 'deck') : null
+                  "
+                  (click)="requestExport(deck)"
+                >
+                  {{ 'common.export' | translate }}
+                </button>
+                <app-action-menu
+                  [label]="'common.actionsFor' | translate: { name: deck.name ?? '' }"
+                  [items]="deckActions"
+                  (itemSelected)="action(deck, $event)"
+                />
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
     @if (deckTotalPages() > 1) {
       <app-pagination
         [currentPage]="deckPage() + 1"
@@ -140,57 +198,76 @@
         <span class="polling-note" aria-live="polite">{{ 'decks.refreshing' | translate }}</span>
       }
     </div>
-    <div class="export-row export-row--header" aria-hidden="true">
-      <span>{{ 'decks.snapshot' | translate }}</span
-      ><span>{{ 'decks.cards' | translate }}</span
-      ><span>{{ 'common.status' | translate }}</span
-      ><span>{{ 'decks.created' | translate }}</span
-      ><span>{{ 'decks.expires' | translate }}</span
-      ><span></span>
-    </div>
-    @for (item of exports(); track item.reference) {
-      <article class="export-row">
-        <div>
-          <strong>{{ item.deckName }}</strong>
-          <span>{{
-            item.state === 'FAILED'
-              ? item.errorCode || 'EXPORT_FAILED'
-              : ('decks.ankiSnapshot' | translate)
-          }}</span>
-        </div>
-        <span>{{ item.cardCount ?? 0 }}</span>
-        <span class="status" [attr.data-state]="item.state">{{ statusLabel(item.state) }}</span>
-        <span>{{ formatDate(item.createdAt) }}</span>
-        <span>{{
-          item.state === 'EXPIRED' ? ('decks.expired' | translate) : formatDate(item.expiresAt)
-        }}</span>
-        <span>
-          @if (item.downloadAvailable && item.reference) {
-            <a appButton variant="secondary" [href]="api.downloadUrl(item.reference)">{{
-              'common.download' | translate
-            }}</a>
-          } @else if (item.state === 'FAILED' && item.deckReference) {
-            <button
-              appButton
-              variant="secondary"
-              type="button"
-              (click)="
-                requestExport({
-                  reference: item.deckReference,
-                  name: item.deckName,
-                  cardCount: item.cardCount,
-                })
-              "
-            >
-              {{ 'common.retry' | translate }}
-            </button>
-          } @else {
-            <span class="muted">—</span>
-          }
-        </span>
-      </article>
-    }
-    @if (!exports().length) {
+    @if (exports().length) {
+      <div class="export-row export-row--header" aria-hidden="true">
+        <span>{{ 'decks.snapshot' | translate }}</span
+        ><span>{{ 'decks.cards' | translate }}</span
+        ><span>{{ 'common.status' | translate }}</span
+        ><span>{{ 'decks.created' | translate }}</span
+        ><span>{{ 'decks.expires' | translate }}</span
+        ><span></span>
+      </div>
+      @for (item of exports(); track item.reference) {
+        <article
+          class="export-row"
+          [attr.aria-labelledby]="'export-' + (item.reference ?? 'snapshot')"
+        >
+          <div class="export-row__summary">
+            <span class="export-row__label">{{ 'decks.snapshot' | translate }}</span>
+            <strong [id]="'export-' + (item.reference ?? 'snapshot')">{{ item.deckName }}</strong>
+            <span class="export-row__detail">{{
+              item.state === 'FAILED'
+                ? item.errorCode || 'EXPORT_FAILED'
+                : ('decks.ankiSnapshot' | translate)
+            }}</span>
+          </div>
+          <div class="export-row__cell">
+            <span class="export-row__label">{{ 'decks.cards' | translate }}</span>
+            <span>{{ item.cardCount ?? 0 }}</span>
+          </div>
+          <div class="export-row__cell export-row__status">
+            <span class="export-row__label">{{ 'common.status' | translate }}</span>
+            <app-status-badge [tone]="statusTone(item.state)">
+              {{ statusLabel(item.state) }}
+            </app-status-badge>
+          </div>
+          <div class="export-row__cell">
+            <span class="export-row__label">{{ 'decks.created' | translate }}</span>
+            <span>{{ formatDate(item.createdAt) }}</span>
+          </div>
+          <div class="export-row__cell">
+            <span class="export-row__label">{{ 'decks.expires' | translate }}</span>
+            <span>{{
+              item.state === 'EXPIRED' ? ('decks.expired' | translate) : formatDate(item.expiresAt)
+            }}</span>
+          </div>
+          <div class="export-row__action">
+            @if (item.downloadAvailable && item.reference) {
+              <a appButton variant="secondary" [href]="api.downloadUrl(item.reference)">{{
+                'common.download' | translate
+              }}</a>
+            } @else if (item.state === 'FAILED' && item.deckReference) {
+              <button
+                appButton
+                variant="secondary"
+                type="button"
+                (click)="
+                  requestExport({
+                    reference: item.deckReference,
+                    name: item.deckName,
+                    cardCount: item.cardCount,
+                  })
+                "
+              >
+                {{ 'common.retry' | translate }}
+              </button>
+            } @else {
+              <span class="muted">—</span>
+            }
+          </div>
+        </article>
+      }
+    } @else {
       <app-ui-state
         kind="empty"
         [title]="'decks.noExports' | translate"

@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Select } from 'primeng/select';
 
 import { ActivityCategory, ActivityItem, ActivityLifecycle } from '@api/api-adapters/activity-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
@@ -14,7 +16,7 @@ import { ActivityState } from './activity-state';
 
 @Component({
   selector: 'app-activity-page',
-  imports: [AppIcon, ButtonDirective, StatusBadge, TranslatePipe, UiState],
+  imports: [AppIcon, ButtonDirective, FormsModule, Select, StatusBadge, TranslatePipe, UiState],
   providers: [ActivityState],
   templateUrl: './activity-page.html',
   styleUrl: './activity-page.scss',
@@ -29,6 +31,12 @@ export class ActivityPage {
 
   lifecycle = '';
   category = '';
+  readonly categoryOptions = computed(() => [
+    { value: '', label: this.translations.translate('activity.category.ALL') },
+    { value: 'SOURCE', label: this.translations.translate('activity.category.SOURCE') },
+    { value: 'LOOKUP', label: this.translations.translate('activity.category.LOOKUP') },
+    { value: 'EXPORT', label: this.translations.translate('activity.category.EXPORT') },
+  ]);
 
   constructor() {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {

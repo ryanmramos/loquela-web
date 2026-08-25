@@ -1,0 +1,23 @@
+<div class="search-input" [class.search-input--compact]="compact()">
+  <label [class.visually-hidden]="hideLabel()" [for]="inputId()">{{ label() }}</label>
+  <div class="search-input__control">
+    <app-icon name="search" [size]="compact() ? 18 : 20" />
+    <input
+      pInputText
+      [id]="inputId()"
+      type="search"
+      [autocomplete]="autocomplete()"
+      [spellcheck]="spellcheck()"
+      [attr.maxlength]="maxLength()"
+      [attr.aria-describedby]="hint() ? hintId() : null"
+      [disabled]="disabled()"
+      [placeholder]="placeholder()"
+      [value]="value()"
+      (input)="handleInput($event)"
+      (blur)="handleBlur()"
+    />
+  </div>
+  @if (hint()) {
+    <p class="search-input__hint" [id]="hintId()">{{ hint() }}</p>
+  }
+</div>

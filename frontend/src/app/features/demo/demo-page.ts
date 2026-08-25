@@ -13,6 +13,7 @@ import { Meta } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 import { ConfirmDialog } from 'primeng/confirmdialog';
+import { Select } from 'primeng/select';
 import { EMPTY, Subscription, catchError, finalize, interval, switchMap } from 'rxjs';
 
 import {
@@ -38,6 +39,7 @@ import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/sta
 import { Skeleton } from '@app/shared/components/skeleton/skeleton';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { TimedTranscriptHelp } from '@app/shared/components/timed-transcript-help/timed-transcript-help';
+import { SearchInput } from '@app/shared/components/search-input/search-input';
 
 type DemoMessageKey =
   | 'demo.errorUnavailable'
@@ -71,6 +73,8 @@ const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/u;
     IconButtonDirective,
     StatusBadge,
     Skeleton,
+    Select,
+    SearchInput,
     UiState,
     TimedTranscriptHelp,
   ],

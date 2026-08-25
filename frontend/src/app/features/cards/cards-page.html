@@ -1,11 +1,11 @@
 <section class="cards-page">
   <header class="page-heading">
-    <div>
+    <div class="page-heading__copy">
       <p class="eyebrow">{{ 'cards.eyebrow' | translate }}</p>
       <h1>{{ 'cards.title' | translate }}</h1>
       <p>{{ 'cards.description' | translate }}</p>
     </div>
-    <div class="heading-actions">
+    <div class="page-heading__actions">
       <button appButton type="button" (click)="newCard()">
         <app-icon name="plus" [size]="18" /> {{ 'cards.new' | translate }}
       </button>
@@ -49,11 +49,21 @@
         </label>
         <label class="field field--wide">
           <span>{{ 'cards.back' | translate }}</span>
-          <textarea pTextarea formControlName="definition" rows="3"></textarea>
+          <textarea
+            class="editor-textarea editor-textarea--back"
+            pTextarea
+            formControlName="definition"
+            rows="5"
+          ></textarea>
         </label>
         <label class="field field--wide">
           <span>{{ 'cards.contextOptional' | translate }}</span>
-          <textarea pTextarea formControlName="exampleText" rows="2"></textarea>
+          <textarea
+            class="editor-textarea editor-textarea--context"
+            pTextarea
+            formControlName="exampleText"
+            rows="4"
+          ></textarea>
         </label>
         <div class="editor-actions field--wide">
           @if (selected()) {
@@ -69,23 +79,19 @@
     </section>
   }
 
-  <form class="toolbar" (ngSubmit)="load()">
+  <form class="toolbar" (submit)="$event.preventDefault(); load()" [attr.aria-busy]="loading()">
     <div class="toolbar-group">
-      <label class="control search-control">
-        <app-icon name="search" [size]="18" />
-        <span class="visually-hidden">{{ 'cards.searchLabel' | translate }}</span>
-        <input
-          pInputText
-          type="search"
-          [formControl]="filter"
-          [placeholder]="'cards.searchLabel' | translate"
-        />
-      </label>
-      <app-form-field
-        class="deck-filter-control"
-        inputId="card-deck-filter"
-        [label]="'cards.filterDeck' | translate"
-      >
+      <app-search-input
+        class="toolbar-field search-field"
+        inputId="cards-search"
+        [label]="'cards.search' | translate"
+        [placeholder]="'cards.searchLabel' | translate"
+        [formControl]="filter"
+      />
+      <div class="toolbar-field deck-filter-control">
+        <label class="toolbar-label" for="card-deck-filter">
+          {{ 'cards.filterDeck' | translate }}
+        </label>
         <p-select
           inputId="card-deck-filter"
           [formControl]="deckFilter"
@@ -97,27 +103,36 @@
           [fluid]="true"
           (onFilter)="searchDecks($event.filter)"
         />
-      </app-form-field>
-      <label class="control">
-        <span class="visually-hidden">{{ 'cards.filterNoteType' | translate }}</span>
-        <select [formControl]="noteTypeFilter" (change)="applyNoteTypeFilter()">
-          <option value="">{{ 'cards.allNoteTypes' | translate }}</option>
-          <option value="BASIC">{{ 'cards.basic' | translate }}</option>
-          <option value="BASIC_CONTEXT">{{ 'cards.basicContext' | translate }}</option>
-        </select>
-      </label>
-      <button appButton variant="secondary" type="submit">{{ 'cards.filter' | translate }}</button>
+      </div>
+      <div class="toolbar-field note-type-field">
+        <label class="toolbar-label" for="card-note-type-filter">
+          {{ 'cards.filterNoteType' | translate }}
+        </label>
+        <p-select
+          inputId="card-note-type-filter"
+          [formControl]="noteTypeFilter"
+          [options]="noteTypeOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [fluid]="true"
+          (onChange)="applyNoteTypeFilter()"
+        />
+      </div>
+      <button appButton type="submit" [disabled]="loading()">
+        @if (loading()) {
+          <app-icon name="loading" [size]="16" class="app-icon--spin" />
+          {{ 'cards.applyingFilters' | translate }}
+        } @else {
+          {{ 'cards.applyFilters' | translate }}
+        }
+      </button>
     </div>
-    <div class="toolbar-summary">
+    <output class="toolbar-summary" aria-live="polite">
       <span
         >{{ displayedCards().length }}
         {{ (displayedCards().length === 1 ? 'common.card' : 'common.cards') | translate }}</span
       >
-      <span class="view-button" [title]="'cards.tableView' | translate"
-        ><app-icon name="list" [size]="19" />
-        <span class="visually-hidden">{{ 'cards.tableView' | translate }}</span></span
-      >
-    </div>
+    </output>
   </form>
 
   <section class="table-card" [attr.aria-label]="'cards.library' | translate">
@@ -160,8 +175,10 @@
             }}</span>
           </button>
           <button class="card-copy" type="button" (click)="edit(card)">
-            <strong>{{ card.definition }}</strong>
-            <span>{{ card.exampleText || 'Definition from configured dictionary provider' }}</span>
+            <strong class="card-copy__definition">{{ card.definition }}</strong>
+            <span class="card-copy__example">
+              {{ card.exampleText || ('cards.dictionaryDefinition' | translate) }}
+            </span>
           </button>
           <span class="pill pill--deck">{{ card.deckName }}</span>
           <span class="updated">{{ formatUpdatedAt(card.updatedAt) }}</span>

@@ -30,7 +30,7 @@
     }
 
     <header class="page-heading">
-      <div>
+      <div class="page-heading__copy">
         <p class="eyebrow">{{ formatHeadingDate(dashboard.generatedAt) }}</p>
         <h1>
           {{ 'dashboard.welcome' | translate }}
@@ -40,10 +40,12 @@
       </div>
       @if (dashboard.cards.status === 'AVAILABLE' && dashboard.cards.cardsToStudy; as count) {
         @if (count > 0) {
-          <a appButton routerLink="/app/study"
-            >{{ 'dashboard.practiceCards' | translate }} {{ count | number }}
-            {{ 'common.cards' | translate }}</a
-          >
+          <div class="page-heading__actions">
+            <a appButton routerLink="/app/study"
+              >{{ 'dashboard.practiceCards' | translate }} {{ count | number }}
+              {{ 'common.cards' | translate }}</a
+            >
+          </div>
         }
       }
     </header>
@@ -132,7 +134,7 @@
     }
 
     <div class="dashboard-grid">
-      <section class="panel learning-focus" aria-labelledby="learning-focus-title">
+      <section class="panel surface-card learning-focus" aria-labelledby="learning-focus-title">
         <div class="section-heading">
           <p class="eyebrow" id="learning-focus-title">
             {{ 'dashboard.learningFocus' | translate }}
@@ -147,7 +149,7 @@
         <p class="muted">{{ 'dashboard.sourcesDefinitions' | translate }}</p>
       </section>
 
-      <section class="panel quick-capture" aria-labelledby="quick-capture-title">
+      <section class="panel surface-card quick-capture" aria-labelledby="quick-capture-title">
         <div class="section-heading">
           <div>
             <p class="eyebrow">{{ 'dashboard.quickAction' | translate }}</p>
@@ -190,7 +192,7 @@
         }
       </section>
 
-      <section class="panel recent-activity" aria-labelledby="recent-activity-title">
+      <section class="panel surface-card recent-activity" aria-labelledby="recent-activity-title">
         <div class="section-heading">
           <div>
             <p class="eyebrow">{{ 'dashboard.workspace' | translate }}</p>

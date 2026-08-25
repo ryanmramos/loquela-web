@@ -1,0 +1,543 @@
+<section class="today-page">
+  @if (step() === 'today') {
+    <header class="page-heading">
+      <div class="page-heading__copy">
+        <p class="eyebrow">{{ 'today.todayEyebrow' | translate }}</p>
+        <h1>{{ 'today.todayTitle' | translate }}</h1>
+        <p>{{ 'today.todayDescription' | translate }}</p>
+      </div>
+      <div class="page-heading__actions">
+        <button appButton type="button" (click)="openSearch()">
+          <app-icon name="search" [size]="18" /> {{ 'today.openCorpus' | translate }}
+        </button>
+        <a appButton variant="secondary" routerLink="/app/study">
+          {{ 'today.studyCards' | translate: { count: dashboard()?.cards?.cardsToStudy ?? 0 } }}
+        </a>
+      </div>
+    </header>
+
+    @if (dashboardLoading() && !dashboard()) {
+      <div class="loading-panel" aria-live="polite">
+        <span class="skeleton skeleton--short"></span>
+        <span class="skeleton skeleton--title"></span>
+        <div class="skeleton-grid">
+          <span class="skeleton skeleton--card"></span>
+          <span class="skeleton skeleton--card"></span>
+        </div>
+      </div>
+    } @else if (pageError() && !dashboard()) {
+      <section class="state-card state-card--error" role="alert">
+        <app-icon name="danger" [size]="20" />
+        <div>
+          <h2>{{ 'today.loadError' | translate }}</h2>
+          <p>{{ 'dashboard.unavailableDescription' | translate }}</p>
+          <button appButton variant="secondary" type="button" (click)="loadToday()">
+            {{ 'common.tryAgain' | translate }}
+          </button>
+        </div>
+      </section>
+    } @else {
+      <div class="resume-grid">
+        <section class="fieldbook-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">{{ 'today.continueSource' | translate }}</p>
+              @if (sources().length) {
+                <p class="panel-heading__meta">
+                  {{
+                    'today.lastActive'
+                      | translate
+                        : {
+                            source: sources()[0].displayName,
+                            location: sourceKindLabel(sources()[0].kind),
+                          }
+                  }}
+                </p>
+              }
+            </div>
+            <a class="text-link" routerLink="/app/sources">{{ 'today.viewSources' | translate }}</a>
+          </div>
+
+          @if (sources().length) {
+            <div class="resume-list">
+              <button class="resume-row" type="button" (click)="openSearch()">
+                <span class="resume-row__icon"><app-icon name="search" [size]="18" /></span>
+                <span class="resume-row__copy">
+                  <strong>{{ 'today.searchPhrase' | translate }}</strong>
+                  <span>
+                    {{
+                      'today.resumeWith'
+                        | translate: { term: searchForm.controls.term.value || 'a word' }
+                    }}
+                  </span>
+                </span>
+                <app-icon name="chevron-right" [size]="18" />
+              </button>
+            </div>
+            @if ((dashboard()?.sources?.processingSources ?? 0) > 0) {
+              <div class="status-strip">
+                <span class="status-strip__main">
+                  <span class="status-dot status-dot--working" aria-hidden="true"></span>
+                  <span>
+                    <strong>
+                      @if ((dashboard()?.sources?.processingSources ?? 0) === 1) {
+                        {{ 'today.processing' | translate: { count: 1 } }}
+                      } @else {
+                        {{
+                          'today.processingPlural'
+                            | translate: { count: dashboard()?.sources?.processingSources ?? 0 }
+                        }}
+                      }
+                    </strong>
+                    <small>{{ 'today.searchWhenReady' | translate }}</small>
+                  </span>
+                </span>
+                <a class="text-link" routerLink="/app/activity">{{
+                  'today.viewStatus' | translate
+                }}</a>
+              </div>
+            }
+          } @else {
+            <div class="empty-note">
+              <span class="empty-note__mark" aria-hidden="true">Aa</span>
+              <div>
+                <h2>{{ 'today.noSourcesTitle' | translate }}</h2>
+                <p>{{ 'today.noSourcesDescription' | translate }}</p>
+                <a appButton variant="secondary" routerLink="/app/sources/new">
+                  <app-icon name="plus" [size]="18" /> {{ 'today.addSource' | translate }}
+                </a>
+              </div>
+            </div>
+          }
+        </section>
+
+        <aside class="fieldbook-panel fieldbook-panel--next">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">{{ 'today.readyWhen' | translate }}</p>
+              <p class="panel-heading__meta">{{ 'today.studyDescription' | translate }}</p>
+            </div>
+          </div>
+          <div class="next-list">
+            <a class="next-row" routerLink="/app/study">
+              <span class="count-badge count-badge--accent">{{
+                dashboard()?.cards?.cardsToStudy ?? 0
+              }}</span>
+              <span class="resume-row__copy">
+                <strong>{{ 'today.cardsReady' | translate }}</strong>
+                <span>{{ languageName(dashboard()?.languagePair?.sourceLanguage) }}</span>
+              </span>
+              <app-icon name="chevron-right" [size]="18" />
+            </a>
+            <a class="next-row" routerLink="/app/cards">
+              <span class="count-badge">{{ dashboard()?.cards?.totalCards ?? 0 }}</span>
+              <span class="resume-row__copy">
+                <strong>{{ 'today.recentCards' | translate }}</strong>
+                <span>{{ 'today.keepContextNearby' | translate }}</span>
+              </span>
+              <app-icon name="chevron-right" [size]="18" />
+            </a>
+          </div>
+        </aside>
+      </div>
+
+      <aside class="field-note">
+        <app-icon name="info" [size]="20" />
+        <div>
+          <strong>{{ 'today.noStreaksTitle' | translate }}</strong>
+          <p>{{ 'today.noStreaksDescription' | translate }}</p>
+        </div>
+      </aside>
+    }
+  } @else if (step() === 'search') {
+    <header class="page-heading page-heading--compact">
+      <div class="page-heading__copy">
+        <p class="eyebrow">{{ 'today.corpusEyebrow' | translate }}</p>
+        <h1>{{ 'today.corpusTitle' | translate }}</h1>
+        <p>{{ 'today.corpusDescription' | translate }}</p>
+      </div>
+      <a appButton variant="secondary" routerLink="/app/sources">
+        <app-icon name="document" [size]="18" /> {{ 'sources.title' | translate }}
+      </a>
+    </header>
+
+    <div class="search-layout">
+      <section class="fieldbook-panel search-panel">
+        <form [formGroup]="searchForm" (ngSubmit)="startSearch()" class="search-form">
+          <app-search-input
+            inputId="today-search-term"
+            [label]="'lookup.termLabel' | translate"
+            [hideLabel]="true"
+            [placeholder]="'today.searchPlaceholder' | translate"
+            formControlName="term"
+          />
+          <button appButton type="submit" [disabled]="searchStatus() === 'loading'">
+            <app-icon name="search" [size]="18" /> {{ 'today.searchCorpus' | translate }}
+          </button>
+        </form>
+
+        <div class="language-line">
+          <span>{{ 'lookup.currentLanguagePair' | translate }}</span>
+          <strong>
+            {{ languageName(dashboard()?.languagePair?.sourceLanguage) }} →
+            {{ languageName(dashboard()?.languagePair?.definitionLanguage) }}
+          </strong>
+          <a class="text-link" routerLink="/app/settings">{{
+            'lookup.changeSettings' | translate
+          }}</a>
+        </div>
+
+        <div class="filter-row" aria-label="{{ 'lookup.sourceType' | translate }}">
+          @for (filter of sourceTypeFilters; track filter.value) {
+            <button
+              class="filter-chip"
+              [class.filter-chip--active]="kindSelected(filter.value)"
+              [attr.aria-pressed]="kindSelected(filter.value)"
+              type="button"
+              (click)="toggleKind(filter.value)"
+            >
+              {{ filter.label | translate }}
+            </button>
+          }
+        </div>
+
+        <div class="expectation-note">
+          <app-icon name="info" [size]="18" />
+          <div>
+            <strong>{{ 'today.searchExpectationTitle' | translate }}</strong>
+            <p>{{ 'today.searchExpectation' | translate }}</p>
+          </div>
+        </div>
+
+        @if (searchStatus() === 'loading') {
+          <div class="result-loading" aria-live="polite">
+            <div class="result-loading__heading">
+              <span class="skeleton skeleton--short"></span
+              ><span class="skeleton skeleton--tiny"></span>
+            </div>
+            <span class="skeleton skeleton--result"></span>
+            <span class="skeleton skeleton--result"></span>
+          </div>
+        } @else if (searchStatus() === 'error') {
+          <section class="state-card state-card--error" role="alert">
+            <app-icon name="danger" [size]="20" />
+            <div>
+              <h2>{{ 'lookup.lookupAttention' | translate }}</h2>
+              <p>{{ errorMessage() }}</p>
+              <button appButton variant="secondary" type="button" (click)="startSearch()">
+                {{ 'common.tryAgain' | translate }}
+              </button>
+            </div>
+          </section>
+        } @else if (lookup()?.status === 'READY') {
+          <div class="results-heading">
+            <div>
+              <h2>
+                {{
+                  'today.matchingContexts' | translate: { count: lookup()?.contexts?.length ?? 0 }
+                }}
+              </h2>
+              <p>
+                {{ 'today.acrossSources' | translate: { count: sources().length } }}
+              </p>
+            </div>
+            <span class="result-badge">{{ 'lookup.contextFromCorpus' | translate }}</span>
+          </div>
+
+          @if (lookup()?.senses?.length) {
+            <article class="evidence-card evidence-card--definition">
+              <span class="context-label">{{ 'lookup.dictionaryDefinition' | translate }}</span>
+              <h2>{{ lookup()?.lemma ?? lookup()?.term }}</h2>
+              @for (sense of lookup()?.senses ?? []; track $index) {
+                <p>
+                  <strong>{{ sense.partOfSpeech }}.</strong> {{ sense.definition }}
+                </p>
+              }
+              <button appButton type="button" (click)="beginReview()">
+                <app-icon name="plus" [size]="18" /> {{ 'today.makeCard' | translate }}
+              </button>
+            </article>
+          }
+
+          @for (context of lookup()?.contexts ?? []; track context.number) {
+            <article class="evidence-card">
+              <div class="evidence-card__body">
+                <span class="context-label">{{ 'lookup.contextFromCorpus' | translate }}</span>
+                <p class="context-quote">
+                  @for (
+                    segment of highlightedContext(context.displayText ?? '', lookup()?.term ?? '');
+                    track $index
+                  ) {
+                    @if (segment.highlighted) {
+                      <mark>{{ segment.text }}</mark>
+                    } @else {
+                      {{ segment.text }}
+                    }
+                  }
+                </p>
+              </div>
+              <footer class="evidence-card__footer">
+                <a class="provenance-link" [routerLink]="sourceLink(context)">
+                  <span class="provenance-link__icon"
+                    ><app-icon name="document" [size]="17"
+                  /></span>
+                  <span>
+                    <strong>{{ context.sourceDisplayName }}</strong>
+                    <small>{{ sourceLocation(context) }}</small>
+                  </span>
+                </a>
+                <button
+                  appButton
+                  variant="secondary"
+                  type="button"
+                  (click)="chooseContext(context)"
+                >
+                  {{ 'today.inspectContext' | translate }}
+                </button>
+              </footer>
+            </article>
+          }
+
+          @if (!lookup()?.senses?.length && !lookup()?.contexts?.length) {
+            <div class="empty-note empty-note--compact">
+              <div>
+                <h2>{{ 'lookup.noContextsTitle' | translate }}</h2>
+                <p>{{ 'lookup.noContextsDescription' | translate }}</p>
+              </div>
+            </div>
+          }
+        }
+      </section>
+
+      <aside class="fieldbook-panel scope-panel">
+        <h2>{{ 'today.searchScope' | translate }}</h2>
+        <p>{{ 'today.searchScopeDescription' | translate }}</p>
+        <div class="scope-list">
+          @for (source of sources(); track source.reference) {
+            <div class="scope-row">
+              <span class="scope-row__icon"><app-icon name="document" [size]="17" /></span>
+              <span
+                ><strong>{{ source.displayName }}</strong
+                ><small>{{ sourceKindLabel(source.kind) }}</small></span
+              >
+              <span class="ready-mark"><app-icon name="check" [size]="16" /></span>
+            </div>
+          } @empty {
+            <p class="muted">{{ 'lookup.noReadySources' | translate }}</p>
+          }
+        </div>
+      </aside>
+    </div>
+  } @else if (step() === 'context') {
+    <header class="page-heading page-heading--compact">
+      <div class="page-heading__copy">
+        <p class="eyebrow">{{ 'today.inspectEyebrow' | translate }}</p>
+        <h1>{{ 'today.inspectTitle' | translate }}</h1>
+        <p>{{ 'today.inspectDescription' | translate }}</p>
+      </div>
+      <button appButton variant="secondary" type="button" (click)="backToSearch()">
+        {{ 'common.previous' | translate }}
+      </button>
+    </header>
+    <div class="context-layout">
+      <section class="fieldbook-panel context-panel">
+        <span class="context-label">{{ selectedContext()?.sourceDisplayName }}</span>
+        <p class="context-quote context-quote--large">
+          @for (
+            segment of highlightedContext(
+              selectedContext()?.displayText ?? '',
+              lookup()?.term ?? ''
+            );
+            track $index
+          ) {
+            @if (segment.highlighted) {
+              <mark>{{ segment.text }}</mark>
+            } @else {
+              {{ segment.text }}
+            }
+          }
+        </p>
+        <p class="context-location">{{ sourceLocation(selectedContext()!) }}</p>
+        <div class="definition-block">
+          <p class="eyebrow">{{ 'today.dictionaryDefinition' | translate }}</p>
+          @for (sense of lookup()?.senses ?? []; track $index) {
+            <p>
+              <strong>{{ sense.partOfSpeech }}.</strong> {{ sense.definition }}
+            </p>
+          }
+        </div>
+        <div class="field-note field-note--quiet">
+          <app-icon name="info" [size]="20" />
+          <div>
+            <strong>{{ 'today.sourceLocation' | translate }}</strong>
+            <p>{{ 'today.sourceLocationDescription' | translate }}</p>
+          </div>
+        </div>
+        <button appButton type="button" (click)="beginReview()">
+          <app-icon name="plus" [size]="18" /> {{ 'today.makeCard' | translate }}
+        </button>
+      </section>
+      <aside class="fieldbook-panel next-panel">
+        <h2>{{ 'today.whatNext' | translate }}</h2>
+        <div class="step-list">
+          <div class="step-row step-row--active">
+            <span>1</span>
+            <div>
+              <strong>{{ 'today.reviewTheCard' | translate }}</strong
+              ><small>{{ 'today.editMeaningDeck' | translate }}</small>
+            </div>
+          </div>
+          <div class="step-row">
+            <span>2</span>
+            <div>
+              <strong>{{ 'today.saveExplicitly' | translate }}</strong
+              ><small>{{ 'today.nothingSaved' | translate }}</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  } @else if (step() === 'review') {
+    <header class="page-heading page-heading--compact">
+      <div class="page-heading__copy">
+        <p class="eyebrow">{{ 'today.reviewEyebrow' | translate }}</p>
+        <h1>{{ 'today.reviewTitle' | translate }}</h1>
+        <p>{{ 'today.reviewDescription' | translate }}</p>
+      </div>
+      <button appButton variant="secondary" type="button" (click)="backToContext()">
+        {{ 'common.previous' | translate }}
+      </button>
+    </header>
+    <div class="review-layout">
+      <form class="fieldbook-panel review-form" [formGroup]="reviewForm" (ngSubmit)="saveCard()">
+        <div class="review-term">
+          <div>
+            <strong>{{ lookup()?.lemma ?? lookup()?.term }}</strong
+            ><span>{{ languageName(lookup()?.languagePair?.sourceLanguage) }}</span>
+          </div>
+          <span class="result-badge">{{ 'today.reviewEyebrow' | translate }}</span>
+        </div>
+        <label class="field">
+          <span>{{ 'today.meaning' | translate }}</span>
+          <textarea formControlName="meaning" rows="4"></textarea>
+          <small>{{ 'today.meaningHint' | translate }}</small>
+        </label>
+        <label class="field">
+          <span>{{ 'today.example' | translate }}</span>
+          <textarea formControlName="example" rows="4"></textarea>
+        </label>
+        <label class="field" for="today-save-deck">
+          <span>{{ 'today.saveToDeck' | translate }}</span>
+          <p-select
+            inputId="today-save-deck"
+            formControlName="deckReference"
+            [options]="decks()"
+            optionLabel="name"
+            optionValue="reference"
+            [placeholder]="'today.noDecks' | translate"
+            [fluid]="true"
+          />
+          <small>{{ 'today.deckHint' | translate }}</small>
+        </label>
+        @if (errorMessage()) {
+          <div class="state-card state-card--error" role="alert">
+            <app-icon name="danger" [size]="20" />
+            <p>{{ errorMessage() }}</p>
+          </div>
+        }
+        <div class="review-actions">
+          <button appButton variant="secondary" type="button" (click)="backToContext()">
+            {{ 'today.cancelDraft' | translate }}
+          </button>
+          <button
+            appButton
+            type="submit"
+            [disabled]="reviewForm.invalid || decksLoading() || saveStatus() === 'saving'"
+          >
+            {{ (saveStatus() === 'saving' ? 'common.saving' : 'today.saveCard') | translate }}
+          </button>
+        </div>
+      </form>
+      <aside class="fieldbook-panel provenance-panel">
+        <h2>{{ 'lookup.savedCardsTrustworthy' | translate }}</h2>
+        <div class="provenance-stack">
+          <div>
+            <span>{{ 'common.source' | translate }}</span
+            ><strong>{{
+              selectedContext()?.sourceDisplayName ?? ('today.dictionaryDefinition' | translate)
+            }}</strong>
+          </div>
+          <div>
+            <span>{{ 'lookup.context' | translate }}</span
+            ><strong>{{ sourceLocation(selectedContext()!) }}</strong>
+          </div>
+          <div>
+            <span>{{ 'lookup.dictionaryDefinition' | translate }}</span
+            ><strong>{{ 'lookup.lookupReady' | translate }}</strong>
+          </div>
+        </div>
+        <div class="field-note field-note--quiet">
+          <app-icon name="info" [size]="20" />
+          <p>{{ 'today.noCardUntilSave' | translate }}</p>
+        </div>
+      </aside>
+    </div>
+  } @else {
+    <header class="page-heading page-heading--compact">
+      <div class="page-heading__copy">
+        <p class="eyebrow">{{ 'today.savedEyebrow' | translate }}</p>
+        <h1>{{ 'today.savedTitle' | translate }}</h1>
+        <p>{{ 'today.savedDescription' | translate }}</p>
+      </div>
+    </header>
+    <div class="saved-layout">
+      <section class="saved-card fieldbook-panel">
+        <div class="review-term">
+          <div>
+            <strong>{{ savedCard()?.term }}</strong
+            ><span>{{ savedCard()?.deckName }}</span>
+          </div>
+          <span class="saved-badge">{{ 'common.saved' | translate }}</span>
+        </div>
+        <p class="saved-definition">{{ savedCard()?.definition }}</p>
+        @if (savedCard()?.exampleText) {
+          <p class="context-quote">{{ savedCard()?.exampleText }}</p>
+        }
+        <div class="provenance-stack">
+          <div>
+            <span>{{ 'common.source' | translate }}</span
+            ><strong>{{
+              selectedContext()?.sourceDisplayName ?? ('today.dictionaryDefinition' | translate)
+            }}</strong>
+          </div>
+          <div>
+            <span>{{ 'lookup.context' | translate }}</span
+            ><strong>{{ sourceLocation(selectedContext()!) }}</strong>
+          </div>
+        </div>
+        <a appButton variant="secondary" [routerLink]="sourceLink(selectedContext())">
+          <app-icon name="document" [size]="18" /> {{ 'today.openSource' | translate }}
+        </a>
+      </section>
+      <aside class="fieldbook-panel next-panel">
+        <h2>{{ 'today.whatNext' | translate }}</h2>
+        <div class="saved-actions">
+          <a appButton routerLink="/app/study">{{ 'today.studyDeck' | translate }}</a>
+          <a appButton variant="secondary" routerLink="/app/cards">{{
+            'today.viewInCards' | translate
+          }}</a>
+          <button appButton variant="ghost" type="button" (click)="returnToCorpus()">
+            {{ 'today.returnToCorpus' | translate }}
+          </button>
+        </div>
+        <div class="field-note field-note--quiet">
+          <app-icon name="info" [size]="20" />
+          <div>
+            <strong>{{ 'today.provenanceKept' | translate }}</strong>
+            <p>{{ 'today.provenanceDescription' | translate }}</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  }
+</section>

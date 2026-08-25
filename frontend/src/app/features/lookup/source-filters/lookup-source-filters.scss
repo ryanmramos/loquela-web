@@ -95,17 +95,17 @@ summary:focus-visible {
   flex-wrap: wrap;
   gap: var(--space-2);
 }
-.filter-chip {
+.source-type-chip {
   position: relative;
 }
-.filter-chip input,
+.source-type-chip input,
 .source-option input {
   position: absolute;
   width: 1px;
   height: 1px;
   opacity: 0;
 }
-.filter-chip span {
+.source-type-chip span {
   display: inline-flex;
   min-height: 2.25rem;
   align-items: center;
@@ -117,12 +117,12 @@ summary:focus-visible {
   font-size: var(--font-size-sm);
   font-weight: 700;
 }
-.filter-chip input:checked + span {
+.source-type-chip input:checked + span {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
   color: var(--color-primary-strong);
 }
-.filter-chip input:focus-visible + span,
+.source-type-chip input:focus-visible + span,
 .source-option:has(input:focus-visible) {
   box-shadow: var(--focus-ring);
 }

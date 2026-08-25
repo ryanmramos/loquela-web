@@ -10,15 +10,96 @@
 }
 
 .eyebrow {
+  margin: 0 0 var(--space-2);
   color: var(--color-primary);
   font-size: var(--font-size-xs);
   font-weight: 800;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+// The neutral paper shell shared by ordinary app panels. Keep padding and layout
+// local so a card's content still determines its density.
+.surface-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-panel);
+  box-shadow: var(--shadow-sm);
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.page-heading--compact {
+  align-items: flex-start;
+}
+
+.page-heading__copy {
+  min-width: 0;
+  max-width: 58rem;
+}
+
+.page-heading .eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.page-heading h1 {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-tight);
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.page-heading p:not(.eyebrow) {
+  max-width: 58rem;
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  line-height: var(--line-height-body);
+}
+
+.page-heading > :not(.page-heading__copy),
+.page-heading__actions {
+  flex: 0 0 auto;
+}
+
+.page-heading__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
 }
 
 .muted {
   color: var(--color-text-muted);
+}
+
+@media (max-width: 42rem) {
+  .page-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .page-heading__actions {
+    align-items: stretch;
+  }
+
+  .page-heading__actions > * {
+    flex: 1 1 auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

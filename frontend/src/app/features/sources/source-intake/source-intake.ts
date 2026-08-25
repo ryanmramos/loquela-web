@@ -1,10 +1,18 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize, Observable } from 'rxjs';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
+import { Select } from 'primeng/select';
 
 import { AcceptedPastedTextSource, AcceptedSource, SourceApi } from '@api/api-adapters/source-api';
 import { Alert } from '@app/shared/components/alert/alert';
@@ -31,6 +39,7 @@ type TimelineOffsetUnit = 'hours' | 'minutes' | 'seconds';
     InputText,
     ReactiveFormsModule,
     RouterLink,
+    Select,
     Textarea,
     TranslatePipe,
     TimedTranscriptHelp,
@@ -54,6 +63,12 @@ export class SourceIntake {
   readonly selectedFile = signal<File | null>(null);
   readonly selectedTranscriptFile = signal<File | null>(null);
   readonly supportedLanguages = signal<readonly string[]>([]);
+  readonly transcriptLanguageOptions = computed(() =>
+    this.supportedLanguages().map((language) => ({
+      value: language,
+      label: `${this.languageName(language)} (${language})`,
+    })),
+  );
   readonly pastedText = new FormGroup({
     text: new FormControl('', {
       nonNullable: true,

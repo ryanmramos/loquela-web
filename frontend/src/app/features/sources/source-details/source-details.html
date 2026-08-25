@@ -26,8 +26,8 @@
       {{ 'common.tryAgain' | translate }}
     </button>
   } @else if (state.source(); as source) {
-    <header>
-      <div>
+    <header class="page-heading page-heading--compact details-header">
+      <div class="page-heading__copy">
         <p class="eyebrow">{{ kindLabel(source.kind) }}</p>
         <h1>{{ source.displayName }}</h1>
         <p>{{ 'sourceDetails.added' | translate }} {{ formatDate(source.createdAt) }}</p>
@@ -58,7 +58,7 @@
     }
 
     <div class="details-grid">
-      <section class="panel" aria-labelledby="overview-heading">
+      <section class="panel surface-card" aria-labelledby="overview-heading">
         <h2 id="overview-heading">{{ 'sourceDetails.overview' | translate }}</h2>
         <dl>
           <div>
@@ -85,7 +85,7 @@
       </section>
 
       @if (source.youtube; as youtube) {
-        <section class="panel" aria-labelledby="video-heading">
+        <section class="panel surface-card" aria-labelledby="video-heading">
           <h2 id="video-heading">{{ 'sourceDetails.videoProvenance' | translate }}</h2>
           <dl>
             @if (youtube.title) {
@@ -112,7 +112,7 @@
       }
 
       @if (source.timedTranscript; as timed) {
-        <section class="panel" aria-labelledby="transcript-heading">
+        <section class="panel surface-card" aria-labelledby="transcript-heading">
           <h2 id="transcript-heading">{{ 'sourceDetails.transcriptMetadata' | translate }}</h2>
           <dl>
             <div>
@@ -153,7 +153,10 @@
         </section>
       }
 
-      <section class="panel panel--wide" aria-labelledby="manage-heading">
+      <section
+        class="panel panel--wide panel--manage surface-card"
+        aria-labelledby="manage-heading"
+      >
         <h2 id="manage-heading">{{ 'sourceDetails.manage' | translate }}</h2>
         <div class="manage-row">
           <app-form-field inputId="source-name" [label]="'sourceDetails.displayName' | translate">

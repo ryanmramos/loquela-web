@@ -1,5 +1,3 @@
-@use '../../../styles/tokens' as tokens;
-
 :host {
   display: block;
 }
@@ -7,16 +5,14 @@
 .practice-page {
   display: grid;
   max-width: 64rem;
-  min-height: calc(100vh - 5rem);
+  min-height: calc(100dvh - 4.5rem);
   align-content: start;
   gap: var(--space-6);
   margin: 0 auto;
   padding: var(--space-10);
 }
 
-.practice-header,
 .progress-summary,
-.deck-option,
 .completion-actions {
   display: flex;
   align-items: center;
@@ -24,27 +20,16 @@
   gap: var(--space-4);
 }
 
-.practice-header h1,
 .completion-card h1 {
   margin: 0;
   font-family: var(--font-family-display);
   font-size: var(--font-size-2xl);
 }
 
-.practice-header p:not(.eyebrow),
 .completion-card p {
   margin: var(--space-2) 0 0;
   color: var(--color-text-muted);
-}
-
-.eyebrow,
-.card-state {
-  margin: 0 0 var(--space-2);
-  color: var(--color-primary);
-  font-size: var(--font-size-xs);
-  font-weight: 850;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  line-height: var(--line-height-body);
 }
 
 .semantics-note {
@@ -52,9 +37,23 @@
 }
 
 .progress-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
   font-weight: 700;
+}
+
+.progress-summary__count {
+  display: flex;
+  min-width: 4.25rem;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.progress-summary__count strong {
+  color: var(--color-text);
+  font-size: var(--font-size-md);
 }
 
 .progress-track {
@@ -68,13 +67,16 @@
 .progress-track span {
   display: block;
   height: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
   border-radius: inherit;
   background: var(--color-primary);
-  transition: width var(--motion-normal) var(--ease-standard);
+  transition: transform var(--motion-normal) var(--ease-standard);
 }
 
 .practice-card,
 .completion-card {
+  min-width: 0;
   padding: clamp(var(--space-6), 5vw, var(--space-12));
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -88,10 +90,12 @@
 }
 
 .practice-card h2 {
+  max-width: 100%;
   margin: var(--space-4) 0 var(--space-8);
   font-family: var(--font-family-display);
   font-size: clamp(2.5rem, 8vw, 4.75rem);
   line-height: var(--line-height-tight);
+  overflow-wrap: anywhere;
 }
 
 .practice-card h2:focus,
@@ -112,6 +116,7 @@
 
 .answer {
   display: grid;
+  min-width: 0;
   gap: var(--space-4);
   text-align: left;
 }
@@ -143,6 +148,7 @@
 }
 
 .definition {
+  overflow-wrap: anywhere;
   margin: 0;
   padding: var(--space-5);
   border-radius: var(--radius-md);
@@ -153,6 +159,8 @@
 }
 
 blockquote {
+  max-width: 70ch;
+  overflow-wrap: anywhere;
   margin: 0;
   padding: var(--space-4) var(--space-5);
   border-left: 0.25rem solid var(--color-accent);
@@ -196,6 +204,7 @@ blockquote {
 .rating-button {
   position: relative;
   display: grid;
+  min-width: 0;
   min-height: 5.5rem;
   place-items: center;
   gap: var(--space-1);

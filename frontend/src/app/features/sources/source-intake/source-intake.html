@@ -1,8 +1,10 @@
 <section class="intake-page">
-  <header>
-    <p class="eyebrow">{{ 'sourcesIntake.eyebrow' | translate }}</p>
-    <h1>{{ 'sourcesIntake.title' | translate }}</h1>
-    <p>{{ 'sourcesIntake.description' | translate }}</p>
+  <header class="page-heading page-heading--compact">
+    <div class="page-heading__copy">
+      <p class="eyebrow">{{ 'sourcesIntake.eyebrow' | translate }}</p>
+      <h1>{{ 'sourcesIntake.title' | translate }}</h1>
+      <p>{{ 'sourcesIntake.description' | translate }}</p>
+    </div>
   </header>
 
   @if (errorMessage(); as message) {
@@ -12,34 +14,10 @@
   }
 
   <div class="intake-grid">
-    <section class="intake-card" aria-labelledby="paste-heading">
-      <div class="card-mark"><app-icon name="type" [size]="23" /></div>
-      <h2 id="paste-heading">{{ 'sourcesIntake.paste' | translate }}</h2>
-      <p>{{ 'sourcesIntake.pasteDescription' | translate }}</p>
-      <form [formGroup]="pastedText" (ngSubmit)="submitPastedText()">
-        <app-form-field
-          inputId="pasted-text"
-          [label]="'sourcesIntake.sourceText' | translate"
-          [hint]="'sourcesIntake.maxCharacters' | translate"
-          [required]="true"
-          [error]="
-            pastedText.controls.text.touched && pastedText.controls.text.invalid
-              ? ('sourcesIntake.enterText' | translate)
-              : undefined
-          "
-        >
-          <textarea pTextarea id="pasted-text" rows="8" formControlName="text"></textarea>
-        </app-form-field>
-        <button appButton type="submit" [disabled]="status() === 'submitting'">
-          {{
-            (status() === 'submitting' ? 'sourcesIntake.adding' : 'sourcesIntake.addPasted')
-              | translate
-          }}
-        </button>
-      </form>
-    </section>
-
-    <section class="intake-card" aria-labelledby="transcript-heading">
+    <section
+      class="intake-card intake-card--primary surface-card"
+      aria-labelledby="transcript-heading"
+    >
       <div class="card-mark"><app-icon name="video" [size]="23" /></div>
       <h2 id="transcript-heading">{{ 'sourcesIntake.timedTranscript' | translate }}</h2>
       <p>{{ 'sourcesIntake.transcriptDescription' | translate }}</p>
@@ -66,11 +44,14 @@
           [label]="'sourcesIntake.language' | translate"
           [required]="true"
         >
-          <select id="transcript-language" formControlName="language">
-            @for (language of supportedLanguages(); track language) {
-              <option [value]="language">{{ languageName(language) }} ({{ language }})</option>
-            }
-          </select>
+          <p-select
+            inputId="transcript-language"
+            formControlName="language"
+            [options]="transcriptLanguageOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [fluid]="true"
+          />
         </app-form-field>
         <app-form-field
           inputId="origin-url"
@@ -85,7 +66,7 @@
             placeholder="https://…"
           />
         </app-form-field>
-        <details>
+        <details class="timeline-settings">
           <summary>
             <span class="timeline-offset__summary-copy">
               <strong>{{ 'sourcesIntake.timingSummary' | translate }}</strong>
@@ -142,7 +123,10 @@
             </div>
           </div>
         </details>
-        <p class="rights-notice">{{ 'sourcesIntake.rightsNotice' | translate }}</p>
+        <p class="rights-notice">
+          <app-icon name="info" [size]="17" />
+          <span>{{ 'sourcesIntake.rightsNotice' | translate }}</span>
+        </p>
         <button appButton type="submit" [disabled]="status() === 'submitting'">
           {{
             (status() === 'submitting'
@@ -154,7 +138,10 @@
       </form>
     </section>
 
-    <section class="intake-card intake-card--wide" aria-labelledby="upload-heading">
+    <section
+      class="intake-card intake-card--document surface-card"
+      aria-labelledby="upload-heading"
+    >
       <div class="card-mark"><app-icon name="upload" [size]="23" /></div>
       <h2 id="upload-heading">{{ 'sourcesIntake.uploadDocument' | translate }}</h2>
       <p>{{ 'sourcesIntake.uploadDescription' | translate }}</p>
@@ -185,6 +172,36 @@
             | translate
         }}
       </button>
+    </section>
+
+    <section
+      class="intake-card intake-card--secondary surface-card"
+      aria-labelledby="paste-heading"
+    >
+      <div class="card-mark"><app-icon name="type" [size]="23" /></div>
+      <h2 id="paste-heading">{{ 'sourcesIntake.paste' | translate }}</h2>
+      <p>{{ 'sourcesIntake.pasteDescription' | translate }}</p>
+      <form [formGroup]="pastedText" (ngSubmit)="submitPastedText()">
+        <app-form-field
+          inputId="pasted-text"
+          [label]="'sourcesIntake.sourceText' | translate"
+          [hint]="'sourcesIntake.maxCharacters' | translate"
+          [required]="true"
+          [error]="
+            pastedText.controls.text.touched && pastedText.controls.text.invalid
+              ? ('sourcesIntake.enterText' | translate)
+              : undefined
+          "
+        >
+          <textarea pTextarea id="pasted-text" rows="8" formControlName="text"></textarea>
+        </app-form-field>
+        <button appButton variant="secondary" type="submit" [disabled]="status() === 'submitting'">
+          {{
+            (status() === 'submitting' ? 'sourcesIntake.adding' : 'sourcesIntake.addPasted')
+              | translate
+          }}
+        </button>
+      </form>
     </section>
   </div>
 

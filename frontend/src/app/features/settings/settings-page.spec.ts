@@ -74,13 +74,12 @@ describe('SettingsPage', () => {
     expect(component.exportForm.pristine).toBe(true);
   });
 
-  it('renders linked provider icons and scrolls from the section navigation', () => {
+  it('renders linked account details and scrolls from the section navigation', () => {
     const fixture = TestBed.createComponent(SettingsPage);
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
 
     const sectionButtons = [...element.querySelectorAll<HTMLButtonElement>('.settings-nav button')];
-    const providerIcons = element.querySelectorAll('.provider-mark svg');
     const toggles = element.querySelectorAll<HTMLInputElement>('.toggle-input');
 
     expect(sectionButtons.map((button) => button.textContent?.trim())).toEqual([
@@ -91,7 +90,9 @@ describe('SettingsPage', () => {
       'Export defaults',
       'Privacy & data',
     ]);
-    expect(providerIcons).toHaveLength(1);
+    expect(element.querySelector('.account-details span')?.textContent?.trim()).toBe(
+      'ryan@example.com',
+    );
     expect(toggles).toHaveLength(2);
     expect([...toggles].every((toggle) => toggle.getAttribute('role') === 'switch')).toBe(true);
     expect(element.textContent).not.toContain('WhatsApp');
@@ -108,15 +109,12 @@ describe('SettingsPage', () => {
     const fixture = TestBed.createComponent(SettingsPage);
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
-    const select = element.querySelector<HTMLSelectElement>(
-      'select[aria-label="Interface language"]',
-    );
+    const select = element.querySelector<HTMLElement>('p-select[inputid="interface-language"]');
     expect(select).not.toBeNull();
     if (!select) {
       return;
     }
-    select.value = 'es';
-    select.dispatchEvent(new Event('change'));
+    fixture.componentInstance.changeInterfaceLanguage('es');
     fixture.detectChanges();
 
     expect(updateInterfaceLanguage).toHaveBeenCalledWith('es');
@@ -129,11 +127,10 @@ describe('SettingsPage', () => {
     fixture.detectChanges();
     const element = fixture.nativeElement as HTMLElement;
 
-    const select = element.querySelector<HTMLSelectElement>(
-      'select[aria-label="Idioma de la interfaz"]',
-    );
+    const select = element.querySelector<HTMLElement>('p-select[inputid="interface-language"]');
 
-    expect(select?.value).toBe('es');
+    expect(select).not.toBeNull();
+    expect(fixture.componentInstance.translations.language()).toBe('es');
   });
 
   it('keeps unsupported source and definition combinations from submission', () => {
@@ -173,13 +170,22 @@ describe('SettingsPage', () => {
     expect(component.exportForm.dirty).toBe(true);
   });
 
-  it('requires the exact destructive confirmation phrase', () => {
+  it('stages account deletion behind an explicit acknowledgement', () => {
+    const fixture = TestBed.createComponent(SettingsPage);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('#deletion-acknowledgement')).toBeNull();
+    fixture.componentInstance.startDeletion();
+    fixture.detectChanges();
+    expect(element.querySelector('#deletion-acknowledgement')).not.toBeNull();
+
     const component = TestBed.createComponent(SettingsPage).componentInstance;
-    component.deletionForm.controls.confirmationPhrase.setValue('delete');
+    component.startDeletion();
     component.deleteAccount();
     expect(deleteAccount).not.toHaveBeenCalled();
 
-    component.deletionForm.controls.confirmationPhrase.setValue('DELETE MY ACCOUNT');
+    component.deletionForm.controls.acknowledged.setValue(true);
     component.deleteAccount();
     expect(deleteAccount).toHaveBeenCalledWith('DELETE MY ACCOUNT');
     expect(markDeleting).toHaveBeenCalled();

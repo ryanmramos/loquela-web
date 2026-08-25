@@ -1,10 +1,19 @@
 import { ViewportScroller } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 
 import { BrowserSettings, LanguagePair, SettingsApi } from '@api/api-adapters/settings-api';
 import { SessionFacade } from '@core/auth/session-facade';
@@ -28,8 +37,10 @@ type Section = 'profile' | 'accounts' | 'language' | 'delivery' | 'export' | 'pr
     Alert,
     ButtonDirective,
     InputText,
+    FormsModule,
     ReactiveFormsModule,
     Skeleton,
+    Select,
     UiState,
     TranslatePipe,
   ],
@@ -39,6 +50,12 @@ type Section = 'profile' | 'accounts' | 'language' | 'delivery' | 'export' | 'pr
 })
 export class SettingsPage {
   readonly interfaceLanguages = INTERFACE_LANGUAGE_OPTIONS;
+  readonly interfaceLanguageOptions = computed(() =>
+    this.interfaceLanguages.map((language) => ({
+      code: language.code,
+      label: this.translations.translate(language.label),
+    })),
+  );
   readonly translations = inject(TranslationService);
   private readonly session = inject(SessionFacade);
   private readonly settingsApi = inject(SettingsApi);
@@ -64,6 +81,7 @@ export class SettingsPage {
   readonly exportError = signal(false);
   readonly deletionSaving = signal(false);
   readonly deletionError = signal<'reauth' | 'request' | null>(null);
+  readonly deletionStarted = signal(false);
   readonly supportedPairs = signal<readonly LanguagePair[]>([]);
 
   readonly languageForm = new FormGroup({
@@ -87,12 +105,9 @@ export class SettingsPage {
     exportIncludeProvenance: new FormControl(true, { nonNullable: true }),
   });
   readonly deletionForm = new FormGroup({
-    confirmationPhrase: new FormControl('', {
+    acknowledged: new FormControl(false, {
       nonNullable: true,
-      validators: [
-        (control) => Validators.required(control),
-        Validators.pattern(/^DELETE MY ACCOUNT$/u),
-      ],
+      validators: (control) => Validators.requiredTrue(control),
     }),
   });
 
@@ -126,8 +141,8 @@ export class SettingsPage {
     this.viewportScroller.scrollToAnchor(section);
   }
 
-  changeInterfaceLanguage(event: Event): void {
-    const language = (event.target as HTMLSelectElement).value as InterfaceLanguage;
+  changeInterfaceLanguage(value: string): void {
+    const language = value as InterfaceLanguage;
     this.interfaceSaving.set(true);
     this.interfaceError.set(false);
     this.session
@@ -179,6 +194,17 @@ export class SettingsPage {
     this.savePreferences('export');
   }
 
+  startDeletion(): void {
+    this.deletionStarted.set(true);
+    this.deletionError.set(null);
+  }
+
+  cancelDeletion(): void {
+    this.deletionStarted.set(false);
+    this.deletionError.set(null);
+    this.deletionForm.reset({ acknowledged: false });
+  }
+
   deleteAccount(): void {
     if (this.deletionForm.invalid) {
       this.deletionForm.markAllAsTouched();
@@ -187,7 +213,7 @@ export class SettingsPage {
     this.deletionSaving.set(true);
     this.deletionError.set(null);
     this.settingsApi
-      .deleteAccount(this.deletionForm.controls.confirmationPhrase.value)
+      .deleteAccount('DELETE MY ACCOUNT')
       .pipe(
         finalize(() => this.deletionSaving.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -208,6 +234,13 @@ export class SettingsPage {
     return [...new Set(this.supportedPairs().map((pair) => pair.sourceLanguage))];
   }
 
+  sourceLanguageOptions(): { value: string; label: string }[] {
+    return this.sourceLanguages().map((language) => ({
+      value: language,
+      label: `${this.languageName(language)} (${language})`,
+    }));
+  }
+
   definitionLanguages(sourceLanguage: string): readonly string[] {
     return [
       ...new Set(
@@ -216,6 +249,13 @@ export class SettingsPage {
           .map((pair) => pair.definitionLanguage),
       ),
     ];
+  }
+
+  definitionLanguageOptions(sourceLanguage: string): { value: string; label: string }[] {
+    return this.definitionLanguages(sourceLanguage).map((language) => ({
+      value: language,
+      label: `${this.languageName(language)} (${language})`,
+    }));
   }
 
   languageName(tag: string): string {

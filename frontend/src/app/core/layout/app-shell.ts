@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Drawer } from 'primeng/drawer';
-import { InputText } from 'primeng/inputtext';
 
 import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/action-menu';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
@@ -14,6 +13,8 @@ import { AppIcon, AppIconName } from '@app/shared/components/icon/app-icon';
 interface ShellNavigationItem {
   readonly key:
     | 'navigation.overview'
+    | 'navigation.today'
+    | 'navigation.corpus'
     | 'navigation.sources'
     | 'navigation.lookup'
     | 'navigation.cards'
@@ -39,7 +40,6 @@ interface ShellNavigationGroup {
     AppIcon,
     ButtonDirective,
     Drawer,
-    InputText,
     RouterLink,
     RouterLinkActive,
     ToastRegion,
@@ -56,7 +56,6 @@ export class AppShell {
   readonly activeJobCount = input<number | null>(null);
   readonly cardsToStudy = input<number | null>(null);
   readonly isAdmin = input(false);
-  readonly searchSubmitted = output<string>();
   readonly userActionSelected = output<string>();
   readonly mobileMenuOpen = signal(false);
 
@@ -64,14 +63,14 @@ export class AppShell {
     {
       label: 'navigation.learn',
       items: [
-        { key: 'navigation.overview', icon: 'home', target: '/app' },
+        { key: 'navigation.today', icon: 'home', target: '/app' },
         { key: 'navigation.study', icon: 'sparkles', target: '/app/study' },
-        { key: 'navigation.lookup', icon: 'search', target: '/app/lookup' },
       ],
     },
     {
       label: 'navigation.library',
       items: [
+        { key: 'navigation.corpus', icon: 'search', target: '/app/lookup' },
         { key: 'navigation.sources', icon: 'document', target: '/app/sources' },
         { key: 'navigation.cards', icon: 'book', target: '/app/cards' },
         { key: 'navigation.decks', icon: 'library', target: '/app/decks' },
@@ -80,7 +79,6 @@ export class AppShell {
     {
       label: 'navigation.account',
       items: [
-        { key: 'navigation.activity', icon: 'activity', target: '/app/activity' },
         { key: 'navigation.settings', icon: 'settings', target: '/app/settings' },
         {
           key: 'navigation.admin',
@@ -96,12 +94,11 @@ export class AppShell {
     this.navigationGroups[0].items[0],
     this.navigationGroups[0].items[1],
     this.navigationGroups[1].items[0],
-    this.navigationGroups[0].items[2],
+    this.navigationGroups[1].items[1],
   ];
 
   protected readonly mobileMore: readonly ShellNavigationItem[] = [
-    this.navigationGroups[1].items[1],
-    this.navigationGroups[1].items[2],
+    ...this.navigationGroups[1].items.slice(2),
     ...this.navigationGroups[2].items,
   ];
 
@@ -109,14 +106,6 @@ export class AppShell {
     { id: 'profile', label: '', labelKey: 'shell.profileSettings' },
     { id: 'sign-out', label: '', labelKey: 'shell.signOut', danger: true },
   ];
-
-  submitSearch(event: SubmitEvent, searchInput: HTMLInputElement): void {
-    event.preventDefault();
-    const query = searchInput.value.trim();
-    if (query.length > 0) {
-      this.searchSubmitted.emit(query);
-    }
-  }
 
   focusMain(event: MouseEvent, main: HTMLElement): void {
     event.preventDefault();

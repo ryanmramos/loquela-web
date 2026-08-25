@@ -1,28 +1,5 @@
 @use 'tokens' as tokens;
 
-body .deck-search {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-body .deck-search label {
-  flex: 0 0 auto;
-  font-weight: 700;
-}
-
-body .deck-search input {
-  flex: 1 1 24rem;
-  max-width: 32rem;
-  min-width: 10rem;
-  min-height: var(--control-min-size);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-panel);
-  color: var(--color-text);
-}
-
 body .cards-page {
   .toolbar-group {
     align-items: flex-end;
@@ -79,18 +56,42 @@ body .cards-page {
 }
 
 body .practice-page {
-  .deck-options {
+  .deck-search {
     display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
     gap: var(--space-3);
+    max-width: 52rem;
+  }
+  .deck-search app-search-input {
+    min-width: 0;
+  }
+  .deck-search > button {
+    min-width: 6rem;
+  }
+  .deck-options {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--space-4);
   }
   .deck-option {
+    display: grid;
+    align-content: space-between;
+    gap: var(--space-5);
     padding: var(--space-4);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     background: var(--color-surface-panel);
+    box-shadow: var(--shadow-sm);
   }
-  .deck-option > div {
-    flex: 1;
+  .deck-option__heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+  .deck-option__copy {
     min-width: 0;
   }
   .deck-option h2,
@@ -103,6 +104,9 @@ body .practice-page {
   .deck-option p {
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
+  }
+  .deck-option > button {
+    width: 100%;
   }
   .deck-mark,
   .completion-mark {
@@ -133,6 +137,57 @@ body .practice-page {
 }
 
 body .decks-page {
+  .color-option {
+    --theme-option-color: #247a45;
+
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--control-min-size);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    outline: 0.1875rem solid transparent;
+    outline-offset: 0.125rem;
+    background: var(--color-surface-subtle);
+    color: var(--color-text);
+    cursor: pointer;
+    transition:
+      background var(--motion-fast) var(--ease-standard),
+      border-color var(--motion-fast) var(--ease-standard);
+  }
+  .color-option--orange {
+    --theme-option-color: #a85a0b;
+  }
+  .color-option--blue {
+    --theme-option-color: #3769b3;
+  }
+  .color-option--teal {
+    --theme-option-color: #087c74;
+  }
+  .color-option--purple {
+    --theme-option-color: var(--deck-purple);
+  }
+  .color-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+  .color-option span {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .color-option span::before {
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 0.125rem solid var(--color-surface-panel);
+    border-radius: 50%;
+    background: var(--theme-option-color);
+    box-shadow: 0 0 0 1px var(--theme-option-color);
+    content: '';
+  }
   .color-option:hover {
     background: color-mix(in srgb, var(--theme-option-color) 10%, var(--color-surface-subtle));
   }
@@ -145,44 +200,56 @@ body .decks-page {
     outline-color: var(--color-focus);
   }
   .export-card {
-    overflow-x: auto;
+    overflow: hidden;
+  }
+  .polling-note,
+  .muted {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
   }
   .export-row {
     display: grid;
-    min-width: 50rem;
-    grid-template-columns: minmax(12rem, 2fr) 4rem 7rem 6rem 6rem 7rem;
+    grid-template-columns:
+      minmax(12rem, 2fr)
+      minmax(4rem, 0.55fr)
+      minmax(7rem, 0.8fr)
+      minmax(6rem, 0.75fr)
+      minmax(6rem, 0.75fr)
+      minmax(7rem, auto);
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-4) 0;
     border-top: 1px solid var(--color-border);
   }
   .export-row--header {
+    padding-top: var(--space-5);
     color: var(--color-text-muted);
     font-size: var(--font-size-xs);
     font-weight: 800;
     text-transform: uppercase;
   }
-  .export-row > div:first-child {
-    display: grid;
+  .export-row__summary,
+  .export-row__cell {
+    min-width: 0;
   }
-  .export-row > div:first-child span,
-  .polling-note,
-  .muted {
+  .export-row__summary {
+    display: grid;
+    gap: var(--space-1);
+  }
+  .export-row__summary strong,
+  .export-row__detail,
+  .export-row__cell > span:not(.export-row__label) {
+    overflow-wrap: anywhere;
+  }
+  .export-row__detail {
     color: var(--color-text-muted);
     font-size: var(--font-size-xs);
   }
-  .status[data-state='FAILED'] {
-    background: var(--color-danger-soft);
-    color: var(--color-danger);
+  .export-row__label {
+    display: none;
   }
-  .status[data-state='QUEUED'],
-  .status[data-state='RUNNING'] {
-    background: var(--color-warning-soft);
-    color: var(--color-warning);
-  }
-  .status[data-state='EXPIRED'] {
-    background: var(--color-surface-subtle);
-    color: var(--color-text-muted);
+  .export-row__action {
+    justify-self: end;
   }
 }
 
@@ -307,24 +374,6 @@ body .dashboard {
   }
 }
 
-[data-theme='dark'] body .decks-page {
-  .color-option {
-    --theme-option-color: #74d698;
-  }
-  .color-option--orange {
-    --theme-option-color: #f0a44d;
-  }
-  .color-option--blue {
-    --theme-option-color: #7daaf2;
-  }
-  .color-option--teal {
-    --theme-option-color: #64d1c5;
-  }
-  .color-option--purple {
-    --theme-option-color: #b5a0f2;
-  }
-}
-
 // Responsive rules shared through the initial shell avoid duplicating sizeable route style blocks.
 @media (max-width: tokens.$breakpoint-tablet) {
   body .cards-page {
@@ -348,16 +397,6 @@ body .dashboard {
 }
 
 @media (max-width: tokens.$breakpoint-mobile) {
-  body .deck-search {
-    flex-wrap: wrap;
-  }
-  body .deck-search label {
-    flex-basis: 100%;
-  }
-  body .deck-search input {
-    min-width: 0;
-  }
-
   body .cards-page {
     padding: 1.75rem var(--space-4) 6.25rem;
   }
@@ -374,21 +413,96 @@ body .dashboard {
   body .cards-page .field--wide {
     grid-column: auto;
   }
-  body .cards-page .search-control {
-    width: 100%;
-    max-width: none;
-  }
   body .cards-page .toolbar-summary {
     justify-content: space-between;
+  }
+  body .cards-page .table-card {
+    overflow: hidden;
+  }
+  body .cards-page .table-header {
+    display: none;
+  }
+  body .cards-page .table-row {
+    min-width: 0;
+    grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'select preview actions'
+      'select copy copy'
+      'select deck updated';
+    align-items: start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+  body .cards-page .table-row > :first-child {
+    grid-area: select;
+    padding-top: 0.25rem;
+  }
+  body .cards-page .card-preview {
+    grid-area: preview;
+  }
+  body .cards-page .card-copy {
+    grid-area: copy;
+  }
+  body .cards-page .table-row > .pill--deck {
+    grid-area: deck;
+  }
+  body .cards-page .updated {
+    grid-area: updated;
+    justify-self: end;
+  }
+  body .cards-page .table-row > app-action-menu {
+    grid-area: actions;
   }
 
   body .practice-page {
     padding: var(--space-5) var(--space-4) var(--space-10);
   }
-  body .practice-page .practice-header,
-  body .practice-page .deck-option {
+  body .practice-page .practice-header {
     align-items: stretch;
     flex-direction: column;
+  }
+  body .practice-page {
+    gap: var(--space-5);
+  }
+  body .practice-page .practice-header > button,
+  body .practice-page .completion-actions > * {
+    width: 100%;
+  }
+  body .practice-page .completion-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  body .practice-page .progress-summary {
+    gap: var(--space-2);
+  }
+  body .practice-page .practice-card,
+  body .practice-page .completion-card {
+    padding: var(--space-6) var(--space-4);
+  }
+  body .practice-page .practice-card h2 {
+    margin-block: var(--space-3) var(--space-6);
+    font-size: clamp(2.25rem, 12vw, 3.5rem);
+  }
+  body .practice-page .definition {
+    padding: var(--space-4);
+    font-size: var(--font-size-md);
+  }
+  body .practice-page .video-context-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  body .practice-page .deck-search {
+    grid-template-columns: 1fr;
+  }
+  body .practice-page .deck-search > button {
+    width: 100%;
+  }
+  body .practice-page .completion-card {
+    margin-top: var(--space-4);
+  }
+  body .practice-page .rating-button {
+    min-height: 5rem;
+    padding-inline: var(--space-2);
   }
   body .practice-page .rating-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -398,13 +512,37 @@ body .dashboard {
   }
 
   body .decks-page {
-    padding: 1.75rem var(--space-4) 6.25rem;
-  }
-  body .decks-page .page-heading,
-  body .decks-page .heading-actions,
-  body .decks-page .deck-actions {
-    align-items: stretch;
-    flex-direction: column;
+    .export-row--header {
+      display: none;
+    }
+    .export-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-4) var(--space-3);
+      padding: var(--space-5) 0;
+    }
+    .export-row__summary,
+    .export-row__action {
+      grid-column: 1 / -1;
+    }
+    .export-row__cell {
+      display: grid;
+      align-content: start;
+      gap: var(--space-1);
+    }
+    .export-row__label {
+      display: block;
+      color: var(--color-text-muted);
+      font-size: var(--font-size-xs);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .export-row__action {
+      justify-self: stretch;
+    }
+    .export-row__action > .loquela-button {
+      width: 100%;
+    }
   }
 
   body .dashboard {
@@ -438,10 +576,8 @@ body .dashboard {
   }
 }
 
-@media (min-width: calc(tokens.$breakpoint-mobile + 0.0625rem)) and (max-width: tokens.$breakpoint-tablet) {
-  body .decks-page {
-    padding-inline: var(--space-6);
-  }
+[data-theme='dark'] body .decks-page {
+  --deck-purple: #b5a0f2;
 }
 
 @media (max-width: 64rem) {
@@ -493,8 +629,5 @@ body .dashboard {
   }
   body .lookup-page .lookup-spinner {
     animation: none;
-  }
-  body .decks-page .deck-scroll {
-    scroll-behavior: auto;
   }
 }

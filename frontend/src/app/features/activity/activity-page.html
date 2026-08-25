@@ -1,8 +1,10 @@
 <div class="activity-page">
   <header class="page-heading">
-    <p class="eyebrow">{{ 'activity.eyebrow' | translate }}</p>
-    <h1>{{ 'activity.title' | translate }}</h1>
-    <p>{{ 'activity.description' | translate }}</p>
+    <div class="page-heading__copy">
+      <p class="eyebrow">{{ 'activity.eyebrow' | translate }}</p>
+      <h1>{{ 'activity.title' | translate }}</h1>
+      <p>{{ 'activity.description' | translate }}</p>
+    </div>
   </header>
 
   <section class="filters" [attr.aria-label]="'activity.filters' | translate">
@@ -19,15 +21,18 @@
         </button>
       }
     </div>
-    <label>
-      {{ 'activity.categoryFilter' | translate }}
-      <select #categorySelect [value]="category" (change)="setCategory(categorySelect.value)">
-        <option value="">{{ 'activity.category.ALL' | translate }}</option>
-        <option value="SOURCE">{{ 'activity.category.SOURCE' | translate }}</option>
-        <option value="LOOKUP">{{ 'activity.category.LOOKUP' | translate }}</option>
-        <option value="EXPORT">{{ 'activity.category.EXPORT' | translate }}</option>
-      </select>
-    </label>
+    <div class="filter-category">
+      <label for="activity-category">{{ 'activity.categoryFilter' | translate }}</label>
+      <p-select
+        inputId="activity-category"
+        [options]="categoryOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="category"
+        (ngModelChange)="setCategory($event)"
+        [fluid]="true"
+      />
+    </div>
   </section>
 
   <p class="refresh-note" role="status">
@@ -65,7 +70,7 @@
           <div class="feed-copy">
             <div class="feed-heading">
               <div>
-                <span class="activity-kind">{{ categoryLabel(item.category) }}</span>
+                <span class="eyebrow">{{ categoryLabel(item.category) }}</span>
                 <h3>{{ title(item) }}</h3>
               </div>
               <app-status-badge [tone]="lifecycleTone(item.lifecycle)">{{

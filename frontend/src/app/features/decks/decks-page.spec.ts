@@ -108,6 +108,29 @@ describe('DecksPage', () => {
     expect(exports).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps empty collections and empty searches distinct', () => {
+    const page = TestBed.createComponent(DecksPage).componentInstance;
+
+    expect(page.emptyTitleKey()).toBe('decks.emptyTitle');
+    expect(page.emptyDescriptionKey()).toBe('decks.emptyDescription');
+
+    page.search.setValue('travel');
+
+    expect(page.emptyTitleKey()).toBe('decks.noResults');
+    expect(page.emptyDescriptionKey()).toBe('decks.noResultsDescription');
+  });
+
+  it('maps export states to semantic status tones and keeps menu actions focused', () => {
+    const page = TestBed.createComponent(DecksPage).componentInstance;
+
+    expect(page.statusTone('READY')).toBe('success');
+    expect(page.statusTone('QUEUED')).toBe('warning');
+    expect(page.statusTone('RUNNING')).toBe('warning');
+    expect(page.statusTone('FAILED')).toBe('danger');
+    expect(page.statusTone('EXPIRED')).toBe('neutral');
+    expect(page.deckActions.map((action) => action.id)).toEqual(['edit', 'delete']);
+  });
+
   it('does not queue an empty deck and exposes a useful error', () => {
     const page = TestBed.createComponent(DecksPage).componentInstance;
 

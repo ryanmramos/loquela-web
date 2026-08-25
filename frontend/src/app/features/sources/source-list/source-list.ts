@@ -1,14 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Table } from 'primeng/table';
 
 import { SourceListQuery, SourceSummary } from '@api/api-adapters/source-api';
 import { ButtonDirective } from '@app/shared/components/button/button.directive';
 import { FormField } from '@app/shared/components/form-field/form-field';
+import { AppIcon } from '@app/shared/components/icon/app-icon';
+import { SearchInput } from '@app/shared/components/search-input/search-input';
 import { Pagination } from '@app/shared/components/pagination/pagination';
 import { StatusBadge, StatusTone } from '@app/shared/components/status-badge/status-badge';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
@@ -23,11 +31,12 @@ import { SourceListState } from './source-list-state';
   imports: [
     ButtonDirective,
     FormField,
-    InputText,
+    AppIcon,
     Pagination,
     ReactiveFormsModule,
     RouterLink,
     Select,
+    SearchInput,
     StatusBadge,
     UiState,
     TranslatePipe,
@@ -45,6 +54,7 @@ export class SourceList {
   private readonly translations = inject(TranslationService);
 
   readonly state = inject(SourceListState);
+  readonly advancedFiltersOpen = signal(false);
   readonly filters = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
     kind: new FormControl('', { nonNullable: true }),
@@ -99,6 +109,7 @@ export class SourceList {
         },
         { emitEvent: false },
       );
+      this.advancedFiltersOpen.set(this.hasActiveFilters());
       this.state.load(this.queryFromRoute());
     });
   }
@@ -120,6 +131,10 @@ export class SourceList {
 
   clearFilters(): void {
     void this.router.navigate([], { relativeTo: this.route });
+  }
+
+  onAdvancedFiltersToggle(event: Event): void {
+    this.advancedFiltersOpen.set((event.target as HTMLDetailsElement).open);
   }
 
   goToPage(page: number): void {
@@ -177,6 +192,27 @@ export class SourceList {
 
   formatStorage(bytes: number | undefined): string {
     return formatBytes(bytes);
+  }
+
+  hasActiveFilters(): boolean {
+    const value = this.filters.getRawValue();
+    return Boolean(
+      value.search.trim() ||
+      value.kind ||
+      value.status ||
+      value.sort !== 'CREATED_AT' ||
+      value.direction !== 'DESC',
+    );
+  }
+
+  emptyTitleKey(): 'sources.emptyLibraryTitle' | 'sources.emptyFilteredTitle' {
+    return this.hasActiveFilters() ? 'sources.emptyFilteredTitle' : 'sources.emptyLibraryTitle';
+  }
+
+  emptyDescriptionKey(): 'sources.emptyLibraryDescription' | 'sources.emptyFilteredDescription' {
+    return this.hasActiveFilters()
+      ? 'sources.emptyFilteredDescription'
+      : 'sources.emptyLibraryDescription';
   }
 
   private queryFromRoute(): SourceListQuery {

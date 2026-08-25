@@ -13,7 +13,7 @@ import {
   BrowserLookupSaveDto,
 } from '@api/generated/models';
 
-export type { BrowserDeckOptionDto, BrowserLookupDto } from '@api/generated/models';
+export type { BrowserDeckOptionDto, BrowserLookupDto, ContextDto } from '@api/generated/models';
 export type DeckOptionPage = BrowserDeckOptionListDto;
 
 export interface BrowserLookupAccepted {

@@ -12,6 +12,7 @@ import { ActionMenu, ActionMenuItem } from '@app/shared/components/action-menu/a
 import { FormField } from '@app/shared/components/form-field/form-field';
 import { UiState } from '@app/shared/components/ui-state/ui-state';
 import { AppIcon } from '@app/shared/components/icon/app-icon';
+import { SearchInput } from '@app/shared/components/search-input/search-input';
 import { TranslatePipe } from '@core/i18n/translate.pipe';
 import { TranslationService } from '@core/i18n/translation.service';
 @Component({
@@ -25,6 +26,7 @@ import { TranslationService } from '@core/i18n/translation.service';
     FormField,
     InputText,
     Select,
+    SearchInput,
     UiState,
     TranslatePipe,
     Textarea,
@@ -55,6 +57,11 @@ export class CardsPage {
   readonly deckFilterOptions = computed(() => [
     { value: '', label: this.translations.translate('cards.allDecks') },
     ...this.deckOptions(),
+  ]);
+  readonly noteTypeOptions = computed(() => [
+    { value: '', label: this.translations.translate('cards.allNoteTypes') },
+    { value: 'BASIC', label: this.translations.translate('cards.basic') },
+    { value: 'BASIC_CONTEXT', label: this.translations.translate('cards.basicContext') },
   ]);
   readonly selected = signal<BrowserCardDto | null>(null);
   readonly editorOpen = signal(false);
