@@ -59,9 +59,7 @@ test('anonymous users see an accessible sign-in page with local accounts', async
   await page.goto('/');
 
   await expect(page).toHaveURL(/\/login\?returnUrl=%2Fapp/u);
-  await expect(
-    page.getByRole('heading', { name: 'Turn what you read into what you remember.' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Keep the words you meet.' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Continue with Google' })).toHaveAttribute(
     'href',
     '/api/v1/auth/google?returnTo=%2Fapp',
@@ -88,9 +86,7 @@ test('local login creates activity access and logout survives browser back', asy
 
   await page.goBack();
   await expect(page).toHaveURL(/\/login/u);
-  await expect(
-    page.getByRole('heading', { name: 'Turn what you read into what you remember.' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Keep the words you meet.' })).toBeVisible();
 });
 
 test('dashboard renders aggregate counts, filtered links, activity, and quick capture', async ({

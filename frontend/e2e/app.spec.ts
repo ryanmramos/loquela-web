@@ -15,9 +15,7 @@ test('the former foundation URL is not an application route', async ({ page }) =
   await page.goto('/foundation');
 
   await expect(page).toHaveURL(/\/login\?returnUrl=%2Fapp/u);
-  await expect(
-    page.getByRole('heading', { name: 'Turn what you read into what you remember.' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Keep the words you meet.' })).toBeVisible();
 });
 
 test('fails safely when runtime configuration is unavailable', async ({ page }) => {
