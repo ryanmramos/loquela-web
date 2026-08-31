@@ -12,7 +12,7 @@ RUN npm run build \
        node tools/prepare-caddy-artifact.mjs
 
 FROM caddy:2.11.4-builder AS caddy-build
-RUN GOTOOLCHAIN=go1.26.5 xcaddy build v2.11.4 \
+RUN GOTOOLCHAIN=go1.26.6 xcaddy build v2.11.4 \
     --with golang.org/x/text@v0.39.0 \
     --with google.golang.org/grpc@v1.82.1
 
