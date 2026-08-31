@@ -30,7 +30,13 @@ jobs:
           cache-dependency-path: exporter/pyproject.toml
       - run: python -m pip install ./exporter
       - run: ./mvnw -B test
-      - run: ./mvnw -B org.owasp:dependency-check-maven:12.2.2:check
+      - name: Run OWASP Dependency-Check
+        run: >-
+          ./mvnw -B
+          org.owasp:dependency-check-maven:12.2.2:check
+          -DnvdApiKeyEnvironmentVariable=NVD_API_KEY
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
       - run: PYTHONPATH=tools python -m unittest tools/test_railway_deploy.py
 
   exporter:
