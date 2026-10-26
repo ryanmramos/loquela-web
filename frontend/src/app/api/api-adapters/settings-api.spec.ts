@@ -85,7 +85,7 @@ describe('SettingsApi', () => {
     const getRequest = httpTesting.expectOne('/api/v1/settings');
     expect(getRequest.request.method).toBe('GET');
     getRequest.flush({
-      profile: { displayName: 'Ryan', email: 'ryan@example.com' },
+      profile: { displayName: 'Test User', email: 'test@example.com' },
       linkedAccounts: { google: true, googleLinkedAt: '2026-07-18T00:00:00Z', whatsapp: false },
       languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
       supportedPairs: [{ sourceLanguage: 'es', definitionLanguage: 'en' }],
@@ -94,7 +94,7 @@ describe('SettingsApi', () => {
       exportIncludeProvenance: true,
     });
     await expect(loaded).resolves.toMatchObject({
-      profile: { displayName: 'Ryan' },
+      profile: { displayName: 'Test User' },
       automaticCaptionFallback: true,
     });
 

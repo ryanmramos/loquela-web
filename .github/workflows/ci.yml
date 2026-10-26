@@ -1,9 +1,7 @@
 name: CI
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -25,7 +23,6 @@ jobs:
           cache: maven
       - run: ./mvnw -B test
       - run: ./mvnw -B org.owasp:dependency-check-maven:12.2.2:check
-      - run: PYTHONPATH=tools python -m unittest tools/test_railway_deploy.py
 
   exporter:
     name: Python exporter
@@ -140,30 +137,3 @@ jobs:
           scanners: vuln
           version: v0.73.0
 
-  publish-images:
-    name: Retain private GHCR evidence
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [backend, exporter, frontend, integrated, containers]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v6
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/loquela-api:${{ github.sha }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: frontend/Dockerfile
-          build-args: RELEASE_ID=${{ github.sha }}
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/loquela-edge:${{ github.sha }}

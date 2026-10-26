@@ -1,6 +1,10 @@
-# Loquela
+# WhatsAnki (retired)
 
-Loquela has a Spring Boot API and an Angular web application. PostgreSQL stores application data.
+> **This project is retired.** It has been replaced by **Loquela**, which is developed in a separate
+> project. This repository is kept read-only for reference and receives no further updates. The
+> hosted deployment has been shut down, and pushes to `main` no longer trigger any pipeline.
+
+WhatsAnki has a Spring Boot API and an Angular web application. PostgreSQL stores application data.
 MinIO provides S3-compatible object storage for local development.
 
 ## Prerequisites

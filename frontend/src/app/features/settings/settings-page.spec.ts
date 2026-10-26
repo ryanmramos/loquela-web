@@ -16,7 +16,7 @@ import { SettingsPage } from './settings-page';
 class EmptyRoute {}
 
 const settings: BrowserSettings = {
-  profile: { displayName: 'Ryan Ramos', email: 'ryan@example.com' },
+  profile: { displayName: 'Test User', email: 'test@example.com' },
   linkedAccounts: { google: true, googleLinkedAt: '2026-07-18T00:00:00Z', whatsapp: false },
   languagePair: { sourceLanguage: 'es', definitionLanguage: 'en' },
   supportedPairs: [
@@ -68,7 +68,7 @@ describe('SettingsPage', () => {
   it('loads Google metadata and starts each preference form pristine', () => {
     const component = TestBed.createComponent(SettingsPage).componentInstance;
 
-    expect(component.settings()?.profile.displayName).toBe('Ryan Ramos');
+    expect(component.settings()?.profile.displayName).toBe('Test User');
     expect(component.languageForm.pristine).toBe(true);
     expect(component.captionForm.pristine).toBe(true);
     expect(component.exportForm.pristine).toBe(true);
@@ -91,7 +91,7 @@ describe('SettingsPage', () => {
       'Privacy & data',
     ]);
     expect(element.querySelector('.account-details span')?.textContent?.trim()).toBe(
-      'ryan@example.com',
+      'test@example.com',
     );
     expect(toggles).toHaveLength(2);
     expect([...toggles].every((toggle) => toggle.getAttribute('role') === 'switch')).toBe(true);

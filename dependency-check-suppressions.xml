@@ -7,9 +7,6 @@
             no Tomcat examples application or WebSocket chat example. Apache's vendor advisory
             explicitly says deployments without the examples web application are unaffected.
 
-            Owner: Loquela maintainer
-            Approved: 2026-08-05
-            Review and expiry: 2026-09-04
             Tracking: replace Tomcat 11.0.24 with 11.0.25 or later when released, then remove
             this suppression.
             Vendor advisory: https://lists.apache.org/thread/8owczcc1o8qw1rxmg9gvfk4w2jnh4l5k

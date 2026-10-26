@@ -51,8 +51,8 @@ interface ShellNavigationGroup {
 export class AppShell {
   protected readonly themes = inject(ThemeService);
   private readonly translations = inject(TranslationService);
-  readonly userName = input('Ryan Ramos');
-  readonly userEmail = input('ryan@example.com');
+  readonly userName = input('Test User');
+  readonly userEmail = input('test@example.com');
   readonly activeJobCount = input<number | null>(null);
   readonly cardsToStudy = input<number | null>(null);
   readonly isAdmin = input(false);
